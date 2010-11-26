@@ -89,9 +89,13 @@ void initGL() {
     printf("Unable to initialize SDL: %s\n", SDL_GetError());
   }
 
+  const SDL_VideoInfo *vi = SDL_GetVideoInfo();
+  screenX = vi->current_w;
+  screenY = vi->current_h;
+
   SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
-  screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE /*| SDL_FULLSCREEN*/);
+  screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE | SDL_FULLSCREEN);
   if ( !screen ) {
 	  printf("Unable to set video mode: %s\n", SDL_GetError());
 	}
@@ -133,6 +137,8 @@ void initGL() {
   loadTexture("tex/holz.bmp", 1);
   loadTexture("tex/ziegel.bmp", 2);
   loadTexture("tex/gras.bmp", 3);
+
+  activateTexture(2);
 
   gen_land();
   gen_gllist();
