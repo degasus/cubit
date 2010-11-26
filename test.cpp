@@ -38,7 +38,7 @@ float speedOnX = 0.5f;
 float speedOnY = 0.5f;
 float speedOnZ = 0.5f;
 
-float fastSpeedMultiplier = 10.0f;
+float fastSpeedMultiplier = 5.0f;
 
 bool xDown = false;
 bool xUp = false;
@@ -403,7 +403,7 @@ void gen_gllist() {
 
 	for(int x=0; x<xsize; x++) for(int y=0; y<ysize; y++) for(int z=0; z<zsize; z++) if(landschaft[x*ysize*zsize + y*zsize  + z]) {
 
-		if(z == zsize-1 || !landschaft[x*ysize*zsize + y*zsize  + z+1]) {
+		if(z != zsize-1 && !landschaft[x*ysize*zsize + y*zsize  + z+1]) {
 			glNormal3f( 0.0f, 0.0f, 1.0f);					// Normal Pointing Towards Viewer
 			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
 			glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 2 (Front)
@@ -411,7 +411,7 @@ void gen_gllist() {
 			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 4 (Front)
 		}
 		// Back Face
-		if(z == 0 || !landschaft[x*ysize*zsize + y*zsize  + z-1]) {
+		if(z != 0 && !landschaft[x*ysize*zsize + y*zsize  + z-1]) {
 			glNormal3f( 0.0f, 0.0f,-1.0f);					// Normal Pointing Away From Viewer
 			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Back)
 			glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 2 (Back)
@@ -419,7 +419,7 @@ void gen_gllist() {
 			glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 4 (Back)
 		}
 		// Top Face
-		if(y == ysize-1 || !landschaft[x*ysize*zsize + (y+1)*zsize  + z]) {
+		if(y != ysize-1 && !landschaft[x*ysize*zsize + (y+1)*zsize  + z]) {
 			glNormal3f( 0.0f, 1.0f, 0.0f);					// Normal Pointing Up
 			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 1 (Top)
 			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 2 (Top)
@@ -427,7 +427,7 @@ void gen_gllist() {
 			glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 4 (Top)
 		}
 		// Bottom Face
-		if(y == 0 || !landschaft[x*ysize*zsize + (y-1)*zsize  + z]) {
+		if(y != 0 && !landschaft[x*ysize*zsize + (y-1)*zsize  + z]) {
 			glNormal3f( 0.0f,-1.0f, 0.0f);					// Normal Pointing Down
 			glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Bottom)
 			glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 2 (Bottom)
@@ -435,7 +435,7 @@ void gen_gllist() {
 			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 4 (Bottom)
 		}
 		// Right face
-		if(x == xsize-1 || !landschaft[(x+1)*ysize*zsize + y*zsize  + z]) {
+		if(x != xsize-1 && !landschaft[(x+1)*ysize*zsize + y*zsize  + z]) {
 			glNormal3f( 1.0f, 0.0f, 0.0f);					// Normal Pointing Right
 			glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 1 (Right)
 			glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 2 (Right)
@@ -443,7 +443,7 @@ void gen_gllist() {
 			glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 4 (Right)
 		}
 		// Left Face
-		if(x == 0 || !landschaft[(x-1)*ysize*zsize + y*zsize  + z]) {
+		if(x != 0 && !landschaft[(x-1)*ysize*zsize + y*zsize  + z]) {
 			glNormal3f(-1.0f, 0.0f, 0.0f);				// Normal Pointing Left
 			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Left)
 			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 2 (Left)
