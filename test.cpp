@@ -66,9 +66,9 @@ const int k_fastSpeed = SDLK_SPACE;
 const int k_QUIT = SDLK_ESCAPE;
 
 // Landschaft
-int xsize = 64;
-int ysize = 16;
-int zsize = 64;
+int xsize = 32;
+int ysize = 32;
+int zsize = 32;
 unsigned char *landschaft;
 
 
@@ -192,12 +192,14 @@ void EventLoop(void)
 		    case SDLK_PLUS:
 			    xsize*=2;
 			    zsize*=2;
+			    ysize*=2;
 			    gen_land();
 			    gen_gllist();
 			    break;
 		    case SDLK_MINUS:
 			    xsize/=2;
 			    zsize/=2;
+			    ysize/=2;
 			    gen_land();
 			    gen_gllist();
 			    break;
@@ -480,6 +482,7 @@ void draw() {
 	// Landschaft zeichen
 	glCallList(box);
 
+
 	SDL_GL_SwapBuffers();
 }
 
@@ -498,9 +501,9 @@ void gen_land() {
 		hoehe[x][z] = ysize/2;
 
 		if(x>0 && z>0 && z<zsize-1) {
-			hoehe[x][z] = (hoehe[x-1][z-1] + hoehe[x-1][z] + hoehe[x-1][z+1] + hoehe[x][z-1] + rand()%12 - 4) / 4;
+			hoehe[x][z] = (hoehe[x-1][z-1] + hoehe[x-1][z] + hoehe[x-1][z+1] + rand()%4 - 2) / 3;
 			if(hoehe[x][z] < 1) hoehe[x][z] = 1;
-			if(hoehe[x][z] > ysize-1) hoehe[x][z] = ysize-1;
+			if(hoehe[x][z] > ysize-2) hoehe[x][z] = ysize-2;
 
 		}
 	}
@@ -511,7 +514,7 @@ void gen_land() {
 	for(int x=0; x<xsize; x++) for(int y=0; y<ysize; y++) for(int z=0; z<zsize; z++) {
 		if(y>hoehe[x][z])
 			landschaft[x*ysize*zsize + y*zsize  + z] = 0;
-		if(y<hoehe[x][z])
+		else
 			landschaft[x*ysize*zsize + y*zsize  + z] = 1;
 	}
 }
