@@ -191,24 +191,24 @@ void EventLoop(void)
                     case k_QUIT:
                         done = true;
                         break;
-		    case SDLK_r:
-			    gen_land();
-			    gen_gllist();
-			    break;
-		    case SDLK_PLUS:
-			    xsize*=2;
-			    zsize*=2;
-			    ysize*=2;
-			    gen_land();
-			    gen_gllist();
-			    break;
-		    case SDLK_MINUS:
-			    xsize/=2;
-			    zsize/=2;
-			    ysize/=2;
-			    gen_land();
-			    gen_gllist();
-			    break;
+		                case SDLK_r:
+			                  gen_land();
+			                  gen_gllist();
+			                  break;
+		                case SDLK_PLUS:
+			                  xsize*=2;
+			                  zsize*=2;
+			                  ysize*=2;
+			                  gen_land();
+			                  gen_gllist();
+			                  break;
+		                case SDLK_MINUS:
+			                  xsize/=2;
+			                  zsize/=2;
+			                  ysize/=2;
+			                  gen_land();
+			                  gen_gllist();
+			                  break;
 
                     default:
                         break;
@@ -241,6 +241,27 @@ void EventLoop(void)
                         break;
                 }
                 break;
+            case SDL_MOUSEBUTTONDOWN:
+                switch(event.button.button){
+                    case SDL_BUTTON_LEFT:
+                      if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] == 0) {
+                        landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] = 1;
+			                  gen_gllist();
+			                }
+			                break;
+                    case SDL_BUTTON_RIGHT:
+                      if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] != 0) {
+                        landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] = 0;
+			                  gen_gllist();
+			               }
+			                  break;
+                    default:
+                        break;
+                }
+		          //if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] != 0){
+		            
+		          //}
+              break;
 
             case SDL_MOUSEMOTION:
 		          if(enable_rotate) {
