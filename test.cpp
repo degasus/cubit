@@ -34,18 +34,19 @@ float posX = 0.0f;
 float posY = -20.0f;
 float posZ = 0.0f;
 
-float speedOnX = 0.5f;
-float speedOnY = 0.5f;
-float speedOnZ = 0.5f;
+float speedOnX = 0.2f;
+float speedOnZ = 0.2f;
+
+float speedY = 0.0f;
+float accelY = -0.02f;
 
 float fastSpeedMultiplier = 5.0f;
 
 bool xDown = false;
 bool xUp = false;
-bool yDown = false;
-bool yUp = false;
 bool zDown = false;
 bool zUp = false;
+bool jump = false;
 bool fastSpeed = false;
 
 //Frame size
@@ -56,13 +57,14 @@ int screenY = 768;
 //CONSTANTS
 
 //Keys
-const int k_xDown = SDLK_d;
-const int k_xUp = SDLK_a;
+const int k_xDown = SDLK_a;
+const int k_xUp = SDLK_d;
 const int k_yDown = SDLK_e;
 const int k_yUp = SDLK_q;
-const int k_zDown = SDLK_s;
-const int k_zUp = SDLK_w;
-const int k_fastSpeed = SDLK_SPACE;
+const int k_zDown = SDLK_w;
+const int k_zUp = SDLK_s;
+const int k_jump = SDLK_SPACE;
+const int k_fastSpeed = SDLK_f;
 const int k_QUIT = SDLK_ESCAPE;
 
 // Landschaft
@@ -131,6 +133,11 @@ void initGL() {
   glLightfv(GL_LIGHT1, GL_POSITION,LightPosition);
   glEnable(GL_LIGHT1);
   glEnable(GL_LIGHTING);
+  
+  enable_rotate = 1;
+	SDL_ShowCursor(SDL_DISABLE);
+	x_orig = screenX/2;
+	y_orig = screenY/2;
 
   //generate Textures
   glGenTextures( numberOfTex, texture );
@@ -167,17 +174,14 @@ void EventLoop(void)
                     case k_xUp:
                         xUp = true;
                         break;
-                    case k_yUp:
-                        yUp = true;
-                        break;
-                    case k_yDown:
-                        yDown = true;
-                        break;
                     case k_zUp:
                         zUp = true;
                         break;
                     case k_zDown:
                         zDown = true;
+                        break;
+                    case k_jump:
+                        jump = true;
                         break;
                     case k_fastSpeed:
                         fastSpeed = true;
@@ -217,12 +221,6 @@ void EventLoop(void)
                     case k_xUp:
                         xUp = false;
                         break;
-                    case k_yUp:
-                        yUp = false;
-                        break;
-                    case k_yDown:
-                        yDown = false;
-                        break;
                     case k_zUp:
                         zUp = false;
                         break;
@@ -232,26 +230,15 @@ void EventLoop(void)
                     case k_fastSpeed:
                         fastSpeed = false;
                         break;
+                    case k_jump:
+                        jump = false;
+                        break;
                     default:
                         //print keycode of unregistered key
                         //cout << event.key.keysym.sym << endl;
                         break;
                 }
                 break;
-
-            case SDL_MOUSEBUTTONDOWN:
-		        if(event.button.button == SDL_BUTTON_LEFT) {
-			        enable_rotate = 1;
-			        SDL_ShowCursor(SDL_DISABLE);
-			        x_orig = event.motion.x;
-			        y_orig = event.motion.y;
-		        }
-		        if(event.button.button == SDL_BUTTON_RIGHT && enable_rotate == 1) {
-			        enable_rotate = 0;
-			        SDL_ShowCursor(SDL_ENABLE);
-			        SDL_WarpMouse(x_orig, y_orig);
-		        }
-		        break;
 
             case SDL_MOUSEMOTION:
 		          if(enable_rotate) {
@@ -311,12 +298,6 @@ void sphereSpeed()
         posX += speedOnX*cos(2*M_PI*x/360)*mult;
         posZ += speedOnZ*sin(2*M_PI*x/360)*mult;
     }
-    if (yUp){
-        posY += speedOnY*mult;
-    }
-    if (yDown){
-        posY -= speedOnY*mult;
-    }
     if (zDown){
         posZ -= speedOnZ*cos(2*M_PI*x/360)*mult;
         posX += speedOnX*sin(2*M_PI*x/360)*mult;
@@ -325,6 +306,25 @@ void sphereSpeed()
         posZ += speedOnZ*cos(2*M_PI*x/360)*mult;
         posX -= speedOnX*sin(2*M_PI*x/360)*mult;
     }
+    if(posX<=0) posX = 0;
+    if(posX>=xsize-1) posX = xsize-1;
+    if(posY<=1) posY = 1;
+    if(posY>=ysize-2) posY = ysize-2;
+    if(posZ<=0) posZ = 0;
+    if(posZ>=zsize-1) posZ = zsize-1;
+    
+    if (landschaft[((int)posX)*ysize*zsize + ((int)posY-1)*zsize + (int)posZ] == 0){
+      speedY += accelY;
+      if (speedY >= 0.99f)
+        speedY = 0.99f;
+    }
+    posY += speedY;
+    if (landschaft[((int)posX)*ysize*zsize + ((int)posY-1)*zsize + (int)posZ] != 0){
+      posY = int(posY)+1;
+      speedY = 0;
+    }
+    if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-1.5f))*zsize + (int)posZ] != 0 && jump)
+      speedY = 0.2f;
 }
 
 Uint32 GameLoopTimer(Uint32 interval, void* param)
@@ -476,7 +476,7 @@ void draw() {
 	glRotatef(x,0.0f,1.0f,0.0f);
 
 	//Eigene Position
-	glTranslatef(posX,posY,posZ);
+	glTranslatef(-posX+0.5f,-posY,-posZ+0.5f);
 
 	activateTexture(2);
 	// Landschaft zeichen
