@@ -11,7 +11,7 @@ using namespace std;
 const int RUN_GAME_LOOP = 1;
 
 //GL vars
-const int numberOfTex = 3;
+const int numberOfTex = 4;
 GLuint texture[numberOfTex];
 GLuint box;
 
@@ -65,6 +65,9 @@ const int k_zUp = SDLK_w;
 const int k_fastSpeed = SDLK_SPACE;
 const int k_QUIT = SDLK_ESCAPE;
 
+// Landschaft
+unsigned char landschaft[128][32][128];
+
 
 //PROCEDURES
 
@@ -74,7 +77,8 @@ void draw();
 void sphereSpeed();
 void loadTexture(const char*, int);
 void activateTexture(int);
-void gen_box();
+void gen_gllist();
+void gen_land();
 
 void initGL() {
   // Slightly different SDL initialization
@@ -114,7 +118,7 @@ void initGL() {
   GLfloat LightAmbient[]= { 0.5f, 0.5f, 0.5f, 1.0f };
   GLfloat LightDiffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f };
   GLfloat LightPosition[]= { 0.5f, 1.0f, 5.0f, 1.0f };
-  
+
   glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient);
   glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse);
   glLightfv(GL_LIGHT1, GL_POSITION,LightPosition);
@@ -123,11 +127,13 @@ void initGL() {
 
   //generate Textures
   glGenTextures( numberOfTex, texture );
-  loadTexture("tex/holz.bmp", 0);
-  loadTexture("tex/ziegel.bmp", 1);
-  loadTexture("tex/gras.bmp", 2);
+  loadTexture("tex/holz.bmp", 1);
+  loadTexture("tex/ziegel.bmp", 2);
+  loadTexture("tex/gras.bmp", 3);
 
-  gen_box();
+  gen_land();
+  gen_gllist();
+
 
 	SDL_TimerID timer = SDL_AddTimer(40,GameLoopTimer,0);
 
@@ -224,7 +230,7 @@ void EventLoop(void)
 			          x += float(event.motion.x-x_orig)/10;
                       if (x >  360) x -= 360;
                       if (x < -360) x += 360;
-                                          
+
 			          y += float(event.motion.y-y_orig)/10;
                       if (y > 90) y = 90;
                       if (y < -90) y = -90;
@@ -348,9 +354,9 @@ void loadTexture(const char *texFile, int id) {
         // Set the texture's stretching properties
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        
 
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 3, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels); 	
+
+        gluBuild2DMipmaps(GL_TEXTURE_2D, 3, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
     }
     else {
         printf("SDL could not load %s: %s\n", texFile, SDL_GetError());
@@ -363,62 +369,65 @@ void loadTexture(const char *texFile, int id) {
     }
 }
 
-void gen_box() {
+void gen_gllist() {
 	box=glGenLists(1);
 	glNewList(box,GL_COMPILE);
 
-    activateTexture(0);
-	 glBegin( GL_QUADS );
-		glNormal3f( 0.0f, 0.0f, 1.0f);					// Normal Pointing Towards Viewer
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5, -0.5,  0.5);	// Point 1 (Front)
-		glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5, -0.5,  0.5);	// Point 2 (Front)
-		glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5,  0.5,  0.5);	// Point 3 (Front)
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5,  0.5,  0.5);	// Point 4 (Front)
+	glBegin( GL_QUADS );
+
+	for(int x=0; x<128; x++) for(int y=0; y<32; y++) for(int z=0; z<128; z++) if(landschaft[x][y][z]) {
+
+		if(z == 127 || !landschaft[x][y][z+1]) {
+			glNormal3f( 0.0f, 0.0f, 1.0f);					// Normal Pointing Towards Viewer
+			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
+			glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 2 (Front)
+			glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Front)
+			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 4 (Front)
+		}
 		// Back Face
-		glNormal3f( 0.0f, 0.0f,-1.0f);					// Normal Pointing Away From Viewer
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5, -0.5, -0.5);	// Point 1 (Back)
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5,  0.5, -0.5);	// Point 2 (Back)
-		glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5,  0.5, -0.5);	// Point 3 (Back)
-		glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5, -0.5, -0.5);	// Point 4 (Back)
-		 glEnd();
-		activateTexture(1);
-	 glBegin( GL_QUADS );
+		if(z == 0 || !landschaft[x][y][z-1]) {
+			glNormal3f( 0.0f, 0.0f,-1.0f);					// Normal Pointing Away From Viewer
+			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Back)
+			glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 2 (Back)
+			glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 3 (Back)
+			glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 4 (Back)
+		}
 		// Top Face
-		glNormal3f( 0.0f, 1.0f, 0.0f);					// Normal Pointing Up
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5,  0.5, -0.5);	// Point 1 (Top)
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5,  0.5,  0.5);	// Point 2 (Top)
-		glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5,  0.5,  0.5);	// Point 3 (Top)
-		glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5,  0.5, -0.5);	// Point 4 (Top)
+		if(y == 31 || !landschaft[x][y+1][z]) {
+			glNormal3f( 0.0f, 1.0f, 0.0f);					// Normal Pointing Up
+			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 1 (Top)
+			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 2 (Top)
+			glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Top)
+			glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 4 (Top)
+		}
 		// Bottom Face
-		glNormal3f( 0.0f,-1.0f, 0.0f);					// Normal Pointing Down
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5, -0.5, -0.5);	// Point 1 (Bottom)
-		glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5, -0.5, -0.5);	// Point 2 (Bottom)
-		glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5, -0.5,  0.5);	// Point 3 (Bottom)
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5, -0.5,  0.5);	// Point 4 (Bottom)
-		 glEnd();
-		activateTexture(2);
-	 glBegin( GL_QUADS );
+		if(y == 0 || !landschaft[x][y-1][z]) {
+			glNormal3f( 0.0f,-1.0f, 0.0f);					// Normal Pointing Down
+			glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Bottom)
+			glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 2 (Bottom)
+			glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 3 (Bottom)
+			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 4 (Bottom)
+		}
 		// Right face
-		glNormal3f( 1.0f, 0.0f, 0.0f);					// Normal Pointing Right
-		glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5, -0.5, -0.5);	// Point 1 (Right)
-		glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5,  0.5, -0.5);	// Point 2 (Right)
-		glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5,  0.5,  0.5);	// Point 3 (Right)
-		glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5, -0.5,  0.5);	// Point 4 (Right)
+		if(x == 127 || !landschaft[x+1][y][z]) {
+			glNormal3f( 1.0f, 0.0f, 0.0f);					// Normal Pointing Right
+			glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 1 (Right)
+			glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 2 (Right)
+			glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Right)
+			glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 4 (Right)
+		}
 		// Left Face
-		glNormal3f(-1.0f, 0.0f, 0.0f);				// Normal Pointing Left
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5, -0.5, -0.5);	// Point 1 (Left)
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5, -0.5,  0.5);	// Point 2 (Left)
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5,  0.5,  0.5);	// Point 3 (Left)
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5,  0.5, -0.5);	// Point 4 (Left)
+		if(x == 0 || !landschaft[x-1][y][z]) {
+			glNormal3f(-1.0f, 0.0f, 0.0f);				// Normal Pointing Left
+			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Left)
+			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 2 (Left)
+			glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 3 (Left)
+			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 4 (Left)
+		}
 
-    glEnd();
+	}
+	glEnd();
 	glEndList();
-}
-
-void draw_box(int x, int y, int z) {
-	glTranslatef(x,y,z);
-	glCallList(box);
-	glTranslatef(-x,-y,-z);
 }
 
 
@@ -441,82 +450,8 @@ void draw() {
   //Eigene Position
 	glTranslatef(posX,posY,posZ);
 
-  //Kugelposition
-  glTranslatef(0.0f,0.0f,-70.0f);
-  
-  //INNERE KUGEL
-  //Kugeldrehung
-	/*glRotatef(-t*2,0.0f,1.0f,0.0f);
-
-  //Kugel zeichnen
-  activateTexture(1);
-	int sphereSize2=12;
-	for(int x=-sphereSize2; x<=sphereSize2; x++) for(int y=-sphereSize2; y<=sphereSize2; y++) for(int z=-sphereSize2; z<=sphereSize2; z++) {
-		if(x*x+y*y+z*z < sphereSize2*sphereSize2 && x*x+y*y+z*z > (sphereSize2)*(sphereSize2-1.5f))
-			draw_box(x,y,z);
-	}
-	
-	//zurücksetzen
-	glRotatef(t*2,0.0f,1.0f,0.0f);*/
-    
-  //Boden in Kugel
-  activateTexture(2);
-	for(int x=-10; x<11; x++) for(int z=-10; z<11; z++) {
-		if(x*x+z*z < 60)
-			draw_box(x,-3,z);
-	}
-
-  //Kugeldrehung
-	glRotatef(t,0.0f,1.0f,0.0f);
-	
-	//fuzzyrotate
-	glRotatef(t*4.475293,1.0f,0.0f,0.0f);
-	glRotatef(t*5.234523,0.0f,0.0f,1.0f);
-
-  //Kugel zeichnen
-  activateTexture(1);
-  
-  //blending test
-  /*glDisable(GL_TEXTURE_2D);
-  glEnable(GL_BLEND);
-  glColor4f(0.0f,1.0f,1.0f,1.0f);
-	//glBlendFunc(GL_SRC_ALPHA,GL_ONE);
-  glBlendFunc((0.0f,1.0f,1.0f,1.0f), (0.0f,1.0f,1.0f,1.0f));*/
-  
-    
-	int sphereSize=20;
-	//int drawP = 0;
-	for(int x=-sphereSize; x<=sphereSize; x++) for(int y=-sphereSize; y<=sphereSize; y++) for(int z=-sphereSize; z<=sphereSize; z++) {
-	  /*int old = x;
-	  int old2 = y;
-	  int old3 = z;
-	  if (x < 0){
-	    x -= 3;
-	  }
-	  if (x > 0){
-	    x += 3;
-	  }
-	  if (y < 0){
-	    y -= 3;
-	  }
-	  if (y > 0){
-	    y += 3;
-	  }
-	  if (z < 0){
-	    z -= 3;
-	  }
-	  if (z > 0){
-	    z += 3;
-	  }*/
-		if(x*x+y*y+z*z < sphereSize*sphereSize && x*x+y*y+z*z > (sphereSize)*(sphereSize-1) /*&& x != 0 && y != 0 && z != 0*/)
-		  draw_box(x,y,z);
-		/*x = old;
-		y = old2;
-		z = old3;*/
-	}
-	
-	//glEnable(GL_TEXTURE_2D);
-  //glDisable(GL_BLEND);
+	// Landschaft zeichen
+	glCallList(box);
 
   SDL_GL_SwapBuffers();
 }
@@ -526,4 +461,27 @@ int main() {
 	EventLoop();
 
 	return 0;
+}
+
+void gen_land() {
+
+	int hoehe[128][128];
+
+	for(int x=0; x<128; x++) for(int z=0; z<128; z++) {
+		hoehe[x][z] = 16;
+
+		if(x>0 && z>0 && z<127) {
+			hoehe[x][z] = (hoehe[x-1][z-1] + hoehe[x-1][z] + hoehe[x-1][z+1] + rand()%7 - 2) / 3;
+			if(hoehe[x][z] <= 0) hoehe[x][z] = 1;
+			if(hoehe[x][z] >= 31) hoehe[x][z] = 31;
+
+		}
+	}
+
+	for(int x=0; x<128; x++)  for(int z=0; z<128; z++) for(int y=0; y<32; y++){
+		if(y>hoehe[x][z])
+			landschaft[x][y][z] = 0;
+		if(y<hoehe[x][z])
+			landschaft[x][y][z] = 1;
+	}
 }
