@@ -34,6 +34,8 @@ float posX = 0.0f;
 float posY = -20.0f;
 float posZ = 0.0f;
 
+float offset = 0.3f;
+
 float speedOnX = 0.2f;
 float speedOnZ = 0.2f;
 
@@ -119,7 +121,7 @@ void initGL() {
 	glLoadIdentity();							// Reset The Projection Matrix
 
 	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f,(GLfloat)screenX/(GLfloat)screenY,0.1f,1000.0f);
+	gluPerspective(45.0f,(GLfloat)screenX/(GLfloat)screenY,0.01f,1000.0f);
 
 	glMatrixMode(GL_MODELVIEW);						// Select The Modelview Matrix
 	glLoadIdentity();							// Reset The Modelview Matrix
@@ -290,6 +292,9 @@ void sphereSpeed()
     if (fastSpeed){
       mult = fastSpeedMultiplier;
     }
+    float posXold = posX;
+    float posZold = posZ;
+    
     if (xDown){
         posX -= speedOnX*cos(2*M_PI*x/360)*mult;
         posZ -= speedOnZ*sin(2*M_PI*x/360)*mult;
@@ -306,6 +311,20 @@ void sphereSpeed()
         posZ += speedOnZ*cos(2*M_PI*x/360)*mult;
         posX -= speedOnX*sin(2*M_PI*x/360)*mult;
     }
+    
+    //Collision Detection
+    if (   (landschaft[((int)(posX+offset))*ysize*zsize + ((int)posY)*zsize + (int)posZold] != 0 && posX > posXold)
+        || (landschaft[((int)(posX+offset))*ysize*zsize + ((int)(posY+1.0f))*zsize + (int)posZold] != 0 && posX > posXold)
+        || (landschaft[((int)(posX-offset))*ysize*zsize + ((int)posY)*zsize + (int)posZold] != 0 && posX < posXold) 
+        || (landschaft[((int)(posX-offset))*ysize*zsize + ((int)(posY+1.0f))*zsize + (int)posZold] != 0 && posX < posXold))
+      posX = posXold;
+    if (   (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)(posZ+offset)] != 0 && posZ > posZold)
+        || (landschaft[((int)posX)*ysize*zsize + ((int)(posY+1.0f))*zsize + (int)(posZ+offset)] != 0 && posZ > posZold)
+        || (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)(posZ-offset)] != 0 && posZ < posZold)
+        || (landschaft[((int)posX)*ysize*zsize + ((int)(posY+1.0f))*zsize + (int)(posZ-offset)] != 0 && posZ < posZold))
+      posZ = posZold;
+      
+    //Randbegrenzung
     if(posX<=0) posX = 0;
     if(posX>=xsize-1) posX = xsize-1;
     if(posY<=1) posY = 1;
@@ -313,17 +332,20 @@ void sphereSpeed()
     if(posZ<=0) posZ = 0;
     if(posZ>=zsize-1) posZ = zsize-1;
     
-    if (landschaft[((int)posX)*ysize*zsize + ((int)posY-1)*zsize + (int)posZ] == 0){
+    //Fallen
+    if (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)posZ] == 0){
       speedY += accelY;
       if (speedY >= 0.99f)
         speedY = 0.99f;
     }
     posY += speedY;
-    if (landschaft[((int)posX)*ysize*zsize + ((int)posY-1)*zsize + (int)posZ] != 0){
+    if (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)posZ] != 0){
       posY = int(posY)+1;
       speedY = 0;
     }
-    if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-1.5f))*zsize + (int)posZ] != 0 && jump)
+    
+    //Springen
+    if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] != 0 && jump)
       speedY = 0.2f;
 }
 
@@ -476,7 +498,7 @@ void draw() {
 	glRotatef(x,0.0f,1.0f,0.0f);
 
 	//Eigene Position
-	glTranslatef(-posX+0.5f,-posY,-posZ+0.5f);
+	glTranslatef(-posX+0.5f,-posY-1.0f,-posZ+0.5f);
 
 	activateTexture(2);
 	// Landschaft zeichen
