@@ -133,7 +133,7 @@ void initGL() {
   glLightfv(GL_LIGHT1, GL_POSITION,LightPosition);
   glEnable(GL_LIGHT1);
   glEnable(GL_LIGHTING);
-  
+
   enable_rotate = 1;
 	SDL_ShowCursor(SDL_DISABLE);
 	x_orig = screenX/2;
@@ -308,23 +308,25 @@ void sphereSpeed()
     }
     if(posX<=0) posX = 0;
     if(posX>=xsize-1) posX = xsize-1;
-    if(posY<=1) posY = 1;
-    if(posY>=ysize-2) posY = ysize-2;
     if(posZ<=0) posZ = 0;
     if(posZ>=zsize-1) posZ = zsize-1;
-    
+
     if (landschaft[((int)posX)*ysize*zsize + ((int)posY-1)*zsize + (int)posZ] == 0){
       speedY += accelY;
       if (speedY >= 0.99f)
         speedY = 0.99f;
     }
     posY += speedY;
+
+    if(posY<=1) posY = 1;
+    if(posY>=ysize-2) posY = ysize-2;
+
     if (landschaft[((int)posX)*ysize*zsize + ((int)posY-1)*zsize + (int)posZ] != 0){
       posY = int(posY)+1;
       speedY = 0;
     }
     if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-1.5f))*zsize + (int)posZ] != 0 && jump)
-      speedY = 0.2f;
+      speedY = 0.2f*mult;
 }
 
 Uint32 GameLoopTimer(Uint32 interval, void* param)
