@@ -527,7 +527,7 @@ void gen_land() {
 		hoehe[x][z] = ysize/2;
 
 		if(x>0 && z>0 && z<zsize-1) {
-			hoehe[x][z] = (hoehe[x-1][z-1] + hoehe[x-1][z] + hoehe[x-1][z+1] + rand()%4 - 2) / 3;
+			hoehe[x][z] = (hoehe[x-1][z-1] + hoehe[x-1][z] + hoehe[x-1][z+1] + rand()%7 - 2) / 3;
 			if(hoehe[x][z] < 1) hoehe[x][z] = 1;
 			if(hoehe[x][z] > ysize-2) hoehe[x][z] = ysize-2;
 
