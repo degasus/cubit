@@ -25,13 +25,13 @@ bool done = 0;
 //drehen
 int x_orig;
 int y_orig;
-float x = 0;
-float y = 0;
+float x = 135;
+float y = 20;
 bool enable_rotate = 0;
 
 //bewegen
 float posX = 0.0f;
-float posY = 0.0f;
+float posY = -20.0f;
 float posZ = 0.0f;
 
 float speedOnX = 0.5f;
@@ -49,8 +49,8 @@ bool zUp = false;
 bool fastSpeed = false;
 
 //Frame size
-int screenX = 1820;
-int screenY = 1100;
+int screenX = 1024;
+int screenY = 768;
 
 
 //CONSTANTS
@@ -66,7 +66,10 @@ const int k_fastSpeed = SDLK_SPACE;
 const int k_QUIT = SDLK_ESCAPE;
 
 // Landschaft
-unsigned char landschaft[128][32][128];
+int xsize = 64;
+int ysize = 16;
+int zsize = 64;
+unsigned char *landschaft;
 
 
 //PROCEDURES
@@ -176,6 +179,23 @@ void EventLoop(void)
                     case k_QUIT:
                         done = true;
                         break;
+		    case SDLK_r:
+			    gen_land();
+			    gen_gllist();
+			    break;
+		    case SDLK_PLUS:
+			    xsize*=2;
+			    zsize*=2;
+			    gen_land();
+			    gen_gllist();
+			    break;
+		    case SDLK_MINUS:
+			    xsize/=2;
+			    zsize/=2;
+			    gen_land();
+			    gen_gllist();
+			    break;
+
                     default:
                         break;
                 }
@@ -375,9 +395,9 @@ void gen_gllist() {
 
 	glBegin( GL_QUADS );
 
-	for(int x=0; x<128; x++) for(int y=0; y<32; y++) for(int z=0; z<128; z++) if(landschaft[x][y][z]) {
+	for(int x=0; x<xsize; x++) for(int y=0; y<ysize; y++) for(int z=0; z<zsize; z++) if(landschaft[x*ysize*zsize + y*zsize  + z]) {
 
-		if(z == 127 || !landschaft[x][y][z+1]) {
+		if(z == zsize-1 || !landschaft[x*ysize*zsize + y*zsize  + z+1]) {
 			glNormal3f( 0.0f, 0.0f, 1.0f);					// Normal Pointing Towards Viewer
 			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
 			glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 2 (Front)
@@ -385,7 +405,7 @@ void gen_gllist() {
 			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 4 (Front)
 		}
 		// Back Face
-		if(z == 0 || !landschaft[x][y][z-1]) {
+		if(z == 0 || !landschaft[x*ysize*zsize + y*zsize  + z-1]) {
 			glNormal3f( 0.0f, 0.0f,-1.0f);					// Normal Pointing Away From Viewer
 			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Back)
 			glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 2 (Back)
@@ -393,7 +413,7 @@ void gen_gllist() {
 			glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 4 (Back)
 		}
 		// Top Face
-		if(y == 31 || !landschaft[x][y+1][z]) {
+		if(y == ysize-1 || !landschaft[x*ysize*zsize + (y+1)*zsize  + z]) {
 			glNormal3f( 0.0f, 1.0f, 0.0f);					// Normal Pointing Up
 			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 1 (Top)
 			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 2 (Top)
@@ -401,7 +421,7 @@ void gen_gllist() {
 			glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 4 (Top)
 		}
 		// Bottom Face
-		if(y == 0 || !landschaft[x][y-1][z]) {
+		if(y == 0 || !landschaft[x*ysize*zsize + (y-1)*zsize  + z]) {
 			glNormal3f( 0.0f,-1.0f, 0.0f);					// Normal Pointing Down
 			glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Bottom)
 			glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 2 (Bottom)
@@ -409,7 +429,7 @@ void gen_gllist() {
 			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 4 (Bottom)
 		}
 		// Right face
-		if(x == 127 || !landschaft[x+1][y][z]) {
+		if(x == xsize-1 || !landschaft[(x+1)*ysize*zsize + y*zsize  + z]) {
 			glNormal3f( 1.0f, 0.0f, 0.0f);					// Normal Pointing Right
 			glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 1 (Right)
 			glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 2 (Right)
@@ -417,7 +437,7 @@ void gen_gllist() {
 			glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 4 (Right)
 		}
 		// Left Face
-		if(x == 0 || !landschaft[x-1][y][z]) {
+		if(x == 0 || !landschaft[(x-1)*ysize*zsize + y*zsize  + z]) {
 			glNormal3f(-1.0f, 0.0f, 0.0f);				// Normal Pointing Left
 			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Left)
 			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 2 (Left)
@@ -443,17 +463,18 @@ void draw() {
 	if (t>360) t -= 360;
 	if (t<-360) t += 360;
 
-  //Mausbewegung
-  glRotatef(y,1.0f,0.0f,0.0f);
+	//Mausbewegung
+	glRotatef(y,1.0f,0.0f,0.0f);
 	glRotatef(x,0.0f,1.0f,0.0f);
 
-  //Eigene Position
+	//Eigene Position
 	glTranslatef(posX,posY,posZ);
 
+	activateTexture(2);
 	// Landschaft zeichen
 	glCallList(box);
 
-  SDL_GL_SwapBuffers();
+	SDL_GL_SwapBuffers();
 }
 
 int main() {
@@ -465,23 +486,26 @@ int main() {
 
 void gen_land() {
 
-	int hoehe[128][128];
+	int hoehe[xsize][zsize];
 
-	for(int x=0; x<128; x++) for(int z=0; z<128; z++) {
-		hoehe[x][z] = 16;
+	for(int x=0; x<xsize; x++) for(int z=0; z<zsize; z++) {
+		hoehe[x][z] = ysize/2;
 
-		if(x>0 && z>0 && z<127) {
-			hoehe[x][z] = (hoehe[x-1][z-1] + hoehe[x-1][z] + hoehe[x-1][z+1] + rand()%7 - 2) / 3;
-			if(hoehe[x][z] <= 0) hoehe[x][z] = 1;
-			if(hoehe[x][z] >= 31) hoehe[x][z] = 31;
+		if(x>0 && z>0 && z<zsize-1) {
+			hoehe[x][z] = (hoehe[x-1][z-1] + hoehe[x-1][z] + hoehe[x-1][z+1] + hoehe[x][z-1] + rand()%12 - 4) / 4;
+			if(hoehe[x][z] < 1) hoehe[x][z] = 1;
+			if(hoehe[x][z] > ysize-1) hoehe[x][z] = ysize-1;
 
 		}
 	}
 
-	for(int x=0; x<128; x++)  for(int z=0; z<128; z++) for(int y=0; y<32; y++){
+	if(landschaft)	delete [] landschaft;
+	landschaft = new unsigned char[xsize*ysize*zsize];
+
+	for(int x=0; x<xsize; x++) for(int y=0; y<ysize; y++) for(int z=0; z<zsize; z++) {
 		if(y>hoehe[x][z])
-			landschaft[x][y][z] = 0;
+			landschaft[x*ysize*zsize + y*zsize  + z] = 0;
 		if(y<hoehe[x][z])
-			landschaft[x][y][z] = 1;
+			landschaft[x*ysize*zsize + y*zsize  + z] = 1;
 	}
 }
