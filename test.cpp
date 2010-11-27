@@ -35,6 +35,7 @@ float posY = -20.0f;
 float posZ = 0.0f;
 
 float offset = 0.3f;
+float offsetY = 0.1f;
 
 float speedOnX = 0.2f;
 float speedOnZ = 0.2f;
@@ -42,7 +43,7 @@ float speedOnZ = 0.2f;
 float speedY = 0.0f;
 float accelY = -0.02f;
 
-float fastSpeedMultiplier = 5.0f;
+float fastSpeedMultiplier = 5.72341f;
 
 bool xDown = false;
 bool xUp = false;
@@ -313,7 +314,10 @@ void sphereSpeed()
     if (fastSpeed){
       mult = fastSpeedMultiplier;
     }
+    
+    //Movement
     float posXold = posX;
+    float posYold = posY;
     float posZold = posZ;
 
     if (xDown){
@@ -332,27 +336,7 @@ void sphereSpeed()
         posZ += speedOnZ*cos(2*M_PI*x/360)*mult;
         posX -= speedOnX*sin(2*M_PI*x/360)*mult;
     }
-
-    //Collision Detection
-    if (   (landschaft[((int)(posX+offset))*ysize*zsize + ((int)posY)*zsize + (int)posZold] != 0 && posX > posXold)
-        || (landschaft[((int)(posX+offset))*ysize*zsize + ((int)(posY+1.0f))*zsize + (int)posZold] != 0 && posX > posXold)
-        || (landschaft[((int)(posX-offset))*ysize*zsize + ((int)posY)*zsize + (int)posZold] != 0 && posX < posXold)
-        || (landschaft[((int)(posX-offset))*ysize*zsize + ((int)(posY+1.0f))*zsize + (int)posZold] != 0 && posX < posXold))
-      posX = posXold;
-    if (   (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)(posZ+offset)] != 0 && posZ > posZold)
-        || (landschaft[((int)posX)*ysize*zsize + ((int)(posY+1.0f))*zsize + (int)(posZ+offset)] != 0 && posZ > posZold)
-        || (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)(posZ-offset)] != 0 && posZ < posZold)
-        || (landschaft[((int)posX)*ysize*zsize + ((int)(posY+1.0f))*zsize + (int)(posZ-offset)] != 0 && posZ < posZold))
-      posZ = posZold;
-
-    //Randbegrenzung
-    if(posX<=0) posX = 0;
-    if(posX>=xsize-1) posX = xsize-1;
-    if(posZ<=0) posZ = 0;
-    if(posZ>=zsize-1) posZ = zsize-1;
-
-
-    //Fallen
+    //Fallen + Springen
     if (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)posZ] == 0){
       speedY += accelY;
       if (speedY >= 0.99f)
@@ -360,8 +344,33 @@ void sphereSpeed()
     }
     posY += speedY;
 
+    //Collision Detection
+    //X-Richtung
+    if (   (landschaft[((int)(posX+offset))*ysize*zsize + ((int)posYold)*zsize + (int)posZold] != 0 && posX > posXold)
+        || (landschaft[((int)(posX+offset))*ysize*zsize + ((int)(posYold+1.0f))*zsize + (int)posZold] != 0 && posX > posXold)
+        || (landschaft[((int)(posX-offset))*ysize*zsize + ((int)posYold)*zsize + (int)posZold] != 0 && posX < posXold)
+        || (landschaft[((int)(posX-offset))*ysize*zsize + ((int)(posYold+1.0f))*zsize + (int)posZold] != 0 && posX < posXold))
+      posX = posXold;
+    //Z-Richtung
+    if (   (landschaft[((int)posXold)*ysize*zsize + ((int)posYold)*zsize + (int)(posZ+offset)] != 0 && posZ > posZold)
+        || (landschaft[((int)posXold)*ysize*zsize + ((int)(posYold+1.0f))*zsize + (int)(posZ+offset)] != 0 && posZ > posZold)
+        || (landschaft[((int)posXold)*ysize*zsize + ((int)posYold)*zsize + (int)(posZ-offset)] != 0 && posZ < posZold)
+        || (landschaft[((int)posXold)*ysize*zsize + ((int)(posYold+1.0f))*zsize + (int)(posZ-offset)] != 0 && posZ < posZold))
+      posZ = posZold;
+    //Y-Richtung
+    if ((landschaft[((int)posX)*ysize*zsize + ((int)(posY+1.5f+offsetY))*zsize + (int)(posZ)] != 0)){
+      posY = posYold;
+      speedY = 0;
+    }
+
+    //Randbegrenzung
+    if(posX<=0) posX = 0;
+    if(posX>=xsize-1) posX = xsize-1;
+    if(posZ<=0) posZ = 0;
+    if(posZ>=zsize-1) posZ = zsize-1;
     if(posY<=1) posY = 1;
     if(posY>=ysize-2) posY = ysize-2;
+    
 
     if (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)posZ] != 0){
       posY = int(posY)+1;
@@ -369,7 +378,7 @@ void sphereSpeed()
     }
 
     //Springen
-    if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] != 0 && jump)
+    if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.1f))*zsize + (int)posZ] != 0 && jump)
       speedY = 0.2f*mult;
 
 }
@@ -427,7 +436,7 @@ void loadTexture(const char *texFile, int id) {
         glBindTexture( GL_TEXTURE_2D, texture[id] );
 
         // Set the texture's stretching properties
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
+        //glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
 
@@ -548,7 +557,7 @@ void gen_land() {
 		hoehe[x][z] = ysize/2;
 
 		if(x>0 && z>0 && z<zsize-1) {
-			hoehe[x][z] = (hoehe[x-1][z-1] + hoehe[x-1][z] + hoehe[x-1][z+1] + rand()%7 - 2) / 3;
+			hoehe[x][z] = (hoehe[x-1][z-1] + hoehe[x-1][z] + hoehe[x-1][z+1] /*+ rand()%4 - 2*/) / 3;
 			if(hoehe[x][z] < 1) hoehe[x][z] = 1;
 			if(hoehe[x][z] > ysize-2) hoehe[x][z] = ysize-2;
 
@@ -563,5 +572,6 @@ void gen_land() {
 			landschaft[x*ysize*zsize + y*zsize  + z] = 0;
 		else
 			landschaft[x*ysize*zsize + y*zsize  + z] = 1;
+
 	}
 }
