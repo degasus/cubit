@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "matrix.h"
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 #include <cmath>
@@ -103,6 +104,7 @@ void HandleUserEvents(SDL_Event* event);
 void draw();
 void calcBuilding();
 void calcMovement();
+int calcPointingOn(float vectorX, float vectorY, float vectorZ);
 void loadTexture(const char*, int);
 void activateTexture(int);
 void gen_gllist();
@@ -118,12 +120,12 @@ void initGL() {
   screenX = vi->current_w;
   screenY = vi->current_h;
 
-  //screenX = 1366;
-  //screenY = 768;
+  screenX = 1366;
+  screenY = 768;
 
   SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
-  screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE | SDL_FULLSCREEN);
+  screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE /*| SDL_FULLSCREEN*/);
   if ( !screen ) {
 	  printf("Unable to set video mode: %s\n", SDL_GetError());
 	}
@@ -189,6 +191,10 @@ void initGL() {
 
 }
 
+void debug(){
+	cout << calcPointingOn(posX - floor(posX), posY - floor(posY), posZ - floor(posZ)) << endl;
+}
+
 void EventLoop(void)
 {
     SDL_Event event;
@@ -199,6 +205,7 @@ void EventLoop(void)
                 HandleUserEvents(&event);
                 calcMovement();
                 calcBuilding();
+				debug();
 		            break;
             case SDL_KEYDOWN:
                 switch(event.key.keysym.sym){
@@ -490,6 +497,76 @@ void calcMovement()
     }
 }
 
+int calcPointingOn(float startX, float startY, float startZ){
+	Matrix<float,3,3> left(0);
+	Matrix<float,1,3> right(0);
+	Matrix<float,1,3> result(0);
+
+	//bleibt immer gleich (Blickrichtung)
+	left.data[2][0] = cos(x) * cos(y);
+	left.data[2][1] = sin(x) * cos(y);
+	left.data[2][2] = sin(y);
+
+	//Fläche 0 (Front)
+	left.data[0][0] = 1;
+	left.data[1][1] = 1;
+	right.data[0][0] = startX;
+	right.data[0][1] = startY;
+	right.data[0][2] = startZ -1;
+	result = left.LU().solve(right);
+	if( 0 < result.data[0][0] && result.data[0][0] < 1
+	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	   && 0 < result.data[0][2])
+		return 0;
+
+	//Fläche 1 (Back)
+	right.data[0][2] = startZ;
+	result = left.LU().solve(right);
+	if( 0 < result.data[0][0] && result.data[0][0] < 1
+	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	   && 0 < result.data[0][2])
+		return 1;
+
+	//Fläche 2 (Top)
+	left.data[1][1] = 0;
+	left.data[1][2] = 1;
+	right.data[0][1] = startY -1;
+	result = left.LU().solve(right);
+	if( 0 < result.data[0][0] && result.data[0][0] < 1
+	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	   && 0 < result.data[0][2])
+		return 2;
+
+	//Fläche 3 (Bottom)
+	right.data[0][1] = startY;
+	result = left.LU().solve(right);
+	if( 0 < result.data[0][0] && result.data[0][0] < 1
+	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	   && 0 < result.data[0][2])
+		return 3;
+	
+	//Fläche 4 (Right)
+	left.data[0][0] = 0;
+	left.data[0][1] = 1;
+	right.data[0][0] = startX -1;
+	result = left.LU().solve(right);
+	if( 0 < result.data[0][0] && result.data[0][0] < 1
+	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	   && 0 < result.data[0][2])
+		return 4;
+
+	//Fläche 5 (Left)
+	right.data[0][0] = startX;
+	result = left.LU().solve(right);
+	if( 0 < result.data[0][0] && result.data[0][0] < 1
+	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	   && 0 < result.data[0][2])
+		return 5;
+
+	//Falls keine Austrittsebene gefunden wird Error
+	assert(0);
+}
+
 Uint32 GameLoopTimer(Uint32 interval, void* param)
 {
     // Create a user event to call the game loop.
@@ -570,6 +647,7 @@ void gen_gllist() {
 	 	glBegin( GL_QUADS );
 	  for(int x=0; x<xsize; x++) for(int y=0; y<ysize; y++) for(int z=0; z<zsize; z++) {
       if(landschaft[x*ysize*zsize + y*zsize  + z] == i){
+        // Front Face 0
 		    if(z != zsize-1 && !landschaft[x*ysize*zsize + y*zsize  + z+1]) {
 			    glNormal3f( 0.0f, 0.0f, 1.0f);					// Normal Pointing Towards Viewer
 			    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
@@ -577,7 +655,7 @@ void gen_gllist() {
 			    glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Front)
 			    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 4 (Front)
 		    }
-		    // Back Face
+		    // Back Face 1
 		    if(z != 0 && !landschaft[x*ysize*zsize + y*zsize  + z-1]) {
 			    glNormal3f( 0.0f, 0.0f,-1.0f);					// Normal Pointing Away From Viewer
 			    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Back)
@@ -585,7 +663,7 @@ void gen_gllist() {
 			    glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 3 (Back)
 			    glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 4 (Back)
 		    }
-		    // Top Face
+		    // Top Face 2
 		    if(y != ysize-1 && !landschaft[x*ysize*zsize + (y+1)*zsize  + z]) {
 			    glNormal3f( 0.0f, 1.0f, 0.0f);					// Normal Pointing Up
 			    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 1 (Top)
@@ -593,7 +671,7 @@ void gen_gllist() {
 			    glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Top)
 			    glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 4 (Top)
 		    }
-		    // Bottom Face
+		    // Bottom Face 3
 		    if(y != 0 && !landschaft[x*ysize*zsize + (y-1)*zsize  + z]) {
 			    glNormal3f( 0.0f,-1.0f, 0.0f);					// Normal Pointing Down
 			    glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Bottom)
@@ -601,7 +679,7 @@ void gen_gllist() {
 			    glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 3 (Bottom)
 			    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 4 (Bottom)
 		    }
-		    // Right face
+		    // Right face 4
 		    if(x != xsize-1 && !landschaft[(x+1)*ysize*zsize + y*zsize  + z]) {
 			    glNormal3f( 1.0f, 0.0f, 0.0f);					// Normal Pointing Right
 			    glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 1 (Right)
@@ -609,7 +687,7 @@ void gen_gllist() {
 			    glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Right)
 			    glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 4 (Right)
 		    }
-		    // Left Face
+		    // Left Face 5
 		    if(x != 0 && !landschaft[(x-1)*ysize*zsize + y*zsize  + z]) {
 			    glNormal3f(-1.0f, 0.0f, 0.0f);				// Normal Pointing Left
 			    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Left)
