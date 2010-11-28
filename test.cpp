@@ -376,8 +376,8 @@ void calcBuilding(){
   if(addBlock){
     lastAdd++;
     if(lastAdd >= addDelay){
-      if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] == 0) {
-        landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] = 1;
+      if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.7f))*zsize + (int)posZ] == 0) {
+        landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.7f))*zsize + (int)posZ] = 1;
         lastAdd = 0;
         gen_gllist();
       }
@@ -676,7 +676,7 @@ void draw() {
 	glRotatef(x,0.0f,1.0f,0.0f);
 
 	//Eigene Position
-	glTranslatef(-posX+0.5f,-posY-personSize-0.5f,-posZ+0.5f);
+	glTranslatef(-posX+0.5f,-posY-personSize+0.5f,-posZ+0.5f);
 
 	activateTexture(2);
 	// Landschaft zeichen
