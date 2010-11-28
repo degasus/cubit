@@ -214,6 +214,8 @@ void EventLoop(void)
                         break;
                     case k_Duck:
                         duck = true;
+                        offset *= 2;
+                        offsetFallen *= 2;
                         movementSpeed = slowMovementSpeed;
                         break;
 		                case SDLK_r:
@@ -277,6 +279,8 @@ void EventLoop(void)
                         break;
                     case k_Duck:
                         duck = false;
+                        offset /= 2;
+                        offsetFallen /= 2;
                         movementSpeed = fastMovementSpeed;
                         break;
                     default:
@@ -358,27 +362,8 @@ void sphereSpeed()
       mult = fastSpeedMultiplier;
     }
     
-    //Movement
-    float posXold = posX;
-    float posYold = posY;
-    float posZold = posZ;
-
-    if (xDown){
-        posX -= movementSpeed*cos(2*M_PI*x/360)*mult;
-        posZ -= movementSpeed*sin(2*M_PI*x/360)*mult;
-    }
-    if (xUp){
-        posX += movementSpeed*cos(2*M_PI*x/360)*mult;
-        posZ += movementSpeed*sin(2*M_PI*x/360)*mult;
-    }
-    if (zDown){
-        posZ -= movementSpeed*cos(2*M_PI*x/360)*mult;
-        posX += movementSpeed*sin(2*M_PI*x/360)*mult;
-    }
-    if (zUp){
-        posZ += movementSpeed*cos(2*M_PI*x/360)*mult;
-        posX -= movementSpeed*sin(2*M_PI*x/360)*mult;
-    }
+    //Y-Bewegung
+    
     //Fallen
     if ((landschaft[((int)(posX+offsetFallen))*ysize*zsize + ((int)posY)*zsize + (int)posZ] == 0)
         && (landschaft[((int)(posX-offsetFallen))*ysize*zsize + ((int)(posY))*zsize + (int)posZ] == 0)
@@ -397,6 +382,29 @@ void sphereSpeed()
     if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.1f))*zsize + (int)posZ] != 0 && jump)
       speedY = 0.24f*mult;
     
+    //Movement
+    float posXold = posX;
+    float posYold = posY;
+    float posZold = posZ;
+
+    //Horizontale Bewegung
+    if (xDown){
+        posX -= movementSpeed*cos(2*M_PI*x/360)*mult;
+        posZ -= movementSpeed*sin(2*M_PI*x/360)*mult;
+    }
+    if (xUp){
+        posX += movementSpeed*cos(2*M_PI*x/360)*mult;
+        posZ += movementSpeed*sin(2*M_PI*x/360)*mult;
+    }
+    if (zDown){
+        posZ -= movementSpeed*cos(2*M_PI*x/360)*mult;
+        posX += movementSpeed*sin(2*M_PI*x/360)*mult;
+    }
+    if (zUp){
+        posZ += movementSpeed*cos(2*M_PI*x/360)*mult;
+        posX -= movementSpeed*sin(2*M_PI*x/360)*mult;
+    }
+    //Vertikale Bewegung
     posY += speedY;
 
     //Collision Detection
@@ -427,12 +435,13 @@ void sphereSpeed()
     if(posY>=ysize-2) posY = ysize-2;
     
 
+    //Falls Person in Block "Aufzug" nach oben
     if (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)posZ] != 0){
       posY = int(posY)+1;
       speedY = 0;
     }
 
-    //Ducken
+    //Ducken animieren
     if (duck && personSize > 1.3f){
       personSize -= 0.05;
     }
@@ -516,57 +525,59 @@ void gen_gllist() {
 	glNewList(box,GL_COMPILE);
 
 	glBegin( GL_QUADS );
-
-	for(int x=0; x<xsize; x++) for(int y=0; y<ysize; y++) for(int z=0; z<zsize; z++) if(landschaft[x*ysize*zsize + y*zsize  + z]) {
-
-		if(z != zsize-1 && !landschaft[x*ysize*zsize + y*zsize  + z+1]) {
-			glNormal3f( 0.0f, 0.0f, 1.0f);					// Normal Pointing Towards Viewer
-			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
-			glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 2 (Front)
-			glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Front)
-			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 4 (Front)
-		}
-		// Back Face
-		if(z != 0 && !landschaft[x*ysize*zsize + y*zsize  + z-1]) {
-			glNormal3f( 0.0f, 0.0f,-1.0f);					// Normal Pointing Away From Viewer
-			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Back)
-			glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 2 (Back)
-			glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 3 (Back)
-			glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 4 (Back)
-		}
-		// Top Face
-		if(y != ysize-1 && !landschaft[x*ysize*zsize + (y+1)*zsize  + z]) {
-			glNormal3f( 0.0f, 1.0f, 0.0f);					// Normal Pointing Up
-			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 1 (Top)
-			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 2 (Top)
-			glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Top)
-			glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 4 (Top)
-		}
-		// Bottom Face
-		if(y != 0 && !landschaft[x*ysize*zsize + (y-1)*zsize  + z]) {
-			glNormal3f( 0.0f,-1.0f, 0.0f);					// Normal Pointing Down
-			glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Bottom)
-			glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 2 (Bottom)
-			glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 3 (Bottom)
-			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 4 (Bottom)
-		}
-		// Right face
-		if(x != xsize-1 && !landschaft[(x+1)*ysize*zsize + y*zsize  + z]) {
-			glNormal3f( 1.0f, 0.0f, 0.0f);					// Normal Pointing Right
-			glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 1 (Right)
-			glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 2 (Right)
-			glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Right)
-			glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 4 (Right)
-		}
-		// Left Face
-		if(x != 0 && !landschaft[(x-1)*ysize*zsize + y*zsize  + z]) {
-			glNormal3f(-1.0f, 0.0f, 0.0f);				// Normal Pointing Left
-			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Left)
-			glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 2 (Left)
-			glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 3 (Left)
-			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 4 (Left)
-		}
-
+  for(int i=1; i < numberOfTex; i++){
+    activateTexture(i);
+	  for(int x=0; x<xsize; x++) for(int y=0; y<ysize; y++) for(int z=0; z<zsize; z++) {
+      if(landschaft[x*ysize*zsize + y*zsize  + z] == i){
+		    if(z != zsize-1 && !landschaft[x*ysize*zsize + y*zsize  + z+1]) {
+			    glNormal3f( 0.0f, 0.0f, 1.0f);					// Normal Pointing Towards Viewer
+			    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
+			    glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 2 (Front)
+			    glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Front)
+			    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 4 (Front)
+		    }
+		    // Back Face
+		    if(z != 0 && !landschaft[x*ysize*zsize + y*zsize  + z-1]) {
+			    glNormal3f( 0.0f, 0.0f,-1.0f);					// Normal Pointing Away From Viewer
+			    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Back)
+			    glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 2 (Back)
+			    glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 3 (Back)
+			    glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 4 (Back)
+		    }
+		    // Top Face
+		    if(y != ysize-1 && !landschaft[x*ysize*zsize + (y+1)*zsize  + z]) {
+			    glNormal3f( 0.0f, 1.0f, 0.0f);					// Normal Pointing Up
+			    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 1 (Top)
+			    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 2 (Top)
+			    glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Top)
+			    glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 4 (Top)
+		    }
+		    // Bottom Face
+		    if(y != 0 && !landschaft[x*ysize*zsize + (y-1)*zsize  + z]) {
+			    glNormal3f( 0.0f,-1.0f, 0.0f);					// Normal Pointing Down
+			    glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Bottom)
+			    glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 2 (Bottom)
+			    glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 3 (Bottom)
+			    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 4 (Bottom)
+		    }
+		    // Right face
+		    if(x != xsize-1 && !landschaft[(x+1)*ysize*zsize + y*zsize  + z]) {
+			    glNormal3f( 1.0f, 0.0f, 0.0f);					// Normal Pointing Right
+			    glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 1 (Right)
+			    glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 2 (Right)
+			    glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Right)
+			    glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 4 (Right)
+		    }
+		    // Left Face
+		    if(x != 0 && !landschaft[(x-1)*ysize*zsize + y*zsize  + z]) {
+			    glNormal3f(-1.0f, 0.0f, 0.0f);				// Normal Pointing Left
+			    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Left)
+			    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 2 (Left)
+			    glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 3 (Left)
+			    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 4 (Left)
+		    }
+		  }
+    }
 	}
 	glEnd();
 	glEndList();
@@ -622,7 +633,7 @@ void gen_land() {
 		if(y>hoehe[x][z])
 			landschaft[x*ysize*zsize + y*zsize  + z] = 0;
 		else
-			landschaft[x*ysize*zsize + y*zsize  + z] = 1;
+			landschaft[x*ysize*zsize + y*zsize  + z] = (rand()%(numberOfTex-1))+1;
 
 	}
 }
