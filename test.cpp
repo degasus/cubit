@@ -14,6 +14,10 @@ const int RUN_GAME_LOOP = 1;
 const int numberOfTex = 4;
 GLuint texture[numberOfTex];
 GLuint box;
+//fog
+GLfloat fogColor[4]= {0.1f, 0.1f, 0.1f, 1.0f};		// Fog Color
+float fogDense = 0.35f;
+float fogStartFactor = 0.70f;
 
 //SDL vars
 SDL_Surface *screen;
@@ -35,14 +39,17 @@ float posY = -20.0f;
 float posZ = 0.0f;
 
 float offset = 0.3f;
+float offsetFallen = 0.2;
 float offsetY = 0.1f;
-
-float speedOnX = 0.2f;
-float speedOnZ = 0.2f;
 
 float speedY = 0.0f;
 float accelY = -0.02f;
 
+float personSize = 1.5f;
+
+float slowMovementSpeed = 0.03f;
+float fastMovementSpeed = 0.2f;
+float movementSpeed = 0.2f;
 float fastSpeedMultiplier = 5.72341f;
 
 bool xDown = false;
@@ -51,6 +58,7 @@ bool zDown = false;
 bool zUp = false;
 bool jump = false;
 bool fastSpeed = false;
+bool duck = false;
 
 //Frame size
 int screenX = 1024;
@@ -69,6 +77,7 @@ const int k_zUp = SDLK_s;
 const int k_jump = SDLK_SPACE;
 const int k_fastSpeed = SDLK_f;
 const int k_QUIT = SDLK_ESCAPE;
+const int k_Duck = SDLK_LSHIFT;
 
 // Landschaft
 int xsize = 32;
@@ -98,6 +107,9 @@ void initGL() {
   screenX = vi->current_w;
   screenY = vi->current_h;
 
+  //screenX = 1366;
+  //screenY = 768;
+
   SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
   screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE | SDL_FULLSCREEN);
@@ -114,7 +126,8 @@ void initGL() {
 	glEnable(GL_DEPTH_TEST);						// Enables Depth Testing
 	glDepthFunc(GL_LEQUAL);							// The Type Of Depth Testing To Do
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);			// Really Nice Perspective Calculations
-
+	glHint(GL_LINE_SMOOTH, GL_NICEST);
+	glEnable(GL_LINE_SMOOTH);
 
 	glViewport(0, 0, screenX, screenY);						// Reset The Current Viewport
 
@@ -136,6 +149,14 @@ void initGL() {
   glLightfv(GL_LIGHT1, GL_POSITION,LightPosition);
   glEnable(GL_LIGHT1);
   glEnable(GL_LIGHTING);
+
+  glFogi(GL_FOG_MODE, GL_LINEAR);		// Fog Mode
+  glFogfv(GL_FOG_COLOR, fogColor);			// Set Fog Color
+  glFogf(GL_FOG_DENSITY, fogDense);				// How Dense Will The Fog Be
+  glHint(GL_FOG_HINT, GL_DONT_CARE);			// Fog Hint Value
+  glFogf(GL_FOG_START, xsize*fogStartFactor);
+	glFogf(GL_FOG_END, xsize);	
+  glEnable(GL_FOG);					// Enables GL_FOG
 
   enable_rotate = 1;
 	SDL_ShowCursor(SDL_DISABLE);
@@ -167,8 +188,7 @@ void EventLoop(void)
             case SDL_USEREVENT:
                 HandleUserEvents(&event);
                 sphereSpeed();
-		    break;
-
+		            break;
             case SDL_KEYDOWN:
                 switch(event.key.keysym.sym){
                     case k_xDown:
@@ -192,6 +212,10 @@ void EventLoop(void)
                     case k_QUIT:
                         done = true;
                         break;
+                    case k_Duck:
+                        duck = true;
+                        movementSpeed = slowMovementSpeed;
+                        break;
 		                case SDLK_r:
 			                  gen_land();
 			                  gen_gllist();
@@ -202,6 +226,8 @@ void EventLoop(void)
 			                  ysize*=2;
 			                  gen_land();
 			                  gen_gllist();
+			                  glFogf(GL_FOG_START, xsize*fogStartFactor);
+			                  glFogf(GL_FOG_END, xsize);	
 			                  break;
 		                case SDLK_MINUS:
 			                  xsize/=2;
@@ -209,8 +235,21 @@ void EventLoop(void)
 			                  ysize/=2;
 			                  gen_land();
 			                  gen_gllist();
+			                  glFogf(GL_FOG_START, xsize*fogStartFactor);
+			                  glFogf(GL_FOG_END, xsize);	
 			                  break;
-
+                    case SDLK_u:
+	                      fogDense += 0.1f;
+	                      if (fogDense > 1)
+	                        fogDense = 1;
+                        glFogf(GL_FOG_DENSITY, fogDense);	
+                        break;
+                    case SDLK_j:
+	                      fogDense -= 0.1f;
+	                      if (fogDense < 0)
+	                        fogDense = 0;
+                        glFogf(GL_FOG_DENSITY, fogDense);
+                        break;
                     default:
                         break;
                 }
@@ -235,6 +274,10 @@ void EventLoop(void)
                         break;
                     case k_jump:
                         jump = false;
+                        break;
+                    case k_Duck:
+                        duck = false;
+                        movementSpeed = fastMovementSpeed;
                         break;
                     default:
                         //print keycode of unregistered key
@@ -321,27 +364,39 @@ void sphereSpeed()
     float posZold = posZ;
 
     if (xDown){
-        posX -= speedOnX*cos(2*M_PI*x/360)*mult;
-        posZ -= speedOnZ*sin(2*M_PI*x/360)*mult;
+        posX -= movementSpeed*cos(2*M_PI*x/360)*mult;
+        posZ -= movementSpeed*sin(2*M_PI*x/360)*mult;
     }
     if (xUp){
-        posX += speedOnX*cos(2*M_PI*x/360)*mult;
-        posZ += speedOnZ*sin(2*M_PI*x/360)*mult;
+        posX += movementSpeed*cos(2*M_PI*x/360)*mult;
+        posZ += movementSpeed*sin(2*M_PI*x/360)*mult;
     }
     if (zDown){
-        posZ -= speedOnZ*cos(2*M_PI*x/360)*mult;
-        posX += speedOnX*sin(2*M_PI*x/360)*mult;
+        posZ -= movementSpeed*cos(2*M_PI*x/360)*mult;
+        posX += movementSpeed*sin(2*M_PI*x/360)*mult;
     }
     if (zUp){
-        posZ += speedOnZ*cos(2*M_PI*x/360)*mult;
-        posX -= speedOnX*sin(2*M_PI*x/360)*mult;
+        posZ += movementSpeed*cos(2*M_PI*x/360)*mult;
+        posX -= movementSpeed*sin(2*M_PI*x/360)*mult;
     }
-    //Fallen + Springen
-    if (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)posZ] == 0){
+    //Fallen
+    if ((landschaft[((int)(posX+offsetFallen))*ysize*zsize + ((int)posY)*zsize + (int)posZ] == 0)
+        && (landschaft[((int)(posX-offsetFallen))*ysize*zsize + ((int)(posY))*zsize + (int)posZ] == 0)
+        && (landschaft[((int)posX)*ysize*zsize + ((int)(posY))*zsize + (int)(posZ+offsetFallen)] == 0)
+        && (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)(posZ-offsetFallen)] == 0))    
+    {
       speedY += accelY;
       if (speedY >= 0.99f)
         speedY = 0.99f;
     }
+    else if(speedY < 0){
+      speedY = 0;
+    }
+    
+    //Springen
+    if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.1f))*zsize + (int)posZ] != 0 && jump)
+      speedY = 0.24f*mult;
+    
     posY += speedY;
 
     //Collision Detection
@@ -358,7 +413,7 @@ void sphereSpeed()
         || (landschaft[((int)posXold)*ysize*zsize + ((int)(posYold+1.0f))*zsize + (int)(posZ-offset)] != 0 && posZ < posZold))
       posZ = posZold;
     //Y-Richtung
-    if ((landschaft[((int)posX)*ysize*zsize + ((int)(posY+1.5f+offsetY))*zsize + (int)(posZ)] != 0)){
+    if ((landschaft[((int)posX)*ysize*zsize + ((int)(posY+personSize+offsetY))*zsize + (int)(posZ)] != 0)){
       posY = posYold;
       speedY = 0;
     }
@@ -377,10 +432,13 @@ void sphereSpeed()
       speedY = 0;
     }
 
-    //Springen
-    if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.1f))*zsize + (int)posZ] != 0 && jump)
-      speedY = 0.2f*mult;
-
+    //Ducken
+    if (duck && personSize > 1.3f){
+      personSize -= 0.05;
+    }
+    if (!duck && personSize < 1.5f){
+      personSize += 0.05;
+    }
 }
 
 Uint32 GameLoopTimer(Uint32 interval, void* param)
@@ -514,25 +572,18 @@ void gen_gllist() {
 	glEndList();
 }
 
-
-float t = 0;
 void draw() {
 
    // Clear the screen before drawing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
 	glLoadIdentity();							// Reset The View
 
-	t += 1;
-
-	if (t>360) t -= 360;
-	if (t<-360) t += 360;
-
 	//Mausbewegung
 	glRotatef(y,1.0f,0.0f,0.0f);
 	glRotatef(x,0.0f,1.0f,0.0f);
 
 	//Eigene Position
-	glTranslatef(-posX+0.5f,-posY-1.0f,-posZ+0.5f);
+	glTranslatef(-posX+0.5f,-posY-personSize-0.5f,-posZ+0.5f);
 
 	activateTexture(2);
 	// Landschaft zeichen
@@ -557,7 +608,7 @@ void gen_land() {
 		hoehe[x][z] = ysize/2;
 
 		if(x>0 && z>0 && z<zsize-1) {
-			hoehe[x][z] = (hoehe[x-1][z-1] + hoehe[x-1][z] + hoehe[x-1][z+1] /*+ rand()%4 - 2*/) / 3;
+			hoehe[x][z] = (hoehe[x-1][z-1] + hoehe[x-1][z] + hoehe[x-1][z+1] + rand()%4 - 2) / 3;
 			if(hoehe[x][z] < 1) hoehe[x][z] = 1;
 			if(hoehe[x][z] > ysize-2) hoehe[x][z] = ysize-2;
 
