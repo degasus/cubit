@@ -166,7 +166,7 @@ void initGL() {
   glFogf(GL_FOG_DENSITY, fogDense);				// How Dense Will The Fog Be
   glHint(GL_FOG_HINT, GL_DONT_CARE);			// Fog Hint Value
   glFogf(GL_FOG_START, xsize*fogStartFactor);
-	glFogf(GL_FOG_END, xsize);	
+	glFogf(GL_FOG_END, xsize);
   //glEnable(GL_FOG);					// Enables GL_FOG
 
   enable_rotate = 1;
@@ -176,7 +176,7 @@ void initGL() {
 
   //generate Textures
   glGenTextures( numberOfTex, texture );
-  
+
   for(int i = 1; i < numberOfTex; i++){
     loadTexture(texFiles[i], i);
   }
@@ -240,7 +240,7 @@ void EventLoop(void)
 			                  gen_land();
 			                  gen_gllist();
 			                  glFogf(GL_FOG_START, xsize*fogStartFactor);
-			                  glFogf(GL_FOG_END, xsize);	
+			                  glFogf(GL_FOG_END, xsize);
 			                  break;
 		                case SDLK_MINUS:
 			                  xsize/=2;
@@ -249,13 +249,13 @@ void EventLoop(void)
 			                  gen_land();
 			                  gen_gllist();
 			                  glFogf(GL_FOG_START, xsize*fogStartFactor);
-			                  glFogf(GL_FOG_END, xsize);	
+			                  glFogf(GL_FOG_END, xsize);
 			                  break;
                     case SDLK_u:
 	                      fogDense += 0.1f;
 	                      if (fogDense > 1)
 	                        fogDense = 1;
-                        glFogf(GL_FOG_DENSITY, fogDense);	
+                        glFogf(GL_FOG_DENSITY, fogDense);
                         break;
                     case SDLK_j:
 	                      fogDense -= 0.1f;
@@ -313,7 +313,7 @@ void EventLoop(void)
 
                 }
               break;
-            
+
             case SDL_MOUSEBUTTONUP:
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
@@ -324,7 +324,7 @@ void EventLoop(void)
 			                break;
                 }
 		          //if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] != 0){
-		            
+
 		          //}
               break;
 
@@ -401,14 +401,14 @@ void calcMovement()
     if (fastSpeed){
       mult = fastSpeedMultiplier;
     }
-    
+
     //Y-Bewegung
-    
+
     //Fallen
     if ((landschaft[((int)(posX+offsetFallen))*ysize*zsize + ((int)posY)*zsize + (int)posZ] == 0)
         && (landschaft[((int)(posX-offsetFallen))*ysize*zsize + ((int)(posY))*zsize + (int)posZ] == 0)
         && (landschaft[((int)posX)*ysize*zsize + ((int)(posY))*zsize + (int)(posZ+offsetFallen)] == 0)
-        && (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)(posZ-offsetFallen)] == 0))    
+        && (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)(posZ-offsetFallen)] == 0))
     {
       speedY += accelY;
       if (speedY >= 0.99f)
@@ -417,11 +417,11 @@ void calcMovement()
     else if(speedY < 0){
       speedY = 0;
     }
-    
+
     //Springen
     if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.1f))*zsize + (int)posZ] != 0 && jump)
       speedY = 0.24f*mult;
-    
+
     //Movement
     float posXold = posX;
     float posYold = posY;
@@ -473,7 +473,7 @@ void calcMovement()
     if(posZ>=zsize-1) posZ = zsize-1;
     if(posY<=1) posY = 1;
     if(posY>=ysize-2) posY = ysize-2;
-    
+
 
     //Falls Person in Block "Aufzug" nach oben
     if (landschaft[((int)posX)*ysize*zsize + ((int)posY)*zsize + (int)posZ] != 0){
@@ -564,9 +564,10 @@ void gen_gllist() {
 	box=glGenLists(1);
 	glNewList(box,GL_COMPILE);
 
-	glBegin( GL_QUADS );
+
   for(int i=1; i < numberOfTex; i++){
     activateTexture(i);
+	 	glBegin( GL_QUADS );
 	  for(int x=0; x<xsize; x++) for(int y=0; y<ysize; y++) for(int z=0; z<zsize; z++) {
       if(landschaft[x*ysize*zsize + y*zsize  + z] == i){
 		    if(z != zsize-1 && !landschaft[x*ysize*zsize + y*zsize  + z+1]) {
@@ -618,8 +619,9 @@ void gen_gllist() {
 		    }
 		  }
     }
+    	glEnd();
 	}
-	glEnd();
+
 	glEndList();
 }
 
@@ -628,32 +630,32 @@ void gen_gllist() {
 void drawHUD() {
   glLoadIdentity();
   glDisable(GL_DEPTH_TEST);
-  
+
   glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
   glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
   glEnable(GL_BLEND);
-  
+
   glTranslatef(0.0f,0.0f,-6.0f);
   float lineWidth = 0.012f;
   float lineLength = 0.25f;
-  
+
   glBegin(GL_QUADS);						// Draw A Quad
 		glVertex3f(-lineWidth/2, lineLength/2, 0.0f);				// Top Left
 		glVertex3f( lineWidth/2, lineLength/2, 0.0f);				// Top Right
 		glVertex3f( lineWidth/2,-lineLength/2, 0.0f);				// Bottom Right
 		glVertex3f(-lineWidth/2,-lineLength/2, 0.0f);				// Bottom Left
 	glEnd();
-	
+
 	glBegin(GL_QUADS);						// Draw A Quad
 		glVertex3f(lineLength/2, -lineWidth/2, 0.0f);				// Top Left
 		glVertex3f( lineLength/2, lineWidth/2, 0.0f);				// Top Right
 		glVertex3f(-lineLength/2, lineWidth/2, 0.0f);				// Bottom Right
 		glVertex3f(-lineLength/2, -lineWidth/2, 0.0f);				// Bottom Left
 	glEnd();
-	
+
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-	
+
   /*glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glLoadIdentity();
 	glOrtho(0,screenX,0,screenY,0,1);
@@ -681,11 +683,11 @@ void draw() {
 	activateTexture(2);
 	// Landschaft zeichen
 	glCallList(box);
-	
-	
+
+
 	//statische Anzeigen zeichnen
   drawHUD();
-  
+
 	SDL_GL_SwapBuffers();
 }
 
