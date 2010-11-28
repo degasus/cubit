@@ -11,7 +11,8 @@ using namespace std;
 const int RUN_GAME_LOOP = 1;
 
 //GL vars
-const int numberOfTex = 4;
+const int numberOfTex = 10; //Number of textures (including Air, 0)
+const char* texFiles[numberOfTex] = {"", "tex/wood.bmp", "tex/bricks.bmp", "tex/grass.bmp", "tex/grass2.bmp", "tex/BlackMarble.bmp", "tex/BlueCrackMarble.bmp", "tex/BrightPurpleMarble.bmp",  "tex/BrownSwirlMarble.bmp", "tex/SwirlyGrayMarble.bmp"};
 GLuint texture[numberOfTex];
 GLuint box;
 //fog
@@ -52,6 +53,13 @@ float fastMovementSpeed = 0.2f;
 float movementSpeed = 0.2f;
 float fastSpeedMultiplier = 5.72341f;
 
+//Frame counter since last building/removing a block during addBlock or removeBlock is true
+int lastAdd = 0;
+int lastRemove = 0;
+//Delay until building/removing next block in Frames
+int addDelay = 20;
+int removeDelay = 20;
+
 bool xDown = false;
 bool xUp = false;
 bool zDown = false;
@@ -59,6 +67,8 @@ bool zUp = false;
 bool jump = false;
 bool fastSpeed = false;
 bool duck = false;
+bool removeBlock = false;
+bool addBlock = false;
 
 //Frame size
 int screenX = 1024;
@@ -91,7 +101,8 @@ unsigned char *landschaft;
 Uint32 GameLoopTimer(Uint32 interval, void* param);
 void HandleUserEvents(SDL_Event* event);
 void draw();
-void sphereSpeed();
+void calcBuilding();
+void calcMovement();
 void loadTexture(const char*, int);
 void activateTexture(int);
 void gen_gllist();
@@ -156,7 +167,7 @@ void initGL() {
   glHint(GL_FOG_HINT, GL_DONT_CARE);			// Fog Hint Value
   glFogf(GL_FOG_START, xsize*fogStartFactor);
 	glFogf(GL_FOG_END, xsize);	
-  glEnable(GL_FOG);					// Enables GL_FOG
+  //glEnable(GL_FOG);					// Enables GL_FOG
 
   enable_rotate = 1;
 	SDL_ShowCursor(SDL_DISABLE);
@@ -165,11 +176,10 @@ void initGL() {
 
   //generate Textures
   glGenTextures( numberOfTex, texture );
-  loadTexture("tex/holz.bmp", 1);
-  loadTexture("tex/ziegel.bmp", 2);
-  loadTexture("tex/gras.bmp", 3);
-
-  activateTexture(2);
+  
+  for(int i = 1; i < numberOfTex; i++){
+    loadTexture(texFiles[i], i);
+  }
 
   gen_land();
   gen_gllist();
@@ -187,7 +197,8 @@ void EventLoop(void)
         switch(event.type) {
             case SDL_USEREVENT:
                 HandleUserEvents(&event);
-                sphereSpeed();
+                calcMovement();
+                calcBuilding();
 		            break;
             case SDL_KEYDOWN:
                 switch(event.key.keysym.sym){
@@ -292,19 +303,25 @@ void EventLoop(void)
             case SDL_MOUSEBUTTONDOWN:
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
-                      if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] == 0) {
-                        landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] = 1;
-			                  gen_gllist();
-			                }
+                      lastAdd = addDelay;
+                      addBlock = true;
 			                break;
                     case SDL_BUTTON_RIGHT:
-                      if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] != 0) {
-                        landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] = 0;
-			                  gen_gllist();
-			               }
-			                  break;
-                    default:
-                        break;
+                      lastRemove = removeDelay;
+                      removeBlock = true;
+			                break;
+
+                }
+              break;
+            
+            case SDL_MOUSEBUTTONUP:
+                switch(event.button.button){
+                    case SDL_BUTTON_LEFT:
+                      addBlock = false;
+			                break;
+                    case SDL_BUTTON_RIGHT:
+                      removeBlock = false;
+			                break;
                 }
 		          //if (landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] != 0){
 		            
@@ -332,7 +349,7 @@ void EventLoop(void)
 	    case SDL_VIDEORESIZE:
         screenX = event.resize.w;
         screenY = event.resize.h;
-		    SDL_SetVideoMode( event.resize.w, event.resize.h, 32, SDL_OPENGL | SDL_RESIZABLE);
+		    screen = SDL_SetVideoMode( event.resize.w, event.resize.h, 32, SDL_OPENGL | SDL_RESIZABLE);
 		    glViewport(0, 0, event.resize.w, event.resize.h);						// Reset The Current Viewport
 
 			glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
@@ -355,7 +372,30 @@ void EventLoop(void)
 
 }
 
-void sphereSpeed()
+void calcBuilding(){
+  if(addBlock){
+    lastAdd++;
+    if(lastAdd >= addDelay){
+      if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] == 0) {
+        landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] = 1;
+        lastAdd = 0;
+        gen_gllist();
+      }
+    }
+  }
+  else if(removeBlock){
+    lastRemove++;
+    if(lastRemove >= removeDelay){
+      if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] != 0) {
+        landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] = 0;
+        lastRemove = 0;
+        gen_gllist();
+      }
+    }
+  }
+}
+
+void calcMovement()
 {
     float mult = 1.0f;
     if (fastSpeed){
@@ -583,6 +623,48 @@ void gen_gllist() {
 	glEndList();
 }
 
+//zeichnet die statischen Displayelemente (Anzeigen, ...).
+//Sollte als letzte Aktion in draw aufgerufen werden
+void drawHUD() {
+  glLoadIdentity();
+  glDisable(GL_DEPTH_TEST);
+  
+  glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
+  glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
+  glEnable(GL_BLEND);
+  
+  glTranslatef(0.0f,0.0f,-6.0f);
+  float lineWidth = 0.012f;
+  float lineLength = 0.25f;
+  
+  glBegin(GL_QUADS);						// Draw A Quad
+		glVertex3f(-lineWidth/2, lineLength/2, 0.0f);				// Top Left
+		glVertex3f( lineWidth/2, lineLength/2, 0.0f);				// Top Right
+		glVertex3f( lineWidth/2,-lineLength/2, 0.0f);				// Bottom Right
+		glVertex3f(-lineWidth/2,-lineLength/2, 0.0f);				// Bottom Left
+	glEnd();
+	
+	glBegin(GL_QUADS);						// Draw A Quad
+		glVertex3f(lineLength/2, -lineWidth/2, 0.0f);				// Top Left
+		glVertex3f( lineLength/2, lineWidth/2, 0.0f);				// Top Right
+		glVertex3f(-lineLength/2, lineWidth/2, 0.0f);				// Bottom Right
+		glVertex3f(-lineLength/2, -lineWidth/2, 0.0f);				// Bottom Left
+	glEnd();
+	
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+	
+  /*glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+	glLoadIdentity();
+	glOrtho(0,screenX,0,screenY,0,1);
+  float width = 100.0f;
+	float height = 50.0f;
+  SDL_Rect rect = {(screenX/2)-(width/2),(screenY/2)-(height/2),width,height};
+  cout << SDL_FillRect(SDL_GetVideoSurface(), &rect, 0xFFFFFF) << endl;
+  SDL_Rect rect2 = {(screenX/2)-(height/2),(screenY/2)-(width/2),height,width};
+  SDL_FillRect(SDL_GetVideoSurface(), &rect2, 0x000000);*/
+}
+
 void draw() {
 
    // Clear the screen before drawing
@@ -599,8 +681,11 @@ void draw() {
 	activateTexture(2);
 	// Landschaft zeichen
 	glCallList(box);
-
-
+	
+	
+	//statische Anzeigen zeichnen
+  drawHUD();
+  
 	SDL_GL_SwapBuffers();
 }
 
