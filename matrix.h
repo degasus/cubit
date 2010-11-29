@@ -59,6 +59,8 @@ template<typename T, int dim> class LGSLU {
     // -- LU - Zerlegung --
     // --------------------
     LGSLU(Matrix<T,dim,dim> const &a) : A(a) {
+		 
+		 A = A.t();
       // P initialisieren
       for(int i=0; i<dim; i++)
         P[i][0] = i;
@@ -154,7 +156,7 @@ class Matrix {
     inline Matrix<T,width,height>& operator-=(Matrix<T,width,height> const &lvalue) {
       for(int x=0; x<width; x++)
         for(int y=0; y<height; y++)
-          data[x][y] += lvalue.data[x][y];
+          data[x][y] -= lvalue.data[x][y];
       return *this;
     }
     inline Matrix<T,width,height> operator+(Matrix<T,width,height> const &lvalue) {
