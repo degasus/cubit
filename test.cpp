@@ -120,8 +120,8 @@ void initGL() {
   screenX = vi->current_w;
   screenY = vi->current_h;
 
-  screenX = 1366;
-  screenY = 768;
+  screenX = 1024;
+  screenY = 400;
 
   SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
@@ -503,9 +503,9 @@ int calcPointingOn(float startX, float startY, float startZ){
 	Matrix<float,1,3> result(0);
 
 	//bleibt immer gleich (Blickrichtung)
-	left.data[2][0] = cos(x) * cos(y);
-	left.data[2][1] = sin(x) * cos(y);
-	left.data[2][2] = sin(y);
+	left.data[2][0] = cos(M_PI*x/180.) * cos(M_PI*y/180.);
+	left.data[2][1] = sin(M_PI*x/180.) * cos(M_PI*y/180.);
+	left.data[2][2] = sin(M_PI*y/180.);
 
 	//Fläche 0 (Front)
 	left.data[0][0] = 1;
@@ -514,16 +514,16 @@ int calcPointingOn(float startX, float startY, float startZ){
 	right.data[0][1] = startY;
 	right.data[0][2] = startZ -1;
 	result = left.LU().solve(right);
-	if( 0 < result.data[0][0] && result.data[0][0] < 1
-	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
+	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
 	   && 0 < result.data[0][2])
 		return 0;
 
 	//Fläche 1 (Back)
 	right.data[0][2] = startZ;
 	result = left.LU().solve(right);
-	if( 0 < result.data[0][0] && result.data[0][0] < 1
-	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
+	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
 	   && 0 < result.data[0][2])
 		return 1;
 
@@ -532,16 +532,16 @@ int calcPointingOn(float startX, float startY, float startZ){
 	left.data[1][2] = 1;
 	right.data[0][1] = startY -1;
 	result = left.LU().solve(right);
-	if( 0 < result.data[0][0] && result.data[0][0] < 1
-	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
+	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
 	   && 0 < result.data[0][2])
 		return 2;
 
 	//Fläche 3 (Bottom)
 	right.data[0][1] = startY;
 	result = left.LU().solve(right);
-	if( 0 < result.data[0][0] && result.data[0][0] < 1
-	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
+	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
 	   && 0 < result.data[0][2])
 		return 3;
 	
@@ -550,21 +550,21 @@ int calcPointingOn(float startX, float startY, float startZ){
 	left.data[0][1] = 1;
 	right.data[0][0] = startX -1;
 	result = left.LU().solve(right);
-	if( 0 < result.data[0][0] && result.data[0][0] < 1
-	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
+	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
 	   && 0 < result.data[0][2])
 		return 4;
 
 	//Fläche 5 (Left)
 	right.data[0][0] = startX;
 	result = left.LU().solve(right);
-	if( 0 < result.data[0][0] && result.data[0][0] < 1
-	   && 0 < result.data[0][1] && result.data[0][1] < 1
+	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
+	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
 	   && 0 < result.data[0][2])
 		return 5;
 
 	//Falls keine Austrittsebene gefunden wird Error
-	assert(0);
+	return -1;
 }
 
 Uint32 GameLoopTimer(Uint32 interval, void* param)
