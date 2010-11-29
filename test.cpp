@@ -104,7 +104,7 @@ void HandleUserEvents(SDL_Event* event);
 void draw();
 void calcBuilding();
 void calcMovement();
-int calcPointingOn(float vectorX, float vectorY, float vectorZ);
+int calcPointingOn(double *vectorX, double *vectorY, double *vectorZ);
 void loadTexture(const char*, int);
 void activateTexture(int);
 void gen_gllist();
@@ -195,7 +195,15 @@ void initGL() {
 }
 int PointingOn;
 void debug(){
-	PointingOn =  calcPointingOn((posX) - floor(posX), posY + personSize - floor(posY + personSize), posZ - floor(posZ));
+	double x = posX - floor(posX);
+	double y = posY + personSize - floor(posY + personSize);
+	double z = posZ - floor(posZ);
+	PointingOn =  calcPointingOn(&x, &y, &z);
+	
+/*	cout << "x: " << x << endl;
+	cout << "y: " << y << endl;
+	cout << "z: " << z << endl;
+*/	
 	
 }
 
@@ -501,10 +509,10 @@ void calcMovement()
     }
 }
 
-int calcPointingOn(float startX, float startY, float startZ){
-	Matrix<float,3,3> left(0);
-	Matrix<float,1,3> right(0);
-	Matrix<float,1,3> result(0);
+int calcPointingOn(double* startX, double* startY, double* startZ){
+	Matrix<double,3,3> left(0);
+	Matrix<double,1,3> right(0);
+	Matrix<double,1,3> result(0);
 
 	//bleibt immer gleich (Blickrichtung)
 	left.data[2][0] = sin(M_PI*x/180.) * cos(M_PI*y/180.);
@@ -514,58 +522,82 @@ int calcPointingOn(float startX, float startY, float startZ){
 	//Fläche 0 (Front)
 	left.data[0][0] = 1;
 	left.data[1][1] = 1;
-	right.data[0][0] = 1-startX;
-	right.data[0][1] = 1-startY;
-	right.data[0][2] = -startZ;
+	right.data[0][0] = 1-*startX;
+	right.data[0][1] = 1-*startY;
+	right.data[0][2] = -*startZ;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
-	   && 0 < result.data[0][2])
+	   && 0 < result.data[0][2]) {
+		*startX = 1-result[0][0];
+		*startY = 1-result[0][1];
+		*startZ = 0;
 		return 0;
+	}
 
 	//Fläche 1 (Back)
-	right.data[0][2] = 1-startZ;
+	right.data[0][2] = 1-*startZ;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
-	   && 0 < result.data[0][2])
+	   && 0 < result.data[0][2]) {
+		*startX = 1-result[0][0];
+		*startY = 1-result[0][1];
+		*startZ = 1;
 		return 1;
+	}
 
 	//Fläche 2 (Top)
 	left.data[1][1] = 0;
 	left.data[1][2] = 1;
-	right.data[0][1] = -startY;
+	right.data[0][1] = -*startY;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
-	   && 0 < result.data[0][2])
+	   && 0 < result.data[0][2]){
+		*startX = 1-result[0][0];
+		*startY = 0;
+		*startZ = 1-result[0][1];
 		return 2;
+	}
 
 	//Fläche 3 (Bottom)
-	right.data[0][1] = 1-startY;
+	right.data[0][1] = 1-*startY;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
-	   && 0 < result.data[0][2])
+	   && 0 < result.data[0][2]){
+		*startX = 1-result[0][0];
+		*startY = 1;
+		*startZ = 1-result[0][1];
 		return 3;
+	}
 	
 	//Fläche 4 (Right)
 	left.data[0][0] = 0;
 	left.data[0][1] = 1;
-	right.data[0][0] = -startX;
+	right.data[0][0] = -*startX;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
-	   && 0 < result.data[0][2])
+	   && 0 < result.data[0][2]){
+		*startX = 0;
+		*startY = 1-result[0][0];
+		*startZ = 1-result[0][1];
 		return 4;
+	}
 
 	//Fläche 5 (Left)
-	right.data[0][0] = 1-startX;
+	right.data[0][0] = 1-*startX;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
-	   && 0 < result.data[0][2])
+	   && 0 < result.data[0][2]){
+		*startX = 1;
+		*startY = 1-result[0][0];
+		*startZ = 1-result[0][1];
 		return 5;
+	}
 
 	//Falls keine Austrittsebene gefunden wird Error
 	return -1;
@@ -764,7 +796,6 @@ void draw() {
 	activateTexture(2);
 	// Landschaft zeichen
 	glCallList(box);
-
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBegin(GL_QUADS);
