@@ -74,6 +74,9 @@ bool addBlock = false;
 //Frame size
 int screenX = 1024;
 int screenY = 768;
+int noFullX = 640;
+int noFullY = 480;
+bool isFullscreen = true;
 
 
 //CONSTANTS
@@ -237,7 +240,39 @@ void EventLoop(void)
                         jump = true;
                         break;
                     case k_fastSpeed:
-                        fastSpeed = true;
+						if(event.key.keysym.mod & KMOD_CTRL){
+							if(isFullscreen){
+								isFullscreen = false;
+								screenX = noFullX;
+								screenY = noFullY;
+
+								screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE);
+							}
+							else{
+								isFullscreen = true;
+					            const SDL_VideoInfo *vi = SDL_GetVideoInfo();
+								screenX = vi->current_w;
+								screenY = vi->current_h;
+
+								screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE | SDL_FULLSCREEN);
+							}
+							
+							glViewport(0, 0, screenX, screenY);						// Reset The Current Viewport
+
+							glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+							glLoadIdentity();							// Reset The Projection Matrix
+
+							// Calculate The Aspect Ratio Of The Window
+							gluPerspective(45.0f,(GLfloat)screenX/(GLfloat)screenY,0.1,100.0f);
+
+							glMatrixMode(GL_MODELVIEW);
+
+							x_orig = screenX/2;
+							y_orig = screenY/2;
+						}
+						else{
+                        	fastSpeed = true;
+						}
                         break;
                     case k_QUIT:
                         done = true;
@@ -391,6 +426,9 @@ void EventLoop(void)
 
 			glMatrixMode(GL_MODELVIEW);
 
+			x_orig = screenX/2;
+			y_orig = screenY/2;
+
 		    break;
 
 
@@ -527,37 +565,121 @@ void highlightPointingOn(){
 	double lastZ = (posZ) - floor(posZ);
 
 	int blockX = floor(posX);
-	int blockY = floor(posY);
+	int blockY = floor(posY + personSize);
 	int blockZ = floor(posZ);
 	
-	int lastPointingOn = calcPointingOnInBlock(&lastX, &lastY, &lastZ);
+	int lastPointingOn = -2;
 
-	while(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] == 0){
+	double distanceQ = 0;
+	int counter = 0;
+
+	while(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] == 0 && distanceQ <= 16 && counter <= 30 && lastPointingOn != -1){
+		counter++;
+		lastPointingOn = calcPointingOnInBlock(&lastX, &lastY, &lastZ);
+		cout << "wlastPointingOn: " << lastPointingOn << endl; 
+		cout << "wlastX: " << lastX << endl;
+		cout << "wlastY: " << lastY << endl;
+		cout << "wlastZ: " << lastZ << endl;
+		cout << "wcounter: " << counter << endl;
+		cout << endl;
 		//Front
-		if(lastPointingOn == 0){
+		if(lastPointingOn == 1){
 			blockZ++;
+			lastZ--;
 		}
 		//Back
-		if(lastPointingOn == 1){
+		if(lastPointingOn == 0){
 			blockZ--;
+			lastZ++;
 		}
 		//Top
-		if(lastPointingOn == 2){
+		if(lastPointingOn == 3){
 			blockY++;
+			lastY--;
 		}
 		//Bottom
-		if(lastPointingOn == 3){
+		if(lastPointingOn == 2){
 			blockY--;
+			lastY++;
 		}
 		//Right
-		if(lastPointingOn == 4){
+		if(lastPointingOn == 5){
 			blockX++;
+			lastX--;
 		}
 		//Left
-		if(lastPointingOn == 5){
+		if(lastPointingOn == 4){
 			blockX--;
+			lastX++;
 		}
+		
+		double dx = blockX+lastX-posX;
+		double dy = blockY+lastY-posY+personSize;
+		double dz = blockZ+lastZ-posZ;
+		
+		distanceQ = dx*dx+dy*dy+dz*dz;
 	}
+
+	cout << "lastPointingOn: " << lastPointingOn << endl; 
+	cout << "blockX: " << blockX << endl;
+	cout << "blockY: " << blockY << endl;
+	cout << "blockZ: " << blockZ << endl;
+	cout << "counter: " << counter << endl;
+	cout << endl;
+	
+
+	if(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] != 0){
+		//glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBegin(GL_QUADS);
+			float x = floor(blockX);
+			float y = floor(blockY);
+			float z = floor(blockZ);
+						
+		  if(lastPointingOn == 0) {
+			glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
+			glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 2 (Front)
+			glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Front)
+			glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 4 (Front)
+		}
+		// Back Face 1
+		if(lastPointingOn == 1) {
+			glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Back)
+			glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 2 (Back)
+			glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 3 (Back)
+			glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 4 (Back)
+		}
+		// Top Face 2
+		if(lastPointingOn == 2) {
+			glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 1 (Top)
+			glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 2 (Top)
+			glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Top)
+			glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 4 (Top)
+		}
+		// Bottom Face 3
+		if(lastPointingOn == 3) {
+			glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Bottom)
+			glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 2 (Bottom)
+			glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 3 (Bottom)
+			glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 4 (Bottom)
+		}
+		// Right face 4
+		if(lastPointingOn == 4) {
+			glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 1 (Right)
+			glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 2 (Right)
+			glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Right)
+			glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 4 (Right)
+		}
+		// Left Face 5
+		if(lastPointingOn == 5) {
+			glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Left)
+			glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 2 (Left)
+			glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 3 (Left)
+			glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 4 (Left)
+		}
+		glEnd();
+	}
+	
 }
 
 //Berechnet die Fläche, auf die von der Startposition aus (Parameter) mit der aktuellen Blickrichtung
@@ -850,55 +972,7 @@ void draw() {
 	activateTexture(2);
 	// Landschaft zeichen
 	glCallList(box);
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBegin(GL_QUADS);
-				float x = floor(posX);
-				float y = floor(posY + personSize);
-				float z = floor(posZ);
-								
-			  if(PointingOn == 1) {
-			    glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
-			    glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 2 (Front)
-			    glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Front)
-			    glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 4 (Front)
-		    }
-		    // Back Face 1
-		    if(PointingOn == 0) {
-			    glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Back)
-			    glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 2 (Back)
-			    glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 3 (Back)
-			    glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 4 (Back)
-		    }
-		    // Top Face 2
-		    if(PointingOn == 3) {
-			    glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 1 (Top)
-			    glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 2 (Top)
-			    glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Top)
-			    glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 4 (Top)
-		    }
-		    // Bottom Face 3
-		    if(PointingOn == 2) {
-			    glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Bottom)
-			    glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 2 (Bottom)
-			    glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 3 (Bottom)
-			    glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 4 (Bottom)
-		    }
-		    // Right face 4
-		    if(PointingOn == 5) {
-			    glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 1 (Right)
-			    glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 2 (Right)
-			    glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Right)
-			    glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 4 (Right)
-		    }
-		    // Left Face 5
-		    if(PointingOn == 4) {
-			    glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Left)
-			    glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 2 (Left)
-			    glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 3 (Left)
-			    glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 4 (Left)
-		    }
-	glEnd();
+	highlightPointingOn();
 
 	//statische Anzeigen zeichnen
   drawHUD();
