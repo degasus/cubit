@@ -120,8 +120,8 @@ void initGL() {
   screenX = vi->current_w;
   screenY = vi->current_h;
 
-  screenX = 1024;
-  screenY = 400;
+  screenX = 1300;
+  screenY = 800;
 
   SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
@@ -192,7 +192,7 @@ void initGL() {
 }
 
 void debug(){
-	cout << calcPointingOn(posX - floor(posX), posY - floor(posY), posZ - floor(posZ)) << endl;
+	cout << calcPointingOn((posX) - floor(posX), posY + 1.5 - floor(posY + 1.5), posZ - floor(posZ)) << endl;
 }
 
 void EventLoop(void)
@@ -202,10 +202,10 @@ void EventLoop(void)
     while((!done) && (SDL_WaitEvent(&event))) {
         switch(event.type) {
             case SDL_USEREVENT:
-                HandleUserEvents(&event);
                 calcMovement();
                 calcBuilding();
-				debug();
+					debug();
+                HandleUserEvents(&event);
 		            break;
             case SDL_KEYDOWN:
                 switch(event.key.keysym.sym){
@@ -503,16 +503,16 @@ int calcPointingOn(float startX, float startY, float startZ){
 	Matrix<float,1,3> result(0);
 
 	//bleibt immer gleich (Blickrichtung)
-	left.data[2][0] = cos(M_PI*x/180.) * cos(M_PI*y/180.);
-	left.data[2][1] = sin(M_PI*x/180.) * cos(M_PI*y/180.);
-	left.data[2][2] = sin(M_PI*y/180.);
+	left.data[2][0] = sin(M_PI*x/180.) * cos(M_PI*y/180.);
+	left.data[2][1] = -sin(M_PI*y/180.);
+	left.data[2][2] = -cos(M_PI*x/180.) * cos(M_PI*y/180.);
 
 	//Fläche 0 (Front)
 	left.data[0][0] = 1;
 	left.data[1][1] = 1;
-	right.data[0][0] = startX;
-	right.data[0][1] = startY;
-	right.data[0][2] = startZ -1;
+	right.data[0][0] = 1-startX;
+	right.data[0][1] = 1-startY;
+	right.data[0][2] = -startZ;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
@@ -520,7 +520,7 @@ int calcPointingOn(float startX, float startY, float startZ){
 		return 0;
 
 	//Fläche 1 (Back)
-	right.data[0][2] = startZ;
+	right.data[0][2] = 1-startZ;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
@@ -530,7 +530,7 @@ int calcPointingOn(float startX, float startY, float startZ){
 	//Fläche 2 (Top)
 	left.data[1][1] = 0;
 	left.data[1][2] = 1;
-	right.data[0][1] = startY -1;
+	right.data[0][1] = -startY;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
@@ -538,7 +538,7 @@ int calcPointingOn(float startX, float startY, float startZ){
 		return 2;
 
 	//Fläche 3 (Bottom)
-	right.data[0][1] = startY;
+	right.data[0][1] = 1-startY;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
@@ -548,7 +548,7 @@ int calcPointingOn(float startX, float startY, float startZ){
 	//Fläche 4 (Right)
 	left.data[0][0] = 0;
 	left.data[0][1] = 1;
-	right.data[0][0] = startX -1;
+	right.data[0][0] = -startX;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
@@ -556,7 +556,7 @@ int calcPointingOn(float startX, float startY, float startZ){
 		return 4;
 
 	//Fläche 5 (Left)
-	right.data[0][0] = startX;
+	right.data[0][0] = 1-startX;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
