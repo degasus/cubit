@@ -120,8 +120,8 @@ void initGL() {
   screenX = vi->current_w;
   screenY = vi->current_h;
 
-  screenX = 1024;
-  screenY = 400;
+  screenX = 1366;
+  screenY = 786;
 
   SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
@@ -207,7 +207,7 @@ void EventLoop(void)
                 calcBuilding();
 				debug();
 		            break;
-            case SDL_KEYDOWN:
+			case SDL_KEYDOWN:
                 switch(event.key.keysym.sym){
                     case k_xDown:
                         xDown = true;
@@ -236,28 +236,28 @@ void EventLoop(void)
                         offsetFallen *= 2;
                         movementSpeed = slowMovementSpeed;
                         break;
-		                case SDLK_r:
-			                  gen_land();
-			                  gen_gllist();
-			                  break;
-		                case SDLK_PLUS:
-			                  xsize*=2;
-			                  zsize*=2;
-			                  ysize*=2;
-			                  gen_land();
-			                  gen_gllist();
-			                  glFogf(GL_FOG_START, xsize*fogStartFactor);
-			                  glFogf(GL_FOG_END, xsize);
-			                  break;
-		                case SDLK_MINUS:
-			                  xsize/=2;
-			                  zsize/=2;
-			                  ysize/=2;
-			                  gen_land();
-			                  gen_gllist();
-			                  glFogf(GL_FOG_START, xsize*fogStartFactor);
-			                  glFogf(GL_FOG_END, xsize);
-			                  break;
+	                case SDLK_r:
+		                  gen_land();
+		                  gen_gllist();
+		                  break;
+	                case SDLK_PLUS:
+		                  xsize*=2;
+		                  zsize*=2;
+		                  ysize*=2;
+		                  gen_land();
+		                  gen_gllist();
+		                  glFogf(GL_FOG_START, xsize*fogStartFactor);
+		                  glFogf(GL_FOG_END, xsize);
+		                  break;
+	                case SDLK_MINUS:
+		                  xsize/=2;
+		                  zsize/=2;
+		                  ysize/=2;
+		                  gen_land();
+		                  gen_gllist();
+		                  glFogf(GL_FOG_START, xsize*fogStartFactor);
+		                  glFogf(GL_FOG_END, xsize);
+		                  break;
                     case SDLK_u:
 	                      fogDense += 0.1f;
 	                      if (fogDense > 1)
@@ -270,38 +270,50 @@ void EventLoop(void)
 	                        fogDense = 0;
                         glFogf(GL_FOG_DENSITY, fogDense);
                         break;
+					case SDLK_m:
+						if(event.key.keysym.mod & KMOD_CTRL){
+			                enable_rotate = !enable_rotate;
+							if(enable_rotate){
+								SDL_ShowCursor(SDL_DISABLE);
+							}
+							else{
+								SDL_ShowCursor(SDL_ENABLE);
+							}
+						}
+						break;
                     default:
                         break;
-                }
-                break;
-
+    			}
+			break;
+		
             case SDL_KEYUP:
                 switch(event.key.keysym.sym){
-                    case k_xDown:
-                        xDown = false;
-                        break;
-                    case k_xUp:
-                        xUp = false;
-                        break;
-                    case k_zUp:
-                        zUp = false;
-                        break;
-                    case k_zDown:
-                        zDown = false;
-                        break;
-                    case k_fastSpeed:
-                        fastSpeed = false;
-                        break;
-                    case k_jump:
-                        jump = false;
-                        break;
-                    case k_Duck:
-                        duck = false;
-                        offset /= 2;
-                        offsetFallen /= 2;
-                        movementSpeed = fastMovementSpeed;
-                        break;
-                    default:
+		            case k_xDown:
+		                xDown = false;
+		                break;
+		            case k_xUp:
+		                xUp = false;
+		                break;
+		            case k_zUp:
+		                zUp = false;
+		                break;
+		            case k_zDown:
+		                zDown = false;
+		                break;
+		            case k_fastSpeed:
+		                fastSpeed = false;
+		                break;
+		            case k_jump:
+		                jump = false;
+		                break;
+		            case k_Duck:
+		                duck = false;
+		                offset /= 2;
+		                offsetFallen /= 2;
+		                movementSpeed = fastMovementSpeed;
+		                break;
+				
+                   default:
                         //print keycode of unregistered key
                         //cout << event.key.keysym.sym << endl;
                         break;
