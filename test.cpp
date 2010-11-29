@@ -17,9 +17,9 @@ const char* texFiles[numberOfTex] = {"", "tex/wood.bmp", "tex/bricks.bmp", "tex/
 GLuint texture[numberOfTex];
 GLuint box;
 //fog
-GLfloat fogColor[4]= {0.1f, 0.1f, 0.1f, 1.0f};		// Fog Color
-float fogDense = 0.35f;
-float fogStartFactor = 0.70f;
+GLfloat fogColor[4]= {0.6f, 0.7f, 0.8f, 1.0f};		// Fog Color
+float fogDense = 0.6f;
+float fogStartFactor = 0.40f;
 
 //SDL vars
 SDL_Surface *screen;
@@ -134,7 +134,7 @@ void initGL() {
 
 	glEnable(GL_TEXTURE_2D);						// Enable Texture Mapping
 	glShadeModel(GL_SMOOTH);						// Enable Smooth Shading
-	glClearColor(0.1f, 0.1f, 0.1f, 0.5f);					// Black Background
+	glClearColor(fogColor[0],fogColor[1], fogColor[2], fogColor[3]);					// Black Background
 	glClearDepth(1.0f);							// Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);						// Enables Depth Testing
 	glDepthFunc(GL_LEQUAL);							// The Type Of Depth Testing To Do
@@ -169,7 +169,7 @@ void initGL() {
   glHint(GL_FOG_HINT, GL_DONT_CARE);			// Fog Hint Value
   glFogf(GL_FOG_START, xsize*fogStartFactor);
 	glFogf(GL_FOG_END, xsize);
-  //glEnable(GL_FOG);					// Enables GL_FOG
+  glEnable(GL_FOG);					// Enables GL_FOG
 
   enable_rotate = 1;
 	SDL_ShowCursor(SDL_DISABLE);
@@ -184,15 +184,18 @@ void initGL() {
   }
 
   gen_land();
+  
+  // reserviert Speicher für eine OpenGL Liste
+	box=glGenLists(1);
   gen_gllist();
 
 
 	SDL_TimerID timer = SDL_AddTimer(40,GameLoopTimer,0);
 
 }
-
+int PointingOn;
 void debug(){
-	//cout << calcPointingOn(posX - floor(posX), posY - floor(posY), posZ - floor(posZ)) << endl;
+	PointingOn =  calcPointingOn((posX) - floor(posX), posY + personSize - floor(posY + personSize), posZ - floor(posZ));
 }
 
 void EventLoop(void)
@@ -202,10 +205,10 @@ void EventLoop(void)
     while((!done) && (SDL_WaitEvent(&event))) {
         switch(event.type) {
             case SDL_USEREVENT:
-                HandleUserEvents(&event);
                 calcMovement();
                 calcBuilding();
-				debug();
+                HandleUserEvents(&event);
+					debug();
 		            break;
 			case SDL_KEYDOWN:
                 switch(event.key.keysym.sym){
@@ -394,7 +397,7 @@ void EventLoop(void)
 void calcBuilding(){
   if(addBlock){
     lastAdd++;
-    if(lastAdd >= addDelay){
+    if(lastAdd >= addDelay || fastSpeed){
       if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.7f))*zsize + (int)posZ] == 0) {
         landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.7f))*zsize + (int)posZ] = 1;
         lastAdd = 0;
@@ -515,16 +518,16 @@ int calcPointingOn(float startX, float startY, float startZ){
 	Matrix<float,1,3> result(0);
 
 	//bleibt immer gleich (Blickrichtung)
-	left.data[2][0] = cos(M_PI*x/180.) * cos(M_PI*y/180.);
-	left.data[2][1] = sin(M_PI*x/180.) * cos(M_PI*y/180.);
-	left.data[2][2] = sin(M_PI*y/180.);
+	left.data[2][0] = sin(M_PI*x/180.) * cos(M_PI*y/180.);
+	left.data[2][1] = -sin(M_PI*y/180.);
+	left.data[2][2] = -cos(M_PI*x/180.) * cos(M_PI*y/180.);
 
 	//Fläche 0 (Front)
 	left.data[0][0] = 1;
 	left.data[1][1] = 1;
-	right.data[0][0] = startX;
-	right.data[0][1] = startY;
-	right.data[0][2] = startZ -1;
+	right.data[0][0] = 1-startX;
+	right.data[0][1] = 1-startY;
+	right.data[0][2] = -startZ;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
@@ -532,7 +535,7 @@ int calcPointingOn(float startX, float startY, float startZ){
 		return 0;
 
 	//Fläche 1 (Back)
-	right.data[0][2] = startZ;
+	right.data[0][2] = 1-startZ;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
@@ -542,7 +545,7 @@ int calcPointingOn(float startX, float startY, float startZ){
 	//Fläche 2 (Top)
 	left.data[1][1] = 0;
 	left.data[1][2] = 1;
-	right.data[0][1] = startY -1;
+	right.data[0][1] = -startY;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
@@ -550,7 +553,7 @@ int calcPointingOn(float startX, float startY, float startZ){
 		return 2;
 
 	//Fläche 3 (Bottom)
-	right.data[0][1] = startY;
+	right.data[0][1] = 1-startY;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
@@ -560,7 +563,7 @@ int calcPointingOn(float startX, float startY, float startZ){
 	//Fläche 4 (Right)
 	left.data[0][0] = 0;
 	left.data[0][1] = 1;
-	right.data[0][0] = startX -1;
+	right.data[0][0] = -startX;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
@@ -568,7 +571,7 @@ int calcPointingOn(float startX, float startY, float startZ){
 		return 4;
 
 	//Fläche 5 (Left)
-	right.data[0][0] = startX;
+	right.data[0][0] = 1-startX;
 	result = left.LU().solve(right);
 	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 	   && 0 <= result.data[0][1] && result.data[0][1] <= 1
@@ -650,7 +653,6 @@ void loadTexture(const char *texFile, int id) {
 }
 
 void gen_gllist() {
-	box=glGenLists(1);
 	glNewList(box,GL_COMPILE);
 
 
@@ -774,6 +776,55 @@ void draw() {
 	// Landschaft zeichen
 	glCallList(box);
 
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBegin(GL_QUADS);
+				float x = floor(posX);
+				float y = floor(posY + personSize);
+				float z = floor(posZ);
+								
+			  if(PointingOn == 1) {
+			    glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
+			    glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 2 (Front)
+			    glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Front)
+			    glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 4 (Front)
+		    }
+		    // Back Face 1
+		    if(PointingOn == 0) {
+			    glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Back)
+			    glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 2 (Back)
+			    glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 3 (Back)
+			    glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 4 (Back)
+		    }
+		    // Top Face 2
+		    if(PointingOn == 3) {
+			    glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 1 (Top)
+			    glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 2 (Top)
+			    glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Top)
+			    glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 4 (Top)
+		    }
+		    // Bottom Face 3
+		    if(PointingOn == 2) {
+			    glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Bottom)
+			    glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 2 (Bottom)
+			    glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 3 (Bottom)
+			    glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 4 (Bottom)
+		    }
+		    // Right face 4
+		    if(PointingOn == 5) {
+			    glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 1 (Right)
+			    glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 2 (Right)
+			    glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Right)
+			    glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 4 (Right)
+		    }
+		    // Left Face 5
+		    if(PointingOn == 4) {
+			    glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Left)
+			    glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 2 (Left)
+			    glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 3 (Left)
+			    glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 4 (Left)
+		    }
+	glEnd();
 
 	//statische Anzeigen zeichnen
   drawHUD();

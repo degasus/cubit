@@ -59,6 +59,7 @@ template<typename T, int dim> class LGSLU {
     // -- LU - Zerlegung --
     // --------------------
     LGSLU(Matrix<T,dim,dim> const &a) : A(a) {
+		 
       // P initialisieren
       for(int i=0; i<dim; i++)
         P[i][0] = i;
@@ -69,7 +70,7 @@ template<typename T, int dim> class LGSLU {
         T a_max = 0;
         int a_max_pos = 0;
         for(int i=j; i<dim; i++) {
-          T a_abs = std::abs(A[i][j]);
+          T a_abs = std::abs(A[j][i]);
           if(a_max < a_abs) {
             a_max = a_abs;
             a_max_pos = i;
@@ -81,9 +82,9 @@ template<typename T, int dim> class LGSLU {
         if(j != a_max_pos) {
           T tmp;
           for(int i=0; i<dim; i++) {
-            tmp = A[j][i];
-            A[j][i] = A[a_max_pos][i];
-            A[a_max_pos][i] = tmp;
+            tmp = A[i][j];
+            A[i][j] = A[i][a_max_pos];
+            A[i][a_max_pos] = tmp;
           }
           tmp = P[j][0];
           P[j][0] = P[a_max_pos][0];
@@ -91,9 +92,9 @@ template<typename T, int dim> class LGSLU {
         }
         //Teilen
         for(int i=j+1; i<dim; i++) {
-          A[i][j] /= A[j][j];
+          A[j][i] /= A[j][j];
           for(int k = j+1; k<dim; k++) {
-            A[i][k] -= A[j][k] * A[i][j];
+            A[k][i] -= A[k][j] * A[j][i];
           }
         }
       }
@@ -109,11 +110,11 @@ template<typename T, int dim> class LGSLU {
         for(int i=0; i<dim; i++) {
           x[n][i] = b.data[n][P[i][0]];
           for(int j=0; j<i; j++)
-            x[n][i] -= A[i][j]*x[n][j];
+            x[n][i] -= A[j][i]*x[n][j];
         }
         for(int i=dim-1; i>=0; i--) {
           for(int j=i+1; j<dim; j++)
-            x[n][i] -= A[i][j]*x[n][j];
+            x[n][i] -= A[j][i]*x[n][j];
           x[n][i] /= A[i][i];
         }
       }
@@ -154,7 +155,7 @@ class Matrix {
     inline Matrix<T,width,height>& operator-=(Matrix<T,width,height> const &lvalue) {
       for(int x=0; x<width; x++)
         for(int y=0; y<height; y++)
-          data[x][y] += lvalue.data[x][y];
+          data[x][y] -= lvalue.data[x][y];
       return *this;
     }
     inline Matrix<T,width,height> operator+(Matrix<T,width,height> const &lvalue) {
