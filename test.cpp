@@ -120,12 +120,12 @@ void initGL() {
   screenX = vi->current_w;
   screenY = vi->current_h;
 
-  screenX = 1366;
-  screenY = 786;
+  //screenX = 1366;
+  //screenY = 786;
 
   SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
-  screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE /*| SDL_FULLSCREEN*/);
+  screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE | SDL_FULLSCREEN);
   if ( !screen ) {
 	  printf("Unable to set video mode: %s\n", SDL_GetError());
 	}
@@ -192,7 +192,7 @@ void initGL() {
 }
 
 void debug(){
-	cout << calcPointingOn(posX - floor(posX), posY - floor(posY), posZ - floor(posZ)) << endl;
+	//cout << calcPointingOn(posX - floor(posX), posY - floor(posY), posZ - floor(posZ)) << endl;
 }
 
 void EventLoop(void)
