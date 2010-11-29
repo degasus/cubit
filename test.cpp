@@ -17,9 +17,9 @@ const char* texFiles[numberOfTex] = {"", "tex/wood.bmp", "tex/bricks.bmp", "tex/
 GLuint texture[numberOfTex];
 GLuint box;
 //fog
-GLfloat fogColor[4]= {0.1f, 0.1f, 0.1f, 1.0f};		// Fog Color
-float fogDense = 0.35f;
-float fogStartFactor = 0.70f;
+GLfloat fogColor[4]= {0.6f, 0.7f, 0.8f, 1.0f};		// Fog Color
+float fogDense = 0.6f;
+float fogStartFactor = 0.40f;
 
 //SDL vars
 SDL_Surface *screen;
@@ -134,7 +134,7 @@ void initGL() {
 
 	glEnable(GL_TEXTURE_2D);						// Enable Texture Mapping
 	glShadeModel(GL_SMOOTH);						// Enable Smooth Shading
-	glClearColor(0.1f, 0.1f, 0.1f, 0.5f);					// Black Background
+	glClearColor(fogColor[0],fogColor[1], fogColor[2], fogColor[3]);					// Black Background
 	glClearDepth(1.0f);							// Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);						// Enables Depth Testing
 	glDepthFunc(GL_LEQUAL);							// The Type Of Depth Testing To Do
@@ -169,7 +169,7 @@ void initGL() {
   glHint(GL_FOG_HINT, GL_DONT_CARE);			// Fog Hint Value
   glFogf(GL_FOG_START, xsize*fogStartFactor);
 	glFogf(GL_FOG_END, xsize);
-  //glEnable(GL_FOG);					// Enables GL_FOG
+  glEnable(GL_FOG);					// Enables GL_FOG
 
   enable_rotate = 1;
 	SDL_ShowCursor(SDL_DISABLE);
@@ -192,7 +192,7 @@ void initGL() {
 }
 
 void debug(){
-	cout << calcPointingOn((posX) - floor(posX), posY + 1.5 - floor(posY + 1.5), posZ - floor(posZ)) << endl;
+	cout << calcPointingOn((posX) - floor(posX), posY + personSize - floor(posY + personSize), posZ - floor(posZ)) << endl;
 }
 
 void EventLoop(void)
