@@ -104,7 +104,8 @@ void HandleUserEvents(SDL_Event* event);
 void draw();
 void calcBuilding();
 void calcMovement();
-int calcPointingOn(float vectorX, float vectorY, float vectorZ);
+void highlightPointingOn();
+int calcPointingOnInBlock(float vectorX, float vectorY, float vectorZ);
 void loadTexture(const char*, int);
 void activateTexture(int);
 void gen_gllist();
@@ -195,7 +196,7 @@ void initGL() {
 }
 int PointingOn;
 void debug(){
-	PointingOn =  calcPointingOn((posX) - floor(posX), posY + personSize - floor(posY + personSize), posZ - floor(posZ));
+	PointingOn =  calcPointingOnInBlock((posX) - floor(posX), posY + personSize - floor(posY + personSize), posZ - floor(posZ));
 }
 
 void EventLoop(void)
@@ -512,7 +513,49 @@ void calcMovement()
     }
 }
 
-int calcPointingOn(float startX, float startY, float startZ){
+void highlightPointingOn(){
+	double lastX = (posX) - floor(posX);
+	double lastY = posY + personSize - floor(posY + personSize);
+	double lastZ = (posZ) - floor(posZ);
+
+	int blockX = floor(posX);
+	int blockY = floor(posY);
+	int blockZ = floor(posZ);
+	
+	int lastPointingOn = calcPointingOnInBlock(&lastX, &lastY, &lastZ);
+
+	while(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] == 0){
+		//Front
+		if(lastPointingOn == 0){
+			blockZ++;
+		}
+		//Back
+		if(lastPointingOn == 1){
+			blockZ--;
+		}
+		//Top
+		if(lastPointingOn == 2){
+			blockY++;
+		}
+		//Bottom
+		if(lastPointingOn == 3){
+			blockY--;
+		}
+		//Right
+		if(lastPointingOn == 4){
+			blockX++;
+		}
+		//Left
+		if(lastPointingOn == 5){
+			blockX--;
+		}
+	}
+}
+
+//Berechnet die Fläche, auf die von der Startposition aus (Parameter) mit der aktuellen Blickrichtung
+//@return: ID der Fläche, auf die man zeigt
+//Am Ende sind die Parameter auf den Schnittpunkt gesetzt
+int calcPointingOnInBlock(float *startX, float *startY, float *startZ){
 	Matrix<float,3,3> left(0);
 	Matrix<float,1,3> right(0);
 	Matrix<float,1,3> result(0);
