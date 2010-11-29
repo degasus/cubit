@@ -184,15 +184,19 @@ void initGL() {
   }
 
   gen_land();
+  
+  // reserviert Speicher für eine OpenGL Liste
+	box=glGenLists(1);
   gen_gllist();
 
 
 	SDL_TimerID timer = SDL_AddTimer(40,GameLoopTimer,0);
 
 }
-
+int PointingOn;
 void debug(){
-	cout << calcPointingOn((posX) - floor(posX), posY + personSize - floor(posY + personSize), posZ - floor(posZ)) << endl;
+	PointingOn =  calcPointingOn((posX) - floor(posX), posY + personSize - floor(posY + personSize), posZ - floor(posZ));
+	
 }
 
 void EventLoop(void)
@@ -204,8 +208,8 @@ void EventLoop(void)
             case SDL_USEREVENT:
                 calcMovement();
                 calcBuilding();
-					debug();
                 HandleUserEvents(&event);
+					debug();
 		            break;
             case SDL_KEYDOWN:
                 switch(event.key.keysym.sym){
@@ -382,7 +386,7 @@ void EventLoop(void)
 void calcBuilding(){
   if(addBlock){
     lastAdd++;
-    if(lastAdd >= addDelay){
+    if(lastAdd >= addDelay || fastSpeed){
       if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.7f))*zsize + (int)posZ] == 0) {
         landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.7f))*zsize + (int)posZ] = 1;
         lastAdd = 0;
@@ -638,7 +642,6 @@ void loadTexture(const char *texFile, int id) {
 }
 
 void gen_gllist() {
-	box=glGenLists(1);
 	glNewList(box,GL_COMPILE);
 
 
@@ -762,6 +765,55 @@ void draw() {
 	// Landschaft zeichen
 	glCallList(box);
 
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBegin(GL_QUADS);
+				float x = floor(posX);
+				float y = floor(posY + personSize);
+				float z = floor(posZ);
+								
+			  if(PointingOn == 1) {
+			    glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
+			    glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 2 (Front)
+			    glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Front)
+			    glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 4 (Front)
+		    }
+		    // Back Face 1
+		    if(PointingOn == 0) {
+			    glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Back)
+			    glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 2 (Back)
+			    glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 3 (Back)
+			    glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 4 (Back)
+		    }
+		    // Top Face 2
+		    if(PointingOn == 3) {
+			    glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 1 (Top)
+			    glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 2 (Top)
+			    glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Top)
+			    glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 4 (Top)
+		    }
+		    // Bottom Face 3
+		    if(PointingOn == 2) {
+			    glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Bottom)
+			    glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 2 (Bottom)
+			    glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 3 (Bottom)
+			    glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 4 (Bottom)
+		    }
+		    // Right face 4
+		    if(PointingOn == 5) {
+			    glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 1 (Right)
+			    glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 2 (Right)
+			    glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Right)
+			    glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 4 (Right)
+		    }
+		    // Left Face 5
+		    if(PointingOn == 4) {
+			    glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Left)
+			    glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 2 (Left)
+			    glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 3 (Left)
+			    glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 4 (Left)
+		    }
+	glEnd();
 
 	//statische Anzeigen zeichnen
   drawHUD();
