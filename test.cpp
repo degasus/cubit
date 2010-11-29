@@ -54,6 +54,12 @@ float fastMovementSpeed = 0.2f;
 float movementSpeed = 0.2f;
 float fastSpeedMultiplier = 5.72341f;
 
+//PointingOn
+int lastPointingOn = -2;
+int pointingOnX = -1;
+int pointingOnY = -1;
+int pointingOnZ = -1;
+
 //Frame counter since last building/removing a block during addBlock or removeBlock is true
 int lastAdd = 0;
 int lastRemove = 0;
@@ -100,19 +106,22 @@ int zsize = 32;
 unsigned char *landschaft;
 
 
-//PROCEDURES
+//PROCEDURES HEAD
 
 Uint32 GameLoopTimer(Uint32 interval, void* param);
 void HandleUserEvents(SDL_Event* event);
 void draw();
 void calcBuilding();
 void calcMovement();
+void calcPointingOn();
 void highlightPointingOn();
 int calcPointingOnInBlock(double *vectorX, double *vectorY, double *vectorZ);
 void loadTexture(const char*, int);
 void activateTexture(int);
 void gen_gllist();
 void gen_land();
+
+
 
 void initGL() {
   // Slightly different SDL initialization
@@ -173,9 +182,9 @@ void initGL() {
   glHint(GL_FOG_HINT, GL_DONT_CARE);			// Fog Hint Value
   glFogf(GL_FOG_START, xsize*fogStartFactor);
 	glFogf(GL_FOG_END, xsize);
-  glEnable(GL_FOG);					// Enables GL_FOG
+  	//glEnable(GL_FOG);					// Enables GL_FOG
 
-  enable_rotate = 1;
+	enable_rotate = 1;
 	SDL_ShowCursor(SDL_DISABLE);
 	x_orig = screenX/2;
 	y_orig = screenY/2;
@@ -442,26 +451,51 @@ void EventLoop(void)
 }
 
 void calcBuilding(){
-  if(addBlock){
-    lastAdd++;
-    if(lastAdd >= addDelay || fastSpeed){
-      if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.7f))*zsize + (int)posZ] == 0) {
-        landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.7f))*zsize + (int)posZ] = 1;
-        lastAdd = 0;
-        gen_gllist();
-      }
-    }
-  }
-  else if(removeBlock){
-    lastRemove++;
-    if(lastRemove >= removeDelay){
-      if(landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] != 0) {
-        landschaft[((int)posX)*ysize*zsize + ((int)(posY-0.5f))*zsize + (int)posZ] = 0;
-        lastRemove = 0;
-        gen_gllist();
-      }
-    }
-  }
+	if(addBlock){
+		lastAdd++;
+		if((lastAdd >= addDelay || fastSpeed)  && pointingOnX+pointingOnY+pointingOnZ != -3){
+			int x = pointingOnX;
+			int y = pointingOnY;
+			int z = pointingOnZ;
+			//Front
+			if(lastPointingOn == 1){
+				z--;
+			}
+			//Back
+			if(lastPointingOn == 0){
+				z++;
+			}
+			//Top
+			if(lastPointingOn == 3){
+				y--;
+			}
+			//Bottom
+			if(lastPointingOn == 2){
+				y++;
+			}
+			//Right
+			if(lastPointingOn == 5){
+				x--;
+			}
+			//Left
+			if(lastPointingOn == 4){
+				x++;
+			}
+			if(x != floor(posX) || (y != floor(posY) && y != floor(posY)+1) || z != floor(posZ)){
+				landschaft[x*ysize*zsize + y*zsize  + z] = 1;
+				gen_gllist();
+				lastAdd = 0;
+		   }
+		}
+	}
+	else if(removeBlock && pointingOnX+pointingOnY+pointingOnZ != -3){
+		lastRemove++;
+		if(lastRemove >= removeDelay){
+			landschaft[pointingOnX*ysize*zsize + pointingOnY*zsize  + pointingOnZ] = 0;
+			gen_gllist();
+			lastRemove = 0;
+		}
+	}
 }
 
 void calcMovement()
@@ -559,29 +593,23 @@ void calcMovement()
     }
 }
 
-void highlightPointingOn(){
+void calcPointingOn(){
 	double lastX = (posX) - floor(posX);
-	double lastY = posY + personSize - floor(posY + personSize);
+	double lastY = posY - personSize - floor(posY - personSize);
 	double lastZ = (posZ) - floor(posZ);
 
 	int blockX = floor(posX);
 	int blockY = floor(posY + personSize);
 	int blockZ = floor(posZ);
 	
-	int lastPointingOn = -2;
+	lastPointingOn = -2;
 
 	double distanceQ = 0;
 	int counter = 0;
 
-	while(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] == 0 && distanceQ <= 16 && counter <= 30 && lastPointingOn != -1){
+	while(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] == 0 && distanceQ <= 25 && counter <= 30 && lastPointingOn != -1){
 		counter++;
 		lastPointingOn = calcPointingOnInBlock(&lastX, &lastY, &lastZ);
-		cout << "wlastPointingOn: " << lastPointingOn << endl; 
-		cout << "wlastX: " << lastX << endl;
-		cout << "wlastY: " << lastY << endl;
-		cout << "wlastZ: " << lastZ << endl;
-		cout << "wcounter: " << counter << endl;
-		cout << endl;
 		//Front
 		if(lastPointingOn == 1){
 			blockZ++;
@@ -614,29 +642,36 @@ void highlightPointingOn(){
 		}
 		
 		double dx = blockX+lastX-posX;
-		double dy = blockY+lastY-posY+personSize;
+		double dy = blockY+lastY-posY-personSize;
 		double dz = blockZ+lastZ-posZ;
 		
 		distanceQ = dx*dx+dy*dy+dz*dz;
 	}
-
-	cout << "lastPointingOn: " << lastPointingOn << endl; 
-	cout << "blockX: " << blockX << endl;
-	cout << "blockY: " << blockY << endl;
-	cout << "blockZ: " << blockZ << endl;
-	cout << "counter: " << counter << endl;
-	cout << endl;
 	
 
 	if(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] != 0){
-		//glDisable(GL_DEPTH_TEST);
+		pointingOnX = floor(blockX);
+		pointingOnY = floor(blockY);
+		pointingOnZ = floor(blockZ);
+	}
+	else{
+		pointingOnX = -1;
+		pointingOnY = -1;
+		pointingOnZ = -1;
+	}
+}
+
+void highlightPointingOn(){
+	if(pointingOnX+pointingOnY+pointingOnZ != -3){
+		glDisable(GL_LIGHT1);
+  		glDisable(GL_LIGHTING);
 		glEnable(GL_BLEND);
 		glBegin(GL_QUADS);
-			float x = floor(blockX);
-			float y = floor(blockY);
-			float z = floor(blockZ);
-						
-		  if(lastPointingOn == 0) {
+		float x = pointingOnX;
+		float y = pointingOnY;
+		float z = pointingOnZ;
+					
+		if(lastPointingOn == 0) {
 			glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
 			glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 2 (Front)
 			glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Front)
@@ -678,8 +713,9 @@ void highlightPointingOn(){
 			glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 4 (Left)
 		}
 		glEnd();
+		glEnable(GL_LIGHT1);
+  		glEnable(GL_LIGHTING);
 	}
-	
 }
 
 //Berechnet die Fläche, auf die von der Startposition aus (Parameter) mit der aktuellen Blickrichtung
@@ -857,7 +893,7 @@ void gen_gllist() {
     activateTexture(i);
 	 	glBegin( GL_QUADS );
 	  for(int x=0; x<xsize; x++) for(int y=0; y<ysize; y++) for(int z=0; z<zsize; z++) {
-      if(landschaft[x*ysize*zsize + y*zsize  + z] == i){
+      	if(landschaft[x*ysize*zsize + y*zsize  + z] == i){
         // Front Face 0
 		    if(z != zsize-1 && !landschaft[x*ysize*zsize + y*zsize  + z+1]) {
 			    glNormal3f( 0.0f, 0.0f, 1.0f);					// Normal Pointing Towards Viewer
@@ -907,7 +943,7 @@ void gen_gllist() {
 			    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 4 (Left)
 		    }
 		  }
-    }
+    	}
     	glEnd();
 	}
 
@@ -944,16 +980,6 @@ void drawHUD() {
 
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-
-  /*glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-	glLoadIdentity();
-	glOrtho(0,screenX,0,screenY,0,1);
-  float width = 100.0f;
-	float height = 50.0f;
-  SDL_Rect rect = {(screenX/2)-(width/2),(screenY/2)-(height/2),width,height};
-  cout << SDL_FillRect(SDL_GetVideoSurface(), &rect, 0xFFFFFF) << endl;
-  SDL_Rect rect2 = {(screenX/2)-(height/2),(screenY/2)-(width/2),height,width};
-  SDL_FillRect(SDL_GetVideoSurface(), &rect2, 0x000000);*/
 }
 
 void draw() {
@@ -972,10 +998,11 @@ void draw() {
 	activateTexture(2);
 	// Landschaft zeichen
 	glCallList(box);
+	calcPointingOn();
 	highlightPointingOn();
 
 	//statische Anzeigen zeichnen
-  drawHUD();
+	drawHUD();
 
 	SDL_GL_SwapBuffers();
 }
