@@ -453,7 +453,8 @@ void EventLoop(void)
 void calcBuilding(){
 	if(addBlock){
 		lastAdd++;
-		if((lastAdd >= addDelay || fastSpeed)  && pointingOnX+pointingOnY+pointingOnZ != -3){
+		if((lastAdd >= addDelay || fastSpeed)  && pointingOnX+pointingOnY+pointingOnZ != -3
+		   ){
 			int x = pointingOnX;
 			int y = pointingOnY;
 			int z = pointingOnZ;
@@ -490,7 +491,7 @@ void calcBuilding(){
 	}
 	else if(removeBlock && pointingOnX+pointingOnY+pointingOnZ != -3){
 		lastRemove++;
-		if(lastRemove >= removeDelay){
+		if(lastRemove >= removeDelay || fastSpeed){
 			landschaft[pointingOnX*ysize*zsize + pointingOnY*zsize  + pointingOnZ] = 0;
 			gen_gllist();
 			lastRemove = 0;
