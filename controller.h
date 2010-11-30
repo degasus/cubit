@@ -3,6 +3,8 @@
 
 class Controller;
 
+#include <boost/program_options.hpp>
+
 #include "ui.h"
 #include "renderer.h"
 #include "movement.h"
@@ -34,6 +36,8 @@ private:
 //	Map map;
 	
 	void parse_command_line(int argc, char *argv[]);
+	
+	boost::program_options::variables_map vm;
 
 };
 

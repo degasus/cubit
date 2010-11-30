@@ -1,4 +1,3 @@
-#include <boost/program_options.hpp>
 #include <iostream>
 
 #include "controller.h"
@@ -25,7 +24,6 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("noFullY", po::value<int>()->default_value(480), "set the default y-resolution")
 	;
 
-	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 	po::notify(vm);    
 
