@@ -5,7 +5,9 @@ class Map;
 class Area;
 class BlockPosition;
 
-const int MATERIALS = 4;
+// including Air == 0
+const int NUMBER_OF_MATERIALS = 10;
+
 const int AREASIZE_X = 32;
 const int AREASIZE_Y = 32;
 const int AREASIZE_Z = 32;
