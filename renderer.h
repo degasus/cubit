@@ -3,24 +3,12 @@
 
 class Renderer;
 
+#include <boost/program_options.hpp>
 #include "movement.h"
 #include "map.h"
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
-
-//CONSTANTS
-const char* TEXTURE_FILES[NUMBER_OF_MATERIALS] = {
-	"",
-	"tex/wood.bmp",
-	"tex/bricks.bmp",
-	"tex/grass.bmp",
-	"tex/grass2.bmp",
-	"tex/BlackMarble.bmp",
-	"tex/BlueCrackMarble.bmp",
-	"tex/BrightPurpleMarble.bmp",
-	"tex/BrownSwirlMarble.bmp",
-	"tex/SwirlyGrayMarble.bmp"
-};
+#include <string>
 
 /**
  *
@@ -31,17 +19,23 @@ public:
 	 *
 	 */
 	Renderer();
+	
+	void init();
 
 	void render(PlayerPosition pos);
 	void deleteArea(Area* area);
+	
+	void config(const boost::program_options::variables_map &c);
 
 private:
 	GLuint texture[NUMBER_OF_MATERIALS];
+	std::string Texture_Files[NUMBER_OF_MATERIALS];
 	
 	//fog
 	GLfloat bgColor[4];		// Fog Color
 	float fogDense;
 	float fogStartFactor;
+	float visualRange;
 };
 
 #endif

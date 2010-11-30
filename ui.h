@@ -3,6 +3,8 @@
 
 class UInterface;
 
+
+#include <boost/program_options.hpp>
 #include "renderer.h"
 
 /**
@@ -22,7 +24,7 @@ public:
 	 */
 	void init();
 
-
+	void config(const boost::program_options::variables_map &c);
 
 private:
 	void initGL();

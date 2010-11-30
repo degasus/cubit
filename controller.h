@@ -27,12 +27,11 @@ public:
 	void quit();
 
 	void run();
-
-
+	
 private:
-//	UInterface ui;
-//	Renderer renderer;
-//	Movement movement;
+	UInterface ui;
+	Renderer renderer;
+	Movement movement;
 //	Map map;
 	
 	void parse_command_line(int argc, char *argv[]);

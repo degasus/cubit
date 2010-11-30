@@ -5,6 +5,10 @@
 class Movement;
 struct PlayerPosition;
 struct ActionEvent;
+
+
+#include <boost/program_options.hpp>
+
 /**
  *
  */
@@ -14,6 +18,9 @@ public:
 	 *
 	 */
 	Movement();
+	
+	void init();
+	void config(const boost::program_options::variables_map &c);
 
 	void performAction(ActionEvent event);
 	void triggerNextFrame();

@@ -1,16 +1,36 @@
 #include "renderer.h"
 
-Renderer::Renderer()
-{
-	bgColor = {0.6f, 0.7f, 0.8f, 1.0f};
-	fogDense = 0.6f;
-	fogStartFactor = 0.40f;
+using namespace std;
 
-	// Set the OpenGL state after creating the context with SDL_SetVideoMode
+
+Renderer::Renderer()
+{ }
+
+void Renderer::config(const boost::program_options::variables_map& c)
+{
+	bgColor[0] 			= c["bgColorR"].as<float>();
+	bgColor[1] 			= c["bgColorG"].as<float>();
+	bgColor[2] 			= c["bgColorB"].as<float>();
+	bgColor[3] 			= c["bgColorA"].as<float>();
+	fogDense				= c["fogDense"].as<float>();
+	fogStartFactor		= c["fogStartFactor"].as<float>();
+	visualRange			= c["visualRange"].as<float>();
 	
+	string textureDirectory = c["textureDirectory"].as<string>();
+	Texture_Files[1]	= textureDirectory + "/" + c["texture01"].as<string>();
+	Texture_Files[2]	= textureDirectory + "/" + c["texture02"].as<string>();
+	Texture_Files[3]	= textureDirectory + "/" + c["texture03"].as<string>();
+	Texture_Files[4]	= textureDirectory + "/" + c["texture04"].as<string>();
+	
+}
+
+
+void Renderer::init()
+{
+	// Set the OpenGL state 
 	glEnable(GL_TEXTURE_2D);											// Enable Texture Mapping
 	glShadeModel(GL_SMOOTH);											// Enable Smooth Shading
-	glClearColor(fogColor[0],fogColor[1], fogColor[2], fogColor[3]);	// Black Background
+	glClearColor(bgColor[0],bgColor[1], bgColor[2], bgColor[3]);	// Black Background
 	glClearDepth(1.0f);													// Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);											// Enables Depth Testing
 	glDepthFunc(GL_LEQUAL);												// The Type Of Depth Testing To Do
@@ -18,17 +38,7 @@ Renderer::Renderer()
 	glHint(GL_LINE_SMOOTH, GL_NICEST);
 	glEnable(GL_LINE_SMOOTH);
 	
-	glViewport(0, 0, screenX, screenY);	// Reset The Current Viewport
-	
-	glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
-	glLoadIdentity();					// Reset The Projection Matrix
-	
-	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, 1000.0f);
-	
-	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
-	glLoadIdentity();			// Reset The Modelview Matrix
-	
+
 	GLfloat LightAmbient[]  = { 0.5f, 0.5f, 0.5f, 1.0f };
 	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat LightPosition[] = { 0.5f, 1.0f, 5.0f, 1.0f };
@@ -40,10 +50,10 @@ Renderer::Renderer()
 	glEnable(GL_LIGHTING);
 	
 	glFogi(GL_FOG_MODE, GL_LINEAR);		// Fog Mode
-	glFogfv(GL_FOG_COLOR, fogColor);	// Set Fog Color
+	glFogfv(GL_FOG_COLOR, bgColor);	// Set Fog Color
 	glFogf(GL_FOG_DENSITY, fogDense);	// How Dense Will The Fog Be
 	glHint(GL_FOG_HINT, GL_DONT_CARE);	// Fog Hint Value
-	glFogf(GL_FOG_START, xsize*fogStartFactor);
-	glFogf(GL_FOG_END, xsize);
-	glEnable(GL_FOG);					// Enables GL_FOG
+	glFogf(GL_FOG_START, visualRange*fogStartFactor);
+	glFogf(GL_FOG_END, visualRange);
+	glEnable(GL_FOG);					// Enables GL_FOG 
 }
