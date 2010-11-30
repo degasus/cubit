@@ -19,8 +19,6 @@ void Movement::config(const boost::program_options::variables_map& c)
 	personSize			= c["personSize"].as<float>();
 	slowMovementSpeed	= c["slowMovementSpeed"].as<float>();
 	normalMovementSpeed	= c["normalMovementSpeed"].as<float>();
-	movementSpeed		= c["movementSpeed"].as<float>();
-	movementSpeed		= c["movementSpeed"].as<float>();
 	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<float>();
 }
 
