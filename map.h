@@ -54,15 +54,18 @@ public:
 	void setPosition(PlayerPosition pos);
 
 	/**
-	 *
+	 * only callable from net
 	 */
 	void areaLoadedSuccess(Area* area);
 
 	/**
-	 *
+	 * only callable from net
 	 */
 	void areaLoadedIsEmpty(BlockPosition pos);
 
+	/**
+	 * only callable from net
+	 */
 	void blockChangedEvent(BlockPosition pos, Material m);
 private:
 

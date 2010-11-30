@@ -13,10 +13,11 @@ public:
 	/**
 	 *
 	 */
-	Movement(PlayerPosition startPosition);
+	Movement();
 
 	void performAction(ActionEvent event);
 	void triggerNextFrame();
+	void setPosition(PlayerPosition pos);
 
 private:
 

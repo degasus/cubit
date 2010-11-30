@@ -4,7 +4,6 @@
 class Controller;
 
 #include "ui.h"
-#include "config.h"
 #include "renderer.h"
 #include "movement.h"
 #include "map.h"
@@ -21,7 +20,7 @@ public:
 	/**
 	 * Startet das Spiel und initialisiert alles
 	 */
-	Controller();
+	Controller(int argc, char *argv[]);
 
 	void quit();
 
@@ -29,11 +28,12 @@ public:
 
 
 private:
-	UInterface* ui;
-	Config* config;
-	Renderer* renderer;
-	Movement* movement;
-	Map* map;
+//	UInterface ui;
+//	Renderer renderer;
+//	Movement movement;
+//	Map map;
+	
+	void parse_command_line(int argc, char *argv[]);
 
 };
 
