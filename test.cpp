@@ -608,7 +608,7 @@ void calcPointingOn(){
 	double distanceQ = 0;
 	int counter = 0;
 
-	while(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] == 0 && distanceQ <= 100 && counter <= 30 && lastPointingOn != -1){
+	while(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] == 0 && distanceQ <= 25 && counter <= 30 && lastPointingOn != -1){
 		counter++;
 		lastPointingOn = calcPointingOnInBlock(&lastX, &lastY, &lastZ);
 		switch (lastPointingOn) {
