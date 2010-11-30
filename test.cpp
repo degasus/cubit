@@ -608,45 +608,29 @@ void calcPointingOn(){
 	double distanceQ = 0;
 	int counter = 0;
 
-	while(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] == 0 && distanceQ <= 25 && counter <= 30 && lastPointingOn != -1){
+	while(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] == 0 && distanceQ <= 100 && counter <= 30 && lastPointingOn != -1){
 		counter++;
 		lastPointingOn = calcPointingOnInBlock(&lastX, &lastY, &lastZ);
-		//Front
-		if(lastPointingOn == 1){
-			blockZ++;
-			lastZ--;
-		}
+		switch (lastPointingOn) {
 		//Back
-		if(lastPointingOn == 0){
-			blockZ--;
-			lastZ++;
-		}
-		//Top
-		if(lastPointingOn == 3){
-			blockY++;
-			lastY--;
-		}
+		case 0: blockZ--; lastZ++; break;
+		//Front
+		case 1: blockZ++; lastZ--; break;
 		//Bottom
-		if(lastPointingOn == 2){
-			blockY--;
-			lastY++;
-		}
-		//Right
-		if(lastPointingOn == 5){
-			blockX++;
-			lastX--;
-		}
+		case 2: blockY--; lastY++; break;
+		//Top
+		case 3: blockY++; lastY--; break;
 		//Left
-		if(lastPointingOn == 4){
-			blockX--;
-			lastX++;
+		case 4: blockX--; lastX++; break;
+		//Right
+		case 5: blockX++; lastX--; break;
 		}
-		
+
 		double dx = blockX+lastX-posX;
 		double dy = blockY+lastY-posY-personSize;
 		double dz = blockZ+lastZ-posZ;
 		
-		distanceQ = dx*dx+dy*dy+dz*dz;
+		distanceQ = dx*dx + dy*dy + dz*dz;
 	}
 	
 
@@ -671,47 +655,50 @@ void highlightPointingOn(){
 		float x = pointingOnX;
 		float y = pointingOnY;
 		float z = pointingOnZ;
-					
-		if(lastPointingOn == 0) {
+
+		switch (lastPointingOn) {
+		// Front Face 0
+		case 0:
 			glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
 			glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 2 (Front)
 			glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Front)
 			glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 4 (Front)
-		}
+			break;
 		// Back Face 1
-		if(lastPointingOn == 1) {
+		case 1:
 			glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Back)
 			glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 2 (Back)
 			glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 3 (Back)
 			glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 4 (Back)
-		}
+			break;
 		// Top Face 2
-		if(lastPointingOn == 2) {
+		case 2:
 			glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 1 (Top)
 			glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 2 (Top)
 			glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Top)
 			glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 4 (Top)
-		}
+			break;
 		// Bottom Face 3
-		if(lastPointingOn == 3) {
+		case 3:
 			glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Bottom)
 			glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 2 (Bottom)
 			glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 3 (Bottom)
 			glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 4 (Bottom)
-		}
+			break;
 		// Right face 4
-		if(lastPointingOn == 4) {
+		case 4:
 			glVertex3f( 0.5+x, -0.5+y, -0.5+z);	// Point 1 (Right)
 			glVertex3f( 0.5+x,  0.5+y, -0.5+z);	// Point 2 (Right)
 			glVertex3f( 0.5+x,  0.5+y,  0.5+z);	// Point 3 (Right)
 			glVertex3f( 0.5+x, -0.5+y,  0.5+z);	// Point 4 (Right)
-		}
+			break;
 		// Left Face 5
-		if(lastPointingOn == 5) {
+		case 5:
 			glVertex3f(-0.5+x, -0.5+y, -0.5+z);	// Point 1 (Left)
 			glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 2 (Left)
 			glVertex3f(-0.5+x,  0.5+y,  0.5+z);	// Point 3 (Left)
 			glVertex3f(-0.5+x,  0.5+y, -0.5+z);	// Point 4 (Left)
+			break;
 		}
 		glEnd();
 		glEnable(GL_LIGHT1);
@@ -836,7 +823,7 @@ void HandleUserEvents(SDL_Event* event)
 {
     switch (event->user.code) {
         case RUN_GAME_LOOP:
-	    draw();
+			draw();
             break;
 
         default:
@@ -895,7 +882,7 @@ void gen_gllist() {
 	 	glBegin( GL_QUADS );
 	  for(int x=0; x<xsize; x++) for(int y=0; y<ysize; y++) for(int z=0; z<zsize; z++) {
       	if(landschaft[x*ysize*zsize + y*zsize  + z] == i){
-        // Front Face 0
+			// Front Face 0
 		    if(z != zsize-1 && !landschaft[x*ysize*zsize + y*zsize  + z+1]) {
 			    glNormal3f( 0.0f, 0.0f, 1.0f);					// Normal Pointing Towards Viewer
 			    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5+x, -0.5+y,  0.5+z);	// Point 1 (Front)
@@ -973,9 +960,9 @@ void drawHUD() {
 	glEnd();
 
 	glBegin(GL_QUADS);						// Draw A Quad
-		glVertex3f(lineLength/2, -lineWidth/2, 0.0f);				// Top Left
-		glVertex3f( lineLength/2, lineWidth/2, 0.0f);				// Top Right
-		glVertex3f(-lineLength/2, lineWidth/2, 0.0f);				// Bottom Right
+		glVertex3f( lineLength/2, -lineWidth/2, 0.0f);				// Top Left
+		glVertex3f( lineLength/2,  lineWidth/2, 0.0f);				// Top Right
+		glVertex3f(-lineLength/2,  lineWidth/2, 0.0f);				// Bottom Right
 		glVertex3f(-lineLength/2, -lineWidth/2, 0.0f);				// Bottom Left
 	glEnd();
 
@@ -985,7 +972,7 @@ void drawHUD() {
 
 void draw() {
 
-   // Clear the screen before drawing
+	// Clear the screen before drawing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
 	glLoadIdentity();							// Reset The View
 
@@ -1041,3 +1028,4 @@ void gen_land() {
 
 	}
 }
+
