@@ -69,6 +69,18 @@ private:
 };
 
 /**
+	 * Definiert die Position eines Blocks
+	 * @param x x Position (West -> Ost)
+	 * @param y y Position (Süd -> Nord)
+	 * @param z x Position (Unten -> Oben)
+	 */ 
+class BlockPosition {	
+	int x;
+	int y;
+	int z;
+};
+
+/**
  * kleines Gebiet auf der Karte.
  * Dies ist ein einzelner Abschnitt beim Rendern
  * und beim Laden übers Netz.
@@ -78,23 +90,6 @@ public:
 	BlockPosition pos;
 	Material m[AREASIZE_X][AREASIZE_Y][AREASIZE_Z];
 	int revision;
-};
-
-/**
-	 * Definiert die Position eines Blocks
-	 * @param x x Position (West -> Ost)
-	 * @param y y Position (Süd -> Nord)
-	 * @param z x Position (Unten -> Oben)
-	 */ 
-class BlockPosition {
-	BlockPosition();
-	BlockPosition(const BlockPosition & pos);
-	BlockPosition(int x, int y, int z);
-	BlockPosition(PlayerPosition pos);
-	
-	int x;
-	int y;
-	int z;
 };
 
 #endif

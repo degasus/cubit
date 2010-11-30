@@ -72,5 +72,5 @@ struct ActionEvent {
 		//turning around
 		ROTATE_HORIZONTAL, ROTATE_VERTICAL,
 	};
-}
+};
 #endif

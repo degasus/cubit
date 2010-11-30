@@ -25,6 +25,8 @@ public:
 
 	void quit();
 
+	void run();
+
 
 private:
 	UInterface* ui;

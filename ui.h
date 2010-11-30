@@ -13,7 +13,7 @@ public:
 	 *
 	 *
 	 */
-	UInterface(Config* config);
+	UInterface();
 
 	/**
 	 *
@@ -22,7 +22,7 @@ public:
 
 
 private:
-	Config* config;
+
 };
 
 

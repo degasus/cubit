@@ -12,17 +12,17 @@ class AreaChangedEvent;
 class Net {
 public:
 	// log into the given server
-	Net(char* server, void* profile, void() callback);
+	Net(char* server, void* profile);
 
 	// log off
 	~Net();
 
-	void loadArea(BlockPos block);
-	void subscribeToArea(BlockPos block);
-	void unsubscribeFromArea(BlockPos block);
+	void loadArea(BlockPosition block);
+	void subscribeToArea(BlockPosition block);
+	void unsubscribeFromArea(BlockPosition block);
 
-	void changeBlock(BlockPos block, Material newBlockType);
-	void moveTo(PlayerPosition pos, Vector3D viewDirection);
+	void changeBlock(BlockPosition block, Material newBlockType);
+	void moveTo(PlayerPosition pos);
 
 
 private:
@@ -32,24 +32,24 @@ private:
 class AreaChangedEvent {
 public:
 	// what type of event occured in this area
-	enum {
+	enum eventType {
 		BLOCK_CHANGED,
 		PLAYER_MOVED
-	} eventType;
+	} ;
 
-	union {
+	union unio {
 
 		// eventType == BLOCK_CHANGED
-		struct {
+		struct blo {
 			// position of the block that changed
-			BlockPos block;
+			BlockPosition block;
 
 			// new material for this block
 			Material newBlockType;
 		} block;
 
 		// eventType == PLAYER_MOVED
-		struct {
+		struct play {
 			// user ID of the player who moved to a new position
 			unsigned char uid;
 
@@ -57,7 +57,7 @@ public:
 			float posX;
 			float posY;
 		} player;
-	} // union
+	} uni;// union
 
 };
 

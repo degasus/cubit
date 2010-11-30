@@ -3,6 +3,9 @@
 
 class Renderer;
 
+#include "movement.h"
+#include "map.h"
+
 /**
  *
  */
