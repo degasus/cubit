@@ -5,6 +5,8 @@ class Renderer;
 
 #include "movement.h"
 #include "map.h"
+#include <SDL/SDL.h>
+#include <SDL/SDL_opengl.h>
 
 //CONSTANTS
 const char* TEXTURE_FILES[NUMBER_OF_MATERIALS] = {
@@ -37,7 +39,7 @@ private:
 	GLuint texture[NUMBER_OF_MATERIALS];
 	
 	//fog
-	GLfloat fogColor[4];		// Fog Color
+	GLfloat bgColor[4];		// Fog Color
 	float fogDense;
 	float fogStartFactor;
 };
