@@ -23,6 +23,8 @@ public:
 	 */
 	Controller();
 
+	void quit();
+
 
 private:
 	UInterface* ui;

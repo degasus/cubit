@@ -13,6 +13,9 @@ public:
 	 */
 	Renderer();
 
+	void render(PlayerPosition pos);
+	void deleteArea(Area* area);
+
 private:
 
 };

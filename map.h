@@ -3,6 +3,7 @@
 
 class Map;
 class Area;
+class BlockPosition;
 
 const int MATERIALS = 4;
 const int AREASIZE_X = 32;
@@ -11,11 +12,9 @@ const int AREASIZE_Z = 32;
 
 typedef unsigned char Material;
 class NotLoadedException {};
-class EmptyException {};
+class AreaEmptyException {};
 
-
-
-
+#include "movement.h"
 
 /**
  * Sorgt für das Laden der Karteninformation von Server
@@ -29,43 +28,42 @@ public:
 	Map();
 
 	/**
-	 * @param x x Position (West -> Ost)
-	 * @param y y Position (Süd -> Nord)
-	 * @param z x Position (Unten -> Oben)
 	 * @returns Material an der Stelle (x,y,z)
 	 * @throws NotLoadedException
 	 */
-	Material getMaterial(int x, int y, int z);
+	Material getBlock(BlockPosition pos);
 
 	/**
-	 *
-	 * @param x x Position (West -> Ost)
-	 * @param y y Position (Süd -> Nord)
-	 * @param z x Position (Unten -> Oben)
 	 * @param m neues Material an der Stelle (x,y,z)
 	 * @throws NotLoadedException falls diese Gebiet noch nicht geladen ist
 	 */
-	void setMaterial(int x, int y, int z, Material m);
+	void setBlock(BlockPosition pos, Material m);
 
 	/**
-	 * @param x x Position (West -> Ost)
-	 * @param y y Position (Süd -> Nord)
-	 * @param z x Position (Unten -> Oben)
 	 * @returns Area an der Stelle (x,y,z)
 	 * @throws NotLoadedException falls diese Gebiet noch nicht geladen ist
-	 * @throws EmptyException falls dieses Gebiet nur Luft beinhaltet
+	 * @throws AreaEmptyException falls dieses Gebiet nur Luft beinhaltet
 	 */
-	Area* getArea(int x, int y, int z);
+	Area* getArea(BlockPosition pos);
 
 	/**
 	 * Setzt die aktuelle Position des Spielers.
 	 * Dies wird benötigt, um zu erkennen, welche
 	 * Gebiete geladen werden müssen.
-	 * @param x x Position (West -> Ost)
-	 * @param y y Position (Süd -> Nord)
-	 * @param z x Position (Unten -> Oben)
 	 */
-	void setPosition(int x, int y, int z);
+	void setPosition(PlayerPosition pos);
+
+	/**
+	 *
+	 */
+	void areaLoadedSuccess(Area* area);
+
+	/**
+	 *
+	 */
+	void areaLoadedIsEmpty(BlockPosition pos);
+
+	void blockChangedEvent(BlockPosition pos, Material m);
 private:
 
 };
@@ -77,7 +75,26 @@ private:
  */
 class Area {
 public:
+	BlockPosition pos;
 	Material m[AREASIZE_X][AREASIZE_Y][AREASIZE_Z];
+	int revision;
+};
+
+/**
+	 * Definiert die Position eines Blocks
+	 * @param x x Position (West -> Ost)
+	 * @param y y Position (Süd -> Nord)
+	 * @param z x Position (Unten -> Oben)
+	 */ 
+class BlockPosition {
+	BlockPosition();
+	BlockPosition(const BlockPosition & pos);
+	BlockPosition(int x, int y, int z);
+	BlockPosition(PlayerPosition pos);
+	
+	int x;
+	int y;
+	int z;
 };
 
 #endif

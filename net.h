@@ -17,8 +17,8 @@ public:
 	// log off
 	~Net();
 
-	void loadArea(BlockPos block, void(Area*) callback);
-	void subscribeToArea(BlockPos block, void(const AreaChangedEvent*) callback);
+	void loadArea(BlockPos block);
+	void subscribeToArea(BlockPos block);
 	void unsubscribeFromArea(BlockPos block);
 
 	void changeBlock(BlockPos block, Material newBlockType);
