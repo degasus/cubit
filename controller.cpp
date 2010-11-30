@@ -41,6 +41,14 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("texture03", po::value<string>()->default_value("bricks.bmp"), "Bricks")
 		("texture04", po::value<string>()->default_value("marble.bmp"), "Marble")
 		("visualRange", po::value<float>()->default_value(64), "maximal distance for rendering")
+		("offset", po::value<float>()->default_value(64), "offset for horizontal collision detection")
+		("offsetFalling", po::value<float>()->default_value(64), "offset until falling down for vertical collision detection")
+		("offsetTop", po::value<float>()->default_value(64), "offset above person for vertical collision detection")
+		("accelY", po::value<float>()->default_value(64), "accelleration in vertical diretion")
+		("personSize", po::value<float>()->default_value(64), "size of person (should be between 1.01 and 1.99)")
+		("slowMovementSpeed", po::value<float>()->default_value(64), "speed when moving slowly")
+		("normalMovementSpeed", po::value<float>()->default_value(64), "speed when moving normally")
+		("fastSpeedMultiplier", po::value<float>()->default_value(64), "speed multiplier when moving fast")
 		
 		
 		
