@@ -76,19 +76,37 @@ public:
 	void config(const boost::program_options::variables_map &c);
 
 	void performAction(ActionEvent event);
+
+	//
 	void triggerNextFrame();
+	
+	//Get and set the position
+	PlayerPosition getPosition();
 	void setPosition(PlayerPosition pos);
 
 private:
+	//current position
 	PlayerPosition position;
-	
+
+	//offsets for collision detection
 	float offset;
 	float offsetFalling;
 	float offsetTop;
-	
+
+	//Current speed
+	float speedX;
 	float speedY;
-	float accelY;
-	
+	float speedZ;
+
+	//Current acceleration
+	float curAccelHorizontal;
+	float curAccelVertical;
+
+	//Acceleration to set on movment
+	float accelHorizontal;
+	float accelVertical;
+
+	//Size of person
 	float personSize;
 	
 	float slowMovementSpeed;

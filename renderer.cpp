@@ -16,7 +16,7 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	bgColor[1] 			= c["bgColorG"].as<float>();
 	bgColor[2] 			= c["bgColorB"].as<float>();
 	bgColor[3] 			= c["bgColorA"].as<float>();
-	fogDense				= c["fogDense"].as<float>();
+	fogDense			= c["fogDense"].as<float>();
 	fogStartFactor		= c["fogStartFactor"].as<float>();
 	visualRange			= c["visualRange"].as<float>();
 	
@@ -118,10 +118,8 @@ void Renderer::renderArea(Area* area)
 
 		for(int i=1; i < NUMBER_OF_MATERIALS; i++){
 			glBindTexture( GL_TEXTURE_2D, texture[i] );
-			
 			glBegin( GL_QUADS );
 			for(int x=0; x<AREASIZE_X; x++) for(int y=0; y<AREASIZE_Y; y++) for(int z=0; z<AREASIZE_Z; z++) {
-				
 				if(area->m[x][y][z] == i){
 					BlockPosition pos = BlockPosition::create(x,y,z);
 					Material now = c->map.getBlock(pos);
@@ -151,7 +149,7 @@ void Renderer::renderArea(Area* area)
 				}
 			}
 			cout << "Zaehler: " << zaehler << endl;
-		glEnd();
+			glEnd();
 		}
 		glEndList();
 	} else {
