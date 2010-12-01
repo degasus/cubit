@@ -32,7 +32,7 @@ public:
 	UInterface ui;
 	Renderer renderer;
 	Movement movement;
-//	Map map;
+	Map map;
 	
 private:
 	

@@ -29,6 +29,8 @@ public:
 	void config(const boost::program_options::variables_map &c);
 
 private:
+	
+	void renderArea(Area* area);
 	GLuint texture[NUMBER_OF_MATERIALS];
 	std::string Texture_Files[NUMBER_OF_MATERIALS];
 	
