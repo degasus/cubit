@@ -1,6 +1,8 @@
 #ifndef _MAP_H_
 #define _MAP_H_
 
+#include <boost/program_options.hpp>
+
 class Map;
 class Area;
 class BlockPosition;
@@ -16,7 +18,7 @@ typedef unsigned char Material;
 class NotLoadedException {};
 class AreaEmptyException {};
 
-#include "movement.h"
+#include "controller.h"
 
 /**
  * Sorgt für das Laden der Karteninformation von Server

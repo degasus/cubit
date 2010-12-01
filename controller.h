@@ -1,14 +1,14 @@
 #ifndef _CONTROLLER_H_
 #define _CONTROLLER_H_
 
-class Controller;
-
 #include <boost/program_options.hpp>
 
-#include "ui.h"
-#include "renderer.h"
+class Controller;
+
 #include "movement.h"
 #include "map.h"
+#include "ui.h"
+#include "renderer.h"
 
 
 /**
@@ -28,11 +28,13 @@ public:
 
 	void run();
 	
-private:
+	
 	UInterface ui;
 	Renderer renderer;
 	Movement movement;
 //	Map map;
+	
+private:
 	
 	void parse_command_line(int argc, char *argv[]);
 	

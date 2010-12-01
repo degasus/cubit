@@ -1,7 +1,8 @@
-#include "movement.h"
+#include "controller.h"
 
-Movement::Movement()
+Movement::Movement(Controller* controller)
 {
+	c = controller;
 	speedY = 0.0f;
 	position.x = 0.0;
 	position.y = 0.0;

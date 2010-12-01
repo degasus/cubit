@@ -1,4 +1,4 @@
-#include "map.h"
+#include "controller.h"
 
 Map::Map() {
 	

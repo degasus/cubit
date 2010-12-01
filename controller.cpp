@@ -7,7 +7,9 @@
 namespace po = boost::program_options;
 using namespace std;
 
-Controller::Controller(int argc, char *argv[]) {
+Controller::Controller(int argc, char *argv[]) 
+: ui(this), renderer(this), movement(this)
+{
 	parse_command_line(argc, argv);
 }
 

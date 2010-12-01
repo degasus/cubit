@@ -1,13 +1,14 @@
 #ifndef _MOVEMENT_H_
 #define _MOVEMENT_H_
 
+#include <boost/program_options.hpp>
+
 
 class Movement;
 struct PlayerPosition;
 struct ActionEvent;
 
-
-#include <boost/program_options.hpp>
+#include "controller.h"
 
 /**
  * Definiert die Position eines Spielers
@@ -69,7 +70,7 @@ public:
 	/**
 	 *
 	 */
-	Movement();
+	Movement(Controller *controller);
 	
 	void init();
 	void config(const boost::program_options::variables_map &c);
@@ -94,6 +95,8 @@ private:
 	float normalMovementSpeed;
 	float movementSpeed;
 	float fastSpeedMultiplier;
+	
+	Controller *c;
 	
 };
 #endif

@@ -17,7 +17,7 @@ public:
 	 *
 	 *
 	 */
-	UInterface();
+	UInterface(Controller *controller);
 
 	/**
 	 *
@@ -55,6 +55,8 @@ private:
 	//SDL vars
 	SDL_Surface *screen;
 	bool done;
+	
+	Controller *c;
 };
 
 

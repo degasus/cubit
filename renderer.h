@@ -1,14 +1,15 @@
 #ifndef _RENDERER_H_
 #define _RENDERER_H_
 
-class Renderer;
-
 #include <boost/program_options.hpp>
-#include "movement.h"
-#include "map.h"
+
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 #include <string>
+
+class Renderer;
+
+#include "controller.h"
 
 /**
  *
@@ -18,7 +19,7 @@ public:
 	/**
 	 *
 	 */
-	Renderer();
+	Renderer(Controller *controller);
 	
 	void init();
 
@@ -36,6 +37,8 @@ private:
 	float fogDense;
 	float fogStartFactor;
 	float visualRange;
+	
+	Controller *c;
 };
 
 #endif

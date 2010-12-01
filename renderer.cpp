@@ -1,10 +1,12 @@
-#include "renderer.h"
+#include "controller.h"
 
 using namespace std;
 
 
-Renderer::Renderer()
-{ }
+Renderer::Renderer(Controller* controller)
+{ 
+	c = controller;
+}
 
 void Renderer::config(const boost::program_options::variables_map& c)
 {

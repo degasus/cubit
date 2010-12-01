@@ -1,7 +1,8 @@
-#include "ui.h"
+#include "controller.h"
 
-UInterface::UInterface()
+UInterface::UInterface(Controller *controller)
 {
+	c = controller;
 	done = 0;
 	catchMouse = 1;
 }
@@ -96,8 +97,6 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 
 void UInterface::handleUserEvents(SDL_UserEvent e)
 {
-	
-//	debug();
 
 }
 
