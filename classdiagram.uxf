@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// This text will be stored with each diagram;  use it for notes.</help_text><zoom_level>10</zoom_level><group><element><type>com.umlet.element.base.Class</type><coordinates><x>340</x><y>50</y><w>240</w><h>100</h></coordinates><panel_attributes>Controller
+// This text will be stored with each diagram;  use it for notes.</help_text><zoom_level>10</zoom_level><element><type>com.umlet.element.base.Class</type><coordinates><x>480</x><y>50</y><w>240</w><h>100</h></coordinates><panel_attributes>Controller
 --
 _Constructors_
 Controller(argc: int, argv: char**)
@@ -28,8 +28,8 @@ Controller(argc: int, argv: char**)
 +run()
 +quit()
 
-bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>330</x><y>20</y><w>260</w><h>140</h></coordinates><panel_attributes>controller.h
-bg=orange</panel_attributes><additional_attributes/></element></group><group><element><type>com.umlet.element.base.Class</type><coordinates><x>510</x><y>230</y><w>120</w><h>60</h></coordinates><panel_attributes>ActionEvent
+bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>470</x><y>20</y><w>260</w><h>140</h></coordinates><panel_attributes>controller.h
+bg=orange</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>510</x><y>230</y><w>120</w><h>60</h></coordinates><panel_attributes>ActionEvent
 --
 +value: double
 +type: enum
@@ -44,7 +44,8 @@ _Constructors_
 
 +performAction(event: ActionEvent)
 +triggerNextFrame()
-+setPosition()
++setPosition(pos: PlayerPosition)
++getPosition() : PlayerPosition
 
 bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>660</x><y>200</y><w>230</w><h>120</h></coordinates><panel_attributes>PlayerPosition
 --
@@ -56,7 +57,7 @@ bg=gray</panel_attributes><additional_attributes/></element><element><type>com.u
 
 bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>470</x><y>170</y><w>430</w><h>320</h></coordinates><panel_attributes>movement.h
 
-bg=green</panel_attributes><additional_attributes/></element></group><group><element><type>com.umlet.element.base.Class</type><coordinates><x>480</x><y>530</y><w>410</w><h>140</h></coordinates><panel_attributes>Renderer
+bg=green</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>480</x><y>620</y><w>410</w><h>140</h></coordinates><panel_attributes>Renderer
 --
 _Constructors_
 +Renderer()
@@ -66,35 +67,35 @@ _Constructors_
 +render(pos: PlayerPosition)
 +deleteArea(area: *Area)
 
-bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>470</x><y>500</y><w>430</w><h>180</h></coordinates><panel_attributes>renderer.h
-bg=gray</panel_attributes><additional_attributes/></element></group><group><element><type>com.umlet.element.base.Class</type><coordinates><x>20</x><y>380</y><w>390</w><h>180</h></coordinates><panel_attributes>Map
+bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>470</x><y>590</y><w>430</w><h>180</h></coordinates><panel_attributes>renderer.h
+bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>20</x><y>470</y><w>390</w><h>180</h></coordinates><panel_attributes>Map
 --
 _Constructors_
 +Map()
 --
 +getBlock(pos: BlockPosition) : Material
 +setBlock(pos: BlockPosition, m : Material)
-+getArea(pos: BlockPosition)
++getArea(pos: BlockPosition) : Area
 +setPosition(pos: PlayerPosition)
 +areaLoadedSuccess(pos: BlockPosition)
 +areaLoadedIsEmpty(pos: blockPosition)
 +blockChangedEvent(pos: BlockPosition, m: Material)
 
-bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>20</x><y>590</y><w>150</w><h>80</h></coordinates><panel_attributes>BlockPosition
+bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>20</x><y>680</y><w>150</w><h>80</h></coordinates><panel_attributes>BlockPosition
 --
 +x: int
 +y: int
 +z: int
 
-bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>250</x><y>590</y><w>160</w><h>80</h></coordinates><panel_attributes>Area
+bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>250</x><y>680</y><w>160</w><h>80</h></coordinates><panel_attributes>Area
 --
 +pos: BlockPosition
 +m: Material[][][]
 +revision: int
 
-bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>10</x><y>350</y><w>410</w><h>330</h></coordinates><panel_attributes>map.h
+bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>10</x><y>440</y><w>410</w><h>330</h></coordinates><panel_attributes>map.h
 
-bg=orange</panel_attributes><additional_attributes/></element></group><group><element><type>com.umlet.element.base.Class</type><coordinates><x>20</x><y>200</y><w>410</w><h>120</h></coordinates><panel_attributes>UInterface
+bg=orange</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>20</x><y>300</y><w>410</w><h>120</h></coordinates><panel_attributes>UInterface
 --
 _Constructors_
 +UInterface()
@@ -103,5 +104,6 @@ _Constructors_
 +init()
 +run()
 
-bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>10</x><y>170</y><w>430</w><h>160</h></coordinates><panel_attributes>ui.h
-bg=magenta</panel_attributes><additional_attributes/></element></group></umlet_diagram>
+bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>10</x><y>270</y><w>430</w><h>160</h></coordinates><panel_attributes>ui.h
+bg=magenta</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>10</x><y>20</y><w>430</w><h>240</h></coordinates><panel_attributes>Net
+bg=red</panel_attributes><additional_attributes/></element></umlet_diagram>
