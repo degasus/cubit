@@ -22,7 +22,7 @@ public:
 	/**
 	 * Startet das Spiel und initialisiert alles
 	 */
-	Controller(int argc, char *argv[]);
+	Controller(int argc, char** argv);
 
 	void quit();
 
