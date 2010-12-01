@@ -1,10 +1,11 @@
 #include "controller.h"
+#include "movement.h"
 
 UInterface::UInterface(Controller *controller)
 {
 	c = controller;
 	done = 0;
-	catchMouse = 1;
+	catchMouse = 0;
 }
 
 void UInterface::init()
@@ -52,14 +53,35 @@ void UInterface::initWindow()
 	
 	// Calculate The Aspect Ratio Of The Window
 	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, 1000.0f);
+	glScalef(-1,1,1);	
+	glRotatef(90.0,0.0f,0.0f,1.0f);
+	glRotatef(90.0,0.0f,1.0f,0.0f);
+	
 	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 	glLoadIdentity();					// Reset The Projection Matrix
 
 }
 
+Uint32 GameLoopTimer(Uint32 interval, void* param)
+{
+    // Create a user event to call the game loop.
+    SDL_Event event;
+
+    event.type = SDL_USEREVENT;
+    event.user.code = 0;
+    event.user.data1 = 0;
+    event.user.data2 = 0;
+
+    SDL_PushEvent(&event);
+
+    return interval;
+}
+
 
 void UInterface::run()
 {
+	SDL_TimerID timer = SDL_AddTimer(40,GameLoopTimer,0);
+	
 	SDL_Event event;
 
 	while((!done) && (SDL_WaitEvent(&event))) {
@@ -97,7 +119,14 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 
 void UInterface::handleUserEvents(SDL_UserEvent e)
 {
-
+	PlayerPosition pos;
+	c->movement.triggerNextFrame();
+	pos.x=0;
+	pos.y=0;
+	pos.z=0;
+	pos.orientationHorizontal = 0;
+	pos.orientationVertical = 0;
+	c->renderer.render(pos);
 }
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)

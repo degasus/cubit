@@ -15,7 +15,7 @@ struct ActionEvent;
  * @param x x Position (West -> Ost)
  * @param y y Position (Süd -> Nord)
  * @param z z Position (Unten -> Oben), origin = eye level
- * @param orientation_horizontal horizontal orientation in degrees, 0 = north
+ * @param orientation_horizontal horizontal orientation in degrees, 0 = east
  * @param orientation_vertical vertical orientation in degrees, 0 = horizontal
  */
 struct PlayerPosition {
