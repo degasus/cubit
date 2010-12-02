@@ -74,19 +74,19 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::RELEASE_RIGHT:
 			rightPressed = false;
 			break;
-
-		case ActionEvent::PRESS_FAST_SPEED:
-			moveFast = true;
-			break;
-		case ActionEvent::RELEASE_FAST_SPEED:
-			moveFast = false;
-			break;
 			
 		case ActionEvent::PRESS_JUMP:
 			jumpPressed = true;
 			break;
 		case ActionEvent::RELEASE_JUMP:
 			jumpPressed = false;
+			break;
+
+		case ActionEvent::PRESS_FAST_SPEED:
+			movementSpeed *= fastSpeedMultiplier;
+			break;
+		case ActionEvent::RELEASE_FAST_SPEED:
+			movementSpeed /= fastSpeedMultiplier;
 			break;
 			
 		case ActionEvent::PRESS_DUCK:

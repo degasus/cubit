@@ -24,9 +24,14 @@ void UInterface::init()
 
 void UInterface::config(const boost::program_options::variables_map &c)
 {
-	noFullX 			= c["noFullX"].as<int>();
-	noFullY 			= c["noFullY"].as<int>();
-	isFullscreen 		= c["fullscreen"].as<bool>();
+	noFullX 		= c["noFullX"].as<int>();
+	noFullY 		= c["noFullY"].as<int>();
+	isFullscreen 	= c["fullscreen"].as<bool>();
+
+	k_forward		= c["k_forward"].as<int>();
+	k_backwards		= c["k_backwards"].as<int>();
+	k_left			= c["k_left"].as<int>();
+	k_right			= c["k_right"].as<int>();
 }
 
 
@@ -105,16 +110,48 @@ void UInterface::run()
 
 void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 {
-	switch(e.keysym.sym){
-		
+	ActionEvent ae;
+	ae.name = ActionEvent::NONE;
+	
+	int code = (int)e.keysym.sym;
+	if(code == k_forward){
+		ae.name = ActionEvent::PRESS_FORWARD;
 	}
+	if(code == k_backwards){
+			ae.name = ActionEvent::PRESS_BACKWARDS;
+	}
+	if(code == k_left){
+			ae.name = ActionEvent::PRESS_LEFT;
+	}
+	if(code == k_right){
+			ae.name = ActionEvent::PRESS_RIGHT;
+	}
+	
+	if(ae.name != ActionEvent::NONE)
+		c->movement.performAction(ae);
 }
 
 void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 {
-	switch(e.keysym.sym){
-		
+	ActionEvent ae;
+	ae.name = ActionEvent::NONE;
+	
+	int code = (int)e.keysym.sym;
+	if(code == k_forward){
+		ae.name = ActionEvent::RELEASE_FORWARD;
 	}
+	if(code == k_backwards){
+		ae.name = ActionEvent::RELEASE_BACKWARDS;
+	}
+	if(code == k_left){
+		ae.name = ActionEvent::RELEASE_LEFT;
+	}
+	if(code == k_right){
+		ae.name = ActionEvent::RELEASE_RIGHT;
+	}
+	
+	if(ae.name != ActionEvent::NONE)
+		c->movement.performAction(ae);
 }
 
 void UInterface::handleUserEvents(SDL_UserEvent e)

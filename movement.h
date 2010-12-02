@@ -30,6 +30,9 @@ struct ActionEvent {
 	double value;
 	
 	enum type {
+		//DUMMY
+		NONE,
+		
 		// move forward
 		PRESS_FORWARD, RELEASE_FORWARD,
 		

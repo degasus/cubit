@@ -59,7 +59,11 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("slowMovementSpeed", po::value<float>()->default_value(0.03f), "speed when moving slowly")
 		("normalMovementSpeed", po::value<float>()->default_value(0.2f), "speed when moving normally")
 		("fastSpeedMultiplier", po::value<float>()->default_value(5.72341f), "speed multiplier when moving fast")
-		
+
+		("k_forward", po::value<int>()->default_value(1), "KeyCode for moving forward")
+		("k_backwards", po::value<int>()->default_value(1), "KeyCode for moving backwards")
+		("k_left", po::value<int>()->default_value(1), "KeyCode for moving left")
+		("k_right", po::value<int>()->default_value(1), "KeyCode for moving right")
 		
 		
 		
