@@ -9,6 +9,7 @@ struct PlayerPosition;
 struct ActionEvent;
 
 #include "controller.h"
+#include "map.h"
 
 /**
  * Definiert die Position eines Spielers
@@ -24,6 +25,15 @@ struct PlayerPosition {
 	double z;
 	double orientationHorizontal;
 	double orientationVertical;
+
+	inline BlockPosition block(){
+		BlockPosition b;
+		b.x=std::floor(x);
+		b.y=std::floor(y);
+		b.z=std::floor(z);
+
+		return b;
+	}
 };
 
 struct ActionEvent {
@@ -117,6 +127,7 @@ private:
 	float normalMovementSpeed;
 	float movementSpeed;
 	float fastSpeedMultiplier;
+	double maxFallingSpeed;
 	
 	Controller *c;
 	bool forwardPressed;
@@ -130,6 +141,7 @@ private:
 	bool moveFast;
 
 	void calcBuilding();
-	void calcMovement();
+	void calcNewSpeed();
+	void calcCollisionAndMove();
 };
 #endif

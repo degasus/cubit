@@ -8,6 +8,8 @@
 #include <boost/program_options.hpp>
 #include <SDL/SDL_opengl.h>
 
+#include "movement.h"
+
 class Map;
 class Area;
 class BlockPosition;
@@ -91,17 +93,6 @@ struct BlockPosition {
 		b.x=x; 
 		b.y=y; 
 		b.z=z; 
-		return b; 
-	}
-	
-	/**
-	 * Will create the position at the PlayerPosition position
-	 */
-	static inline BlockPosition create(PlayerPosition pos) { 
-		BlockPosition b; 
-		b.x=std::floor(pos.x); 
-		b.y=std::floor(pos.y); 
-		b.z=std::floor(pos.z); 
 		return b; 
 	}
 	

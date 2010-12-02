@@ -40,6 +40,7 @@ void Movement::config(const boost::program_options::variables_map& c)
 	slowMovementSpeed	= c["slowMovementSpeed"].as<float>();
 	normalMovementSpeed	= c["normalMovementSpeed"].as<float>();
 	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<float>();
+	maxFallingSpeed		= c["maxFallingSpeed"].as<double>();
 
 	movementSpeed = normalMovementSpeed;
 }
@@ -149,7 +150,7 @@ void Movement::setPosition(PlayerPosition pos)
 	position = pos;
 }
 
-void Movement::calcMovement()
+void Movement::calcNewSpeed()
 {
 	if(forwardPressed){
 		if(speedForward <= movementSpeed)
@@ -195,17 +196,32 @@ void Movement::calcMovement()
 		if(speedRight > 0)
 			speedRight = 0;
 	}
-
-	position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360);
-	position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360);
-
-	position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360);
-	position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360);
+	if(c->map.getBlock(position.block()+DIRECTION_DOWN) != 0){
+		if(speedUp >= maxFallingSpeed)
+			speedUp -= accelVertical;
+		else
+			speedUp = -maxFallingSpeed;
+	}
+	else if(std::floor(position.z) > 0.1)
+		speedUp = 0;
 }
 
+void Movement::calcCollisionAndMove()
+{
+	PlayerPosition oldPos = position;
+	
+	position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360);
+	position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360);
+	
+	position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360);
+	position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360);
+
+	position.z += speedUp;
+}
 
 void Movement::triggerNextFrame()
 {
-	calcMovement();
+	calcNewSpeed();
+	calcCollisionAndMove();
 	//calcBuilding();
 }
