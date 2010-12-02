@@ -57,6 +57,15 @@ private:
 	bool done;
 	
 	Controller *c;
+
+	//Keys
+	int k_forward;
+	int k_backwards;
+	int k_left;
+	int k_right;
+	int k_jump;
+	int k_moveFast;
+	int k_Duck;
 };
 
 
