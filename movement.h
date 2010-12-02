@@ -99,7 +99,7 @@ private:
 
 	//Current speed
 	float speedForward;
-	float speedLeft;
+	float speedRight;
 	float speedUp;
 
 	//Current acceleration

@@ -179,17 +179,17 @@ void Renderer::render(PlayerPosition pos)
 	glLoadIdentity();							// Reset The View
 
 	//Mausbewegung
-	glRotatef(pos.orientationHorizontal,0.0f,0.0f,1.0f);
 	glRotatef(pos.orientationVertical,0.0f,1.0f,0.0f);
+	glRotatef(-pos.orientationHorizontal,0.0f,0.0f,1.0f);
 
 
 	//Eigene Position
 	glTranslatef(-(pos.x), -(pos.y), -(pos.z+AREASIZE_Z/2+2.5));
 
 
-	for(int x=-(visualRange); x<(visualRange); x+=AREASIZE_X)
-	for(int y=-(visualRange); y<(visualRange); y+=AREASIZE_Y)
-	for(int z=-visualRange/2; z<visualRange/2; z+=AREASIZE_Z) {
+	for(int x=-(visualRange)+pos.x; x<(visualRange)+pos.x; x+=AREASIZE_X)
+	for(int y=-(visualRange)+pos.y; y<(visualRange)+pos.y; y+=AREASIZE_Y)
+	for(int z=-visualRange+pos.z; z<visualRange+pos.z; z+=AREASIZE_Z) {
 		glPushMatrix();
 
 

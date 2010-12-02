@@ -48,9 +48,9 @@ private:
 	int noFullY;
 	//fullscreen on/off
 	bool isFullscreen;
-
 	
 	bool catchMouse;
+	double turningSpeed;
 
 	//SDL vars
 	SDL_Surface *screen;
@@ -66,6 +66,7 @@ private:
 	int k_jump;
 	int k_moveFast;
 	int k_Duck;
+	int k_quit;
 };
 
 

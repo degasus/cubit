@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "controller.h"
 #include "movement.h"
 
@@ -5,7 +7,7 @@ UInterface::UInterface(Controller *controller)
 {
 	c = controller;
 	done = 0;
-	catchMouse = 0;
+	catchMouse = 1;
 }
 
 void UInterface::init()
@@ -32,6 +34,10 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	k_backwards		= c["k_backwards"].as<int>();
 	k_left			= c["k_left"].as<int>();
 	k_right			= c["k_right"].as<int>();
+	k_moveFast		= c["k_moveFast"].as<int>();
+	k_quit			= c["k_quit"].as<int>();
+
+	turningSpeed	= c["turningSpeed"].as<double>();
 }
 
 
@@ -112,19 +118,27 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 {
 	ActionEvent ae;
 	ae.name = ActionEvent::NONE;
+
+	std::cout << "keydown" << e.keysym.sym << std::endl;
 	
 	int code = (int)e.keysym.sym;
 	if(code == k_forward){
 		ae.name = ActionEvent::PRESS_FORWARD;
 	}
 	if(code == k_backwards){
-			ae.name = ActionEvent::PRESS_BACKWARDS;
+		ae.name = ActionEvent::PRESS_BACKWARDS;
 	}
 	if(code == k_left){
-			ae.name = ActionEvent::PRESS_LEFT;
+		ae.name = ActionEvent::PRESS_LEFT;
 	}
 	if(code == k_right){
-			ae.name = ActionEvent::PRESS_RIGHT;
+		ae.name = ActionEvent::PRESS_RIGHT;
+	}
+	if(code == k_moveFast){
+		ae.name = ActionEvent::PRESS_FAST_SPEED;
+	}
+	if(code == k_quit){
+		done = 1;
 	}
 	
 	if(ae.name != ActionEvent::NONE)
@@ -149,6 +163,9 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	if(code == k_right){
 		ae.name = ActionEvent::RELEASE_RIGHT;
 	}
+	if(code == k_moveFast){
+		ae.name = ActionEvent::RELEASE_FAST_SPEED;
+	}
 	
 	if(ae.name != ActionEvent::NONE)
 		c->movement.performAction(ae);
@@ -156,13 +173,8 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 
 void UInterface::handleUserEvents(SDL_UserEvent e)
 {
-	PlayerPosition pos;
+	PlayerPosition pos = c->movement.getPosition();
 	c->movement.triggerNextFrame();
-	pos.x=0;
-	pos.y=0;
-	pos.z=0;
-	pos.orientationHorizontal = 0;
-	pos.orientationVertical = 0;
 	c->renderer.render(pos);
 }
 
@@ -181,6 +193,15 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 	if(catchMouse) {
 		int x = e.x-screenX/2;
 		int y = e.y-screenY/2;
+
+		ActionEvent ae;
+		ae.name = ActionEvent::ROTATE_HORIZONTAL;
+		ae.value = x*turningSpeed;
+		c->movement.performAction(ae);
+
+		ae.name = ActionEvent::ROTATE_VERTICAL;
+		ae.value = -y*turningSpeed;
+		c->movement.performAction(ae);
 		
 		SDL_WarpMouse(screenX/2, screenY/2);
 	}

@@ -1,12 +1,17 @@
+#include <cmath>
+#include <iostream>
+
 #include "controller.h"
 
 #include "movement.h"
+
+
 
 Movement::Movement(Controller* controller)
 {
 	c = controller;
 	speedForward = 0.0f;
-	speedLeft = 0.0f;
+	speedRight = 0.0f;
 	speedUp = 0.0f;
 	position.x = 0.0;
 	position.y = 0.0;
@@ -116,9 +121,17 @@ void Movement::performAction(ActionEvent event)
 
 		case ActionEvent::ROTATE_HORIZONTAL:
 			position.orientationHorizontal += event.value;
+			if(position.orientationHorizontal > 360)
+				position.orientationHorizontal -= 360;
+			if(position.orientationHorizontal < 0)
+				position.orientationHorizontal += 360;
 			break;
 		case ActionEvent::ROTATE_VERTICAL:
 			position.orientationVertical += event.value;
+			if(position.orientationVertical > 90)
+				position.orientationVertical = 90;
+			if(position.orientationVertical < -90)
+				position.orientationVertical = -90;
 			break;
 
 		default:
@@ -144,24 +157,50 @@ void Movement::calcMovement()
 		else
 			speedForward = movementSpeed;
 	}
+	else if(speedForward > 0){
+		speedForward -= accelHorizontal;
+		if(speedForward < 0)
+			speedForward = 0;
+	}
 	if(backwardsPressed){
 		if(speedForward >= -movementSpeed)
 			speedForward -= accelHorizontal;
 		else
 			speedForward = -movementSpeed;
 	}
-	if(leftPressed){
-		if(speedLeft <= movementSpeed)
-			speedLeft += accelHorizontal;
-		else
-			speedLeft = movementSpeed;
+	else if(speedForward < 0){
+		speedForward += accelHorizontal;
+		if(speedForward > 0)
+			speedForward = 0;
 	}
 	if(rightPressed){
-		if(speedLeft >= movementSpeed)
-			speedLeft -= -accelHorizontal;
+		if(speedRight <= movementSpeed)
+			speedRight += accelHorizontal;
 		else
-			speedLeft = -movementSpeed;
+			speedRight = movementSpeed;
 	}
+	else if(speedRight > 0){
+		speedRight -= accelHorizontal;
+		if(speedRight < 0)
+			speedRight = 0;
+	}
+	if(leftPressed){
+		if(speedRight >= movementSpeed)
+			speedRight -= accelHorizontal;
+		else
+			speedRight = -movementSpeed;
+	}
+	else if(speedRight < 0){
+		speedRight += accelHorizontal;
+		if(speedRight > 0)
+			speedRight = 0;
+	}
+
+	position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360);
+	position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360);
+
+	position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360);
+	position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360);
 }
 
 
