@@ -21,7 +21,6 @@ void UInterface::init()
 	
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
-	SDL_ShowCursor(SDL_DISABLE);
 }
 
 void UInterface::config(const boost::program_options::variables_map &c)
@@ -56,6 +55,11 @@ void UInterface::initWindow()
 
 	if ( !screen ) {
 		printf("Unable to set video mode: %s\n", SDL_GetError());
+	}
+	
+	if(catchMouse) {
+		SDL_ShowCursor(SDL_DISABLE);
+		SDL_WarpMouse(screenX/2, screenY/2);
 	}
 	
 	glViewport(0, 0, screenX, screenY);	// Reset The Current Viewport
@@ -173,8 +177,9 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 
 void UInterface::handleUserEvents(SDL_UserEvent e)
 {
-	PlayerPosition pos = c->movement.getPosition();
 	c->movement.triggerNextFrame();
+	PlayerPosition pos = c->movement.getPosition();
+	c->map.setPosition(pos);
 	c->renderer.render(pos);
 }
 

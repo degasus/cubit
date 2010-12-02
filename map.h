@@ -2,6 +2,7 @@
 #define _MAP_H_
 
 #include <map>
+#include <cmath>
 
 #include <boost/program_options.hpp>
 #include <SDL/SDL_opengl.h>
@@ -14,9 +15,9 @@ class BlockPosition;
 const int NUMBER_OF_MATERIALS = 5;
 
 // must be a pow of two 
-const int AREASIZE_X = 32;
-const int AREASIZE_Y = 32;
-const int AREASIZE_Z = 32;
+const int AREASIZE_X = 16;
+const int AREASIZE_Y = AREASIZE_X;
+const int AREASIZE_Z = AREASIZE_X;
 
 typedef unsigned char Material;
 class NotLoadedException {};
@@ -80,6 +81,9 @@ const double NORMAL_OF_DIRECTION[DIRECTION_COUNT][3] = {
  */ 
 struct BlockPosition {
 	
+	/**
+	 * Will create the position at the Point (x,y,z)
+	 */
 	static inline BlockPosition create(int x, int y, int z) { 
 		BlockPosition b; 
 		b.x=x; 
@@ -88,6 +92,20 @@ struct BlockPosition {
 		return b; 
 	}
 	
+	/**
+	 * Will create the position at the PlayerPosition position
+	 */
+	static inline BlockPosition create(PlayerPosition pos) { 
+		BlockPosition b; 
+		b.x=std::floor(pos.x); 
+		b.y=std::floor(pos.y); 
+		b.z=std::floor(pos.z); 
+		return b; 
+	}
+	
+	/**
+	 * @returns the next Block in this direction
+	 */
 	BlockPosition operator+(DIRECTION dir) {
 		return create(
 			x+DIRECTION_NEXT_BOX[dir][0],
@@ -95,7 +113,7 @@ struct BlockPosition {
 			z+DIRECTION_NEXT_BOX[dir][2]
  		);
 	}
-	
+
 	int x;
 	int y;
 	int z;
@@ -113,12 +131,22 @@ public:
 	
 	BlockPosition pos;
 	Material m[AREASIZE_X][AREASIZE_Y][AREASIZE_Z];
+	
+	// compairable with the server
 	int revision;
-	bool gllist_generated;
-	GLuint gllist;
-	bool needupdate;
+	
+	// indicate, that this is an new empty block without information
 	bool isnew;
 	
+	// for saving the GL-List
+	GLuint gllist;
+	bool gllist_generated;
+	bool needupdate;
+	
+	/**
+	 * calculate if the position is in this area
+	 * @returns true, if the position is in this area
+	 */
 	inline bool operator<< (const BlockPosition &position) {
 		return
 			(position.x & ~(AREASIZE_X-1))  == pos.x && 
@@ -127,6 +155,9 @@ public:
 		;
 	}
 	
+	/**
+	 * fetch the Material at an absolute position
+	 */
 	inline Material get(const BlockPosition &position) {
 		return m[position.x-pos.x][position.y-pos.y][position.z-pos.z];
 	}

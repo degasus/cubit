@@ -29,7 +29,7 @@ void randomArea(int schieben, Area* a) {
 	}
 
 	for(int x=0; x<AREASIZE_X; x++) for(int y=0; y<AREASIZE_Y; y++) for(int z=0; z<AREASIZE_Z; z++) {
-		if(z>hoehe[x][y]+schieben)
+		if(z>hoehe[x][y]-schieben)
 			a->m[x][y][z] = 0;
 		else
 			a->m[x][y][z] = (rand()%(NUMBER_OF_MATERIALS-1))+1;
@@ -60,6 +60,7 @@ void Map::setBlock(BlockPosition pos, Material m)
 {
 	Area *a = &areas[pos.x & ~(AREASIZE_X-1)][pos.y & ~(AREASIZE_Y-1)][pos.z & ~(AREASIZE_Z-1)];
 	a->m[(pos.x+AREASIZE_X)%AREASIZE_X][(pos.y+AREASIZE_Y)%AREASIZE_Y][(pos.z+AREASIZE_Z)%AREASIZE_Z] = m;
+	a->needupdate = 1;
 }
 
 void Map::setPosition(PlayerPosition pos)
