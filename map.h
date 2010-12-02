@@ -1,6 +1,7 @@
 #ifndef _MAP_H_
 #define _MAP_H_
 
+#include <boost/program_options.hpp>
 #include <map>
 #include <cmath>
 
@@ -72,6 +73,7 @@ const double NORMAL_OF_DIRECTION[DIRECTION_COUNT][3] = {
 };
 
 #include "controller.h"
+#include <boost/concept_check.hpp>
 
 /**
  * Definiert die Position eines Blocks
@@ -113,11 +115,26 @@ struct BlockPosition {
 			z+DIRECTION_NEXT_BOX[dir][2]
  		);
 	}
+	
+	BlockPosition area() {
+		return create(x & ~(AREASIZE_X-1),y & ~(AREASIZE_Y-1),z & ~(AREASIZE_Z-1));
+	}
 
 	int x;
 	int y;
 	int z;
 };
+
+//bool operator<(const BlockPosition &posa, const BlockPosition &posb);
+
+inline bool operator<(const BlockPosition &posa, const BlockPosition &posb) {
+	if (posa.x<posb.x) return 1;
+	if (posa.x>posb.x) return 0;
+	if (posa.y<posb.y) return 1;
+	if (posa.y>posb.y) return 0;
+	if (posa.z<posb.z) return 1;
+	return 0;
+}
 
 /**
  * kleines Gebiet auf der Karte.
@@ -158,8 +175,12 @@ public:
 	/**
 	 * fetch the Material at an absolute position
 	 */
-	inline Material get(const BlockPosition &position) {
+	inline Material get(BlockPosition position) {
 		return m[position.x-pos.x][position.y-pos.y][position.z-pos.z];
+	}
+	inline void set(BlockPosition position, Material mat) {
+		m[position.x-pos.x][position.y-pos.y][position.z-pos.z] = mat;
+		needupdate = 1;
 	}
 };
 
@@ -174,17 +195,24 @@ public:
 	 */
 	Map(Controller *controller);
 
+	void init();
+	void config(const boost::program_options::variables_map &c);
+	
 	/**
 	 * @returns Material an der Stelle (x,y,z)
 	 * @throws NotLoadedException
 	 */
-	Material getBlock(BlockPosition pos);
+	inline Material getBlock(BlockPosition pos){
+		return areas[pos.area()].get(pos);
+	}
 
 	/**
 	 * @param m neues Material an der Stelle (x,y,z)
 	 * @throws NotLoadedException falls diese Gebiet noch nicht geladen ist
 	 */
-	void setBlock(BlockPosition pos, Material m);
+	void setBlock(BlockPosition pos, Material m){
+		areas[pos.area()].set(pos,m);
+	}
 
 	/**
 	 * @returns Area an der Stelle (x,y,z)
@@ -214,11 +242,18 @@ public:
 	 * only callable from net
 	 */
 	void blockChangedEvent(BlockPosition pos, Material m);
+    
 private:
+	bool shouldDelArea(BlockPosition posa, PlayerPosition posp);
+	
 	Controller *c;
 	Area *lastarea;
 	
-	std::map<int,std::map<int,std::map<int,Area> > > areas;
+//	std::map<int,std::map<int,std::map<int,Area> > > areas;
+	
+	std::map<BlockPosition, Area> areas;
+	
+	double destroyArea;
 
 };
 

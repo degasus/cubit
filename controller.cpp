@@ -23,10 +23,12 @@ void Controller::run() {
 		ui.config(vm);
 		renderer.config(vm);
 		movement.config(vm);
+		map.config(vm);
 
 		ui.init();
 		renderer.init();
 		movement.init();
+		map.init();
 
 		ui.run();
 	}
@@ -53,6 +55,8 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("texture03", po::value<string>()->default_value("bricks.bmp"), "Bricks")
 		("texture04", po::value<string>()->default_value("marble.bmp"), "Marble")
 		("visualRange", po::value<float>()->default_value(40), "maximal distance for rendering")
+		("areasPerFrame", po::value<int>()->default_value(10), "set the maximal rendered areas per frame")
+		
 		("offset", po::value<float>()->default_value(0.3f), "offset for horizontal collision detection")
 		("offsetFalling", po::value<float>()->default_value(0.2f), "offset until falling down for vertical collision detection")
 		("offsetTop", po::value<float>()->default_value(0.1f), "offset above person for vertical collision detection")
@@ -63,6 +67,8 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("normalMovementSpeed", po::value<float>()->default_value(0.2f), "speed when moving normally")
 		("fastSpeedMultiplier", po::value<float>()->default_value(5.72341f), "speed multiplier when moving fast")
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning")
+		
+		("destroyArea", po::value<double>()->default_value(100.0), "distance for destroying areas")
 		
 		("k_forward", po::value<int>()->default_value(119), "KeyCode for moving forward")
 		("k_backwards", po::value<int>()->default_value(115), "KeyCode for moving backwards")

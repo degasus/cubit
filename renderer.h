@@ -27,11 +27,13 @@ public:
 	void deleteArea(Area* area);
 	
 	void config(const boost::program_options::variables_map &c);
-    int render_this_round;
 
 private:
 	
 	void renderArea(Area* area);
+    int areasPerFrame;
+	int areasRendered;
+	
 	GLuint texture[NUMBER_OF_MATERIALS];
 	std::string Texture_Files[NUMBER_OF_MATERIALS];
 	

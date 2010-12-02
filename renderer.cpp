@@ -8,7 +8,6 @@ using namespace std;
 Renderer::Renderer(Controller* controller)
 {
 	c = controller;
-	render_this_round = 1;
 }
 
 void Renderer::config(const boost::program_options::variables_map& c)
@@ -27,6 +26,7 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	Texture_Files[3]	= textureDirectory + "/" + c["texture03"].as<string>();
 	Texture_Files[4]	= textureDirectory + "/" + c["texture04"].as<string>();
 
+	areasPerFrame		= c["areasPerFrame"].as<int>();
 }
 
 
@@ -106,8 +106,9 @@ void Renderer::init()
 void Renderer::renderArea(Area* area)
 {
 
-	if(!area->gllist_generated || area->needupdate) {
-
+	if((!area->gllist_generated || area->needupdate) /*&& (areasRendered <= areasPerFrame)*/) {
+		areasRendered++;
+		
 		if(!area->gllist_generated) {
 			area->gllist_generated = 1;
 			area->gllist = glGenLists(1);
@@ -167,8 +168,10 @@ void Renderer::renderArea(Area* area)
 		glEnd();
 		}
 		glEndList();
-	} else {
+	} else if(area->gllist_generated) {
 		glCallList(area->gllist);
+	} else {
+		// do nothing
 	}
 }
 
@@ -177,7 +180,8 @@ void Renderer::render(PlayerPosition pos)
 	// Clear the screen before drawing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
 	glLoadIdentity();							// Reset The View
-
+	areasRendered = 0;
+	
 	//Mausbewegung
 	glRotatef(pos.orientationVertical,0.0f,1.0f,0.0f);
 	glRotatef(-pos.orientationHorizontal,0.0f,0.0f,1.0f);

@@ -9,6 +9,17 @@ Map::Map(Controller *controller) {
 	lastarea = 0;
 }
 
+void Map::config(const boost::program_options::variables_map& c)
+{
+	destroyArea = c["destroyArea"].as<double>();
+}
+
+void Map::init()
+{
+
+}
+
+
 void randomArea(int schieben, Area* a) {
 	a->pos.x = 0;
 	a->pos.y = 0;
@@ -38,35 +49,39 @@ void randomArea(int schieben, Area* a) {
 }
 Area* Map::getArea(BlockPosition pos)
 {
-	Area *a = &areas[pos.x & ~(AREASIZE_X-1)][pos.y & ~(AREASIZE_Y-1)][pos.z & ~(AREASIZE_Z-1)];
+	Area *a = &areas[pos.area()];
 	if(a->isnew) {
 		randomArea(pos.z & ~(AREASIZE_Z-1), a);
 		a->isnew = 0;
-		a->pos.x = pos.x & ~(AREASIZE_X-1);
-		a->pos.y = pos.y & ~(AREASIZE_Y-1);
-		a->pos.z = pos.z & ~(AREASIZE_Z-1);
-		
+		a->pos = pos.area();		
 	}
 	return a;
 }
 
-Material Map::getBlock(BlockPosition pos)
-{
-	Area *a = &areas[pos.x & ~(AREASIZE_X-1)][pos.y & ~(AREASIZE_Y-1)][pos.z & ~(AREASIZE_Z-1)];
-	return a->m[(pos.x+AREASIZE_X)%AREASIZE_X][(pos.y+AREASIZE_Y)%AREASIZE_Y][(pos.z+AREASIZE_Z)%AREASIZE_Z];
-}
-
-void Map::setBlock(BlockPosition pos, Material m)
-{
-	Area *a = &areas[pos.x & ~(AREASIZE_X-1)][pos.y & ~(AREASIZE_Y-1)][pos.z & ~(AREASIZE_Z-1)];
-	a->m[(pos.x+AREASIZE_X)%AREASIZE_X][(pos.y+AREASIZE_Y)%AREASIZE_Y][(pos.z+AREASIZE_Z)%AREASIZE_Z] = m;
-	a->needupdate = 1;
-}
-
 void Map::setPosition(PlayerPosition pos)
 {
-
+	std::map< BlockPosition, Area >::iterator it, it_save;
+	
+	for(it = areas.begin(); it != areas.end(); it++) {
+		if(shouldDelArea(it->second.pos,pos)) {
+			it_save = it++;
+			areas.erase(it_save);
+			if(it == areas.end())
+				break;
+		} 
+	}
 }
+
+bool Map::shouldDelArea(BlockPosition posa, PlayerPosition posp)
+{
+	return (
+		(posa.x-posp.x)*(posa.x-posp.x) +
+		(posa.y-posp.y)*(posa.y-posp.y) +
+		(posa.z-posp.z)*(posa.z-posp.z)
+	) >= destroyArea*destroyArea;
+		
+}
+
 
 void Map::areaLoadedIsEmpty(BlockPosition pos)
 {
@@ -93,7 +108,7 @@ Area::~Area()
 {
 	if(gllist_generated)
 		glDeleteLists(gllist,1);
+	gllist_generated = 0;
 }
-
 
 
