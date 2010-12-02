@@ -8,6 +8,8 @@
 #include <boost/program_options.hpp>
 #include <SDL/SDL_opengl.h>
 
+#include <cstdio>
+
 class Map;
 class Area;
 class BlockPosition;
@@ -143,7 +145,7 @@ inline bool operator<(const BlockPosition &posa, const BlockPosition &posb) {
  */
 class Area {
 public:
-	Area();
+	Area(BlockPosition p);
 	~Area();
 	
 	BlockPosition pos;
@@ -176,8 +178,14 @@ public:
 		return m[position.x-pos.x][position.y-pos.y][position.z-pos.z];
 	}
 	inline void set(BlockPosition position, Material mat) {
+        void filename();
 		m[position.x-pos.x][position.y-pos.y][position.z-pos.z] = mat;
 		needupdate = 1;
+	}
+	inline std::string filename(std::string dir) {
+		std::ostringstream os(std::ostringstream::out);
+		os << dir << "/" << pos.x << "x" << pos.y << "x" << pos.z << ".map";
+		return os.str();
 	}
 };
 
@@ -191,6 +199,7 @@ public:
 	 *
 	 */
 	Map(Controller *controller);
+	~Map();
 
 	void init();
 	void config(const boost::program_options::variables_map &c);
@@ -248,15 +257,17 @@ public:
     
 private:
 	bool shouldDelArea(BlockPosition posa, PlayerPosition posp);
+    void store(Area *a);
+    bool load(Area *a);
+	
 	
 	Controller *c;
 	Area *lastarea;
 	
-//	std::map<int,std::map<int,std::map<int,Area> > > areas;
-	
 	std::map<BlockPosition, Area*> areas;
 	
 	double destroyArea;
+    std::string mapDirectory;
 
 };
 

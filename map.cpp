@@ -1,4 +1,11 @@
 #include <iostream>
+#include <fstream>
+#include <string>
+
+#include <cstdio>
+
+
+
 
 #include "controller.h"
 
@@ -9,9 +16,21 @@ Map::Map(Controller *controller) {
 	lastarea = 0;
 }
 
+Map::~Map()
+{
+	std::map< BlockPosition, Area* >::iterator it;
+	
+	for(it = areas.begin(); it != areas.end(); it++) {
+		store(it->second);
+		delete it->second;
+	}
+}
+
+
 void Map::config(const boost::program_options::variables_map& c)
 {
 	destroyArea = c["destroyArea"].as<double>();
+	mapDirectory = c["mapDirectory"].as<std::string>();
 }
 
 void Map::init()
@@ -21,11 +40,6 @@ void Map::init()
 
 
 void randomArea(int schieben, Area* a) {
-	a->pos.x = 0;
-	a->pos.y = 0;
-	a->pos.z = 0;
-	
-	
 	int hoehe[AREASIZE_X][AREASIZE_Y];
 
 	for(int x=0; x<AREASIZE_X; x++) for(int y=0; y<AREASIZE_Y; y++) {
@@ -51,9 +65,9 @@ Area* Map::getArea(BlockPosition pos)
 {
 	Area **a = &areas[pos.area()];
 	if(!(*a)) {
-		(*a) = new Area();
-		randomArea(pos.z & ~(AREASIZE_Z-1), (*a));
-		(*a)->pos = pos.area();		
+		(*a) = new Area(pos.area());
+		if(!load(*a))
+			randomArea(pos.area().z, (*a));	
 	}
 	return (*a);
 }
@@ -65,6 +79,7 @@ void Map::setPosition(PlayerPosition pos)
 	for(it = areas.begin(); it != areas.end(); it++) {
 		if(shouldDelArea(it->second->pos,pos)) {
 			it_save = it++;
+			store(it_save->second);
 			delete it_save->second;
 			areas.erase(it_save);
 			if(it == areas.end())
@@ -99,8 +114,28 @@ void Map::blockChangedEvent(BlockPosition pos, Material m)
 
 }
 
-Area::Area()
+void Map::store(Area *a) {
+	std::ofstream of(a->filename(mapDirectory).c_str(),std::ofstream::binary);
+	
+	of.write((char*) a->m, sizeof(Material)*AREASIZE_X*AREASIZE_Y*AREASIZE_Z);
+	
+	of.close();
+}
+
+bool Map::load(Area *a) {
+	std::ifstream i(a->filename(mapDirectory).c_str(),std::ifstream::binary);
+	bool success = 0;
+	if (i.is_open()) {
+		i.read((char*) a->m, sizeof(Material)*AREASIZE_X*AREASIZE_Y*AREASIZE_Z);
+		success = 1;
+	}
+	i.close();
+	return success;
+}
+
+Area::Area(BlockPosition p)
 {
+	pos = p;
 	gllist_generated = 0;
 }
 

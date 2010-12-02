@@ -205,6 +205,6 @@ void Renderer::render(PlayerPosition pos)
 		glPopMatrix();
 	}
 
-	SDL_GL_SwapBuffers();
+	
 }
 

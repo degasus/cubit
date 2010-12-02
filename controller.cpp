@@ -42,7 +42,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("help", "produce help message")
 		("noFullX", po::value<int>()->default_value(1024), "set the default x-resolution")
 		("noFullY", po::value<int>()->default_value(768), "set the default y-resolution")
-		("fullscreen", po::value<bool>()->default_value(1), "start in fullscreen")
+		("fullscreen", po::value<bool>()->default_value(0), "start in fullscreen")
 		("bgColorR", po::value<float>()->default_value(0.6), "Background Color Red")
 		("bgColorG", po::value<float>()->default_value(0.7), "Background Color Green")
 		("bgColorB", po::value<float>()->default_value(0.8), "Background Color Blue")
@@ -69,6 +69,8 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning")
 		
 		("destroyArea", po::value<double>()->default_value(100.0), "distance for destroying areas")
+		("mapDirectory", po::value<string>()->default_value("maps"), "Maps for saving areas")
+		
 		
 		("k_forward", po::value<int>()->default_value(119), "KeyCode for moving forward")
 		("k_backwards", po::value<int>()->default_value(115), "KeyCode for moving backwards")

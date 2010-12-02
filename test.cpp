@@ -851,35 +851,7 @@ void gen_gllist() {
 
 //zeichnet die statischen Displayelemente (Anzeigen, ...).
 //Sollte als letzte Aktion in draw aufgerufen werden
-void drawHUD() {
-  glLoadIdentity();
-  glDisable(GL_DEPTH_TEST);
 
-  glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
-  glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
-  glEnable(GL_BLEND);
-
-  glTranslatef(0.0f,0.0f,-6.0f);
-  float lineWidth = 0.012f;
-  float lineLength = 0.25f;
-
-  glBegin(GL_QUADS);						// Draw A Quad
-		glVertex3f(-lineWidth/2, lineLength/2, 0.0f);				// Top Left
-		glVertex3f( lineWidth/2, lineLength/2, 0.0f);				// Top Right
-		glVertex3f( lineWidth/2,-lineLength/2, 0.0f);				// Bottom Right
-		glVertex3f(-lineWidth/2,-lineLength/2, 0.0f);				// Bottom Left
-	glEnd();
-
-	glBegin(GL_QUADS);						// Draw A Quad
-		glVertex3f( lineLength/2, -lineWidth/2, 0.0f);				// Top Left
-		glVertex3f( lineLength/2,  lineWidth/2, 0.0f);				// Top Right
-		glVertex3f(-lineLength/2,  lineWidth/2, 0.0f);				// Bottom Right
-		glVertex3f(-lineLength/2, -lineWidth/2, 0.0f);				// Bottom Left
-	glEnd();
-
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-}
 
 void draw() {
 
