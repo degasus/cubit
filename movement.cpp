@@ -1,14 +1,27 @@
 #include "controller.h"
 
+#include "movement.h"
+
 Movement::Movement(Controller* controller)
 {
 	c = controller;
-	speedY = 0.0f;
+	speedForward = 0.0f;
+	speedLeft = 0.0f;
+	speedUp = 0.0f;
 	position.x = 0.0;
 	position.y = 0.0;
 	position.z = 0.0;
 	position.orientationHorizontal = 0.0;
 	position.orientationVertical = 0.0;
+	forwardPressed = false;
+	rightPressed = false;
+	leftPressed = false;
+	backwardsPressed = false;
+	duckPressed = false;
+	jumpPressed = false;
+	buildBlockPressed = false;
+	removeBlockPressed = false;
+	moveFast = false;
 }
 
 void Movement::config(const boost::program_options::variables_map& c)
@@ -16,11 +29,14 @@ void Movement::config(const boost::program_options::variables_map& c)
 	offset				= c["offset"].as<float>();
 	offsetFalling		= c["offsetFalling"].as<float>();
 	offsetTop			= c["offsetTop"].as<float>();
-	accelY				= c["accelY"].as<float>();
+	accelHorizontal		= c["accelHorizontal"].as<float>();
+	accelVertical		= c["accelVertical"].as<float>();
 	personSize			= c["personSize"].as<float>();
 	slowMovementSpeed	= c["slowMovementSpeed"].as<float>();
 	normalMovementSpeed	= c["normalMovementSpeed"].as<float>();
 	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<float>();
+
+	movementSpeed = normalMovementSpeed;
 }
 
 void Movement::init()
@@ -30,15 +46,127 @@ void Movement::init()
 
 void Movement::performAction(ActionEvent event)
 {
+	switch(event.name){
+		case ActionEvent::PRESS_FORWARD:
+			forwardPressed = true;
+			break;
+		case ActionEvent::RELEASE_FORWARD:
+			forwardPressed = false;
+			break;
+			
+		case ActionEvent::PRESS_BACKWARDS:
+			backwardsPressed = true;
+			break;
+		case ActionEvent::RELEASE_BACKWARDS:
+			backwardsPressed = false;
+			break;
+			
+		case ActionEvent::PRESS_LEFT:
+			leftPressed = true;
+			break;
+		case ActionEvent::RELEASE_LEFT:
+			leftPressed = false;
+			break;
+			
+		case ActionEvent::PRESS_RIGHT:
+			rightPressed = true;
+			break;
+		case ActionEvent::RELEASE_RIGHT:
+			rightPressed = false;
+			break;
 
+		case ActionEvent::PRESS_FAST_SPEED:
+			moveFast = true;
+			break;
+		case ActionEvent::RELEASE_FAST_SPEED:
+			moveFast = false;
+			break;
+			
+		case ActionEvent::PRESS_JUMP:
+			jumpPressed = true;
+			break;
+		case ActionEvent::RELEASE_JUMP:
+			jumpPressed = false;
+			break;
+			
+		case ActionEvent::PRESS_DUCK:
+			duckPressed = true;
+			offsetFalling *= 2;
+			movementSpeed = slowMovementSpeed;
+			break;
+		case ActionEvent::RELEASE_DUCK:
+			duckPressed = false;
+			offsetFalling /= 2;
+			movementSpeed = normalMovementSpeed;
+			break;
+			
+		case ActionEvent::PRESS_BUILD_BLOCK:
+			buildBlockPressed = true;
+			break;
+		case ActionEvent::RELEASE_BUILD_BLOCK:
+			buildBlockPressed = false;
+			break;
+			
+		case ActionEvent::PRESS_REMOVE_BLOCK:
+			removeBlockPressed = true;
+			break;
+		case ActionEvent::RELEASE_REMOVE_BLOCK:
+			removeBlockPressed = false;
+			break;
+
+		case ActionEvent::ROTATE_HORIZONTAL:
+			position.orientationHorizontal += event.value;
+			break;
+		case ActionEvent::ROTATE_VERTICAL:
+			position.orientationVertical += event.value;
+			break;
+
+		default:
+			break;
+	}
+}
+
+PlayerPosition Movement::getPosition()
+{
+	return position;
 }
 
 void Movement::setPosition(PlayerPosition pos)
 {
-
+	position = pos;
 }
+
+void Movement::calcMovement()
+{
+	if(forwardPressed){
+		if(speedForward <= movementSpeed)
+			speedForward += accelHorizontal;
+		else
+			speedForward = movementSpeed;
+	}
+	if(backwardsPressed){
+		if(speedForward >= -movementSpeed)
+			speedForward -= accelHorizontal;
+		else
+			speedForward = -movementSpeed;
+	}
+	if(leftPressed){
+		if(speedLeft <= movementSpeed)
+			speedLeft += accelHorizontal;
+		else
+			speedLeft = movementSpeed;
+	}
+	if(rightPressed){
+		if(speedLeft >= movementSpeed)
+			speedLeft -= -accelHorizontal;
+		else
+			speedLeft = -movementSpeed;
+	}
+}
+
 
 void Movement::triggerNextFrame()
 {
-
+	calcMovement();
+	//calcBuilding();
 }

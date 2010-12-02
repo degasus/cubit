@@ -9,7 +9,7 @@
 namespace po = boost::program_options;
 using namespace std;
 
-Controller::Controller(int argc, char *argv[]) 
+Controller::Controller(int argc, char *argv[])
 : ui(this), renderer(this), movement(this), map(this)
 {
 	srand ( time(NULL) );
@@ -25,7 +25,7 @@ void Controller::run() {
 	ui.init();
 	renderer.init();
 	movement.init();
-	
+
 	ui.run();
 }
 
@@ -50,25 +50,27 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("texture03", po::value<string>()->default_value("bricks.bmp"), "Bricks")
 		("texture04", po::value<string>()->default_value("marble.bmp"), "Marble")
 		("visualRange", po::value<float>()->default_value(40), "maximal distance for rendering")
-		("offset", po::value<float>()->default_value(64), "offset for horizontal collision detection")
-		("offsetFalling", po::value<float>()->default_value(64), "offset until falling down for vertical collision detection")
-		("offsetTop", po::value<float>()->default_value(64), "offset above person for vertical collision detection")
-		("accelY", po::value<float>()->default_value(64), "accelleration in vertical diretion")
-		("personSize", po::value<float>()->default_value(64), "size of person (should be between 1.01 and 1.99)")
-		("slowMovementSpeed", po::value<float>()->default_value(64), "speed when moving slowly")
-		("normalMovementSpeed", po::value<float>()->default_value(64), "speed when moving normally")
-		("fastSpeedMultiplier", po::value<float>()->default_value(64), "speed multiplier when moving fast")
-		
-		
-		
-		
-		
-		
-		
+		("offset", po::value<float>()->default_value(0.3f), "offset for horizontal collision detection")
+		("offsetFalling", po::value<float>()->default_value(0.2f), "offset until falling down for vertical collision detection")
+		("offsetTop", po::value<float>()->default_value(0.1f), "offset above person for vertical collision detection")
+		("accelHorizontal", po::value<float>()->default_value(0.02f), "accelleration in horizontal diretion")
+		("accelVertical", po::value<float>()->default_value(0.02f), "accelleration in vertical diretion")
+		("personSize", po::value<float>()->default_value(1.5f), "size of person (should be between 1.01 and 1.99)")
+		("slowMovementSpeed", po::value<float>()->default_value(0.03f), "speed when moving slowly")
+		("normalMovementSpeed", po::value<float>()->default_value(0.2f), "speed when moving normally")
+		("fastSpeedMultiplier", po::value<float>()->default_value(5.72341f), "speed multiplier when moving fast")
+
+
+
+
+
+
+
+
 	;
 
 	po::store(po::parse_command_line(argc, argv, desc), vm);
-	po::notify(vm);    
+	po::notify(vm);
 
 	if (vm.count("help")) {
 		std::cout << desc << "\n";

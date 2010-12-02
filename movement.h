@@ -59,7 +59,7 @@ struct ActionEvent {
 		
 		//turning around
 		ROTATE_HORIZONTAL, ROTATE_VERTICAL,
-	};
+	} name;
 };
 
 /**
@@ -75,20 +75,39 @@ public:
 	void init();
 	void config(const boost::program_options::variables_map &c);
 
+	//handle ActionEvents like pressing a key
 	void performAction(ActionEvent event);
+
+	//Things to do before rendering next frame
 	void triggerNextFrame();
+	
+	//Get and set the position
+	PlayerPosition getPosition();
 	void setPosition(PlayerPosition pos);
 
 private:
+	//current position
 	PlayerPosition position;
-	
+
+	//offsets for collision detection
 	float offset;
 	float offsetFalling;
 	float offsetTop;
-	
-	float speedY;
-	float accelY;
-	
+
+	//Current speed
+	float speedForward;
+	float speedLeft;
+	float speedUp;
+
+	//Current acceleration
+	float curAccelHorizontal;
+	float curAccelVertical;
+
+	//Acceleration to set on movment
+	float accelHorizontal;
+	float accelVertical;
+
+	//Size of person
 	float personSize;
 	
 	float slowMovementSpeed;
@@ -97,6 +116,17 @@ private:
 	float fastSpeedMultiplier;
 	
 	Controller *c;
-	
+	bool forwardPressed;
+	bool rightPressed;
+	bool leftPressed;
+	bool backwardsPressed;
+	bool duckPressed;
+	bool jumpPressed;
+	bool buildBlockPressed;
+	bool removeBlockPressed;
+	bool moveFast;
+
+	void calcBuilding();
+	void calcMovement();
 };
 #endif
