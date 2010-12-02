@@ -8,6 +8,7 @@ using namespace std;
 Renderer::Renderer(Controller* controller)
 { 
 	c = controller;
+	render_this_round = 1;
 }
 
 void Renderer::config(const boost::program_options::variables_map& c)
@@ -106,33 +107,47 @@ void Renderer::renderArea(Area* area)
 {
 	
 	if(!area->gllist_generated || area->needupdate) {
+		
 		if(!area->gllist_generated) {
 			area->gllist_generated = 1;
 			area->gllist = glGenLists(1);
 		}
 		area->needupdate = 0;
 		
-		int zaehler = 0;
-		
 		glNewList(area->gllist,GL_COMPILE_AND_EXECUTE);
+		
+		Area* areas[DIRECTION_COUNT];
+		for(int i=0; i<DIRECTION_COUNT; i++)
+			areas[i] = 0;
 
 		for(int i=1; i < NUMBER_OF_MATERIALS; i++){
 			glBindTexture( GL_TEXTURE_2D, texture[i] );
 			
 			glBegin( GL_QUADS );
-			for(int x=0; x<AREASIZE_X; x++) for(int y=0; y<AREASIZE_Y; y++) for(int z=0; z<AREASIZE_Z; z++) {
+			for(int x=area->pos.x; x<AREASIZE_X+area->pos.x; x++) 
+			for(int y=area->pos.y; y<AREASIZE_Y+area->pos.y; y++) 
+			for(int z=area->pos.z; z<AREASIZE_Z+area->pos.z; z++)  {
 				
-				if(area->m[x][y][z] == i){
-					BlockPosition pos = BlockPosition::create(x,y,z);
-					Material now = c->map.getBlock(pos);
+				BlockPosition pos = BlockPosition::create(x,y,z);
+				
+				if(area->get(pos) == i){
+					Material now = area->get(pos);;
 					
 					if(now) {
 						for(int dir=0; dir < DIRECTION_COUNT; dir++) {
 							BlockPosition next = pos+(DIRECTION)dir;
-							Material next_m = c->map.getBlock(next);
+							
+							Material next_m;
+							if((*area) << next)
+								next_m = area->get(next);
+							else if(areas[dir] && (*areas[dir]) << next) 
+								next_m = areas[dir]->get(next);
+							else {
+								areas[dir] = c->map.getArea(next);
+								next_m = areas[dir]->get(next);
+							}
 							
 							if(!next_m) {
-								zaehler++;
 								glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer
 								for(int point=0; point < POINTS_PER_POLYGON; point++) {
 									glTexCoord2f(
@@ -140,9 +155,9 @@ void Renderer::renderArea(Area* area)
 										TEXTUR_POSITION_OF_DIRECTION[dir][point][1]
 									); 
 									glVertex3f(
-										POINTS_OF_DIRECTION[dir][point][0]+x,
-										POINTS_OF_DIRECTION[dir][point][1]+y,
-										POINTS_OF_DIRECTION[dir][point][2]+z
+										POINTS_OF_DIRECTION[dir][point][0]+(x-area->pos.x),
+										POINTS_OF_DIRECTION[dir][point][1]+(y-area->pos.y),
+										POINTS_OF_DIRECTION[dir][point][2]+(z-area->pos.z)
 									);
 								}
 							}
@@ -150,7 +165,6 @@ void Renderer::renderArea(Area* area)
 					}
 				}
 			}
-			cout << "Zaehler: " << zaehler << endl;
 		glEnd();
 		}
 		glEndList();
@@ -171,42 +185,24 @@ void Renderer::render(PlayerPosition pos)
 	glRotatef(pos.orientationVertical,0.0f,1.0f,0.0f);
 
 	
-	k+=1;
+	k+=0.3;
 	//Eigene Position
-	glTranslatef(-(pos.x-150+k), -(pos.y), -(pos.z));
+	glTranslatef(-(pos.x-20+k), -(pos.y), -(pos.z+AREASIZE_Z/2+2.5));
+
 	
-	
-	
-	for(int x=-visualRange; x<visualRange; x+=AREASIZE_X) 
-	for(int y=-visualRange; y<visualRange; y+=AREASIZE_Y) 
-	for(int z=-visualRange; z<visualRange; z+=AREASIZE_Z) {
+	for(int x=-(visualRange)+k; x<(visualRange)+k; x+=AREASIZE_X) 
+	for(int y=-(visualRange); y<(visualRange); y+=AREASIZE_Y) 
+	for(int z=-visualRange/2; z<visualRange/2; z+=AREASIZE_Z) {
 		glPushMatrix();
 		
-		glTranslatef(x,y,z);
 
 		Area *area = c->map.getArea(BlockPosition::create(x,y,z));
+		
+		glTranslatef(area->pos.x,area->pos.y,area->pos.z);
 		renderArea(area);
 		
 		glPopMatrix();
 	}
-	
-/*
-	glBegin(GL_QUADS);
-		glVertex3f(0.0,0.0,10.0);
-		glVertex3f(0.0,1.0,10.0);
-		glVertex3f(1.0,1.0,10.0);
-		glVertex3f(1.0,0.0,10.0);
-	glEnd();
-*/
-
-//	activateTexture(2);
-	// Landschaft zeichen
-
-//	calcPointingOn();
-//	highlightPointingOn();
-
-	//statische Anzeigen zeichnen
-//	drawHUD();
 
 	SDL_GL_SwapBuffers();
 }

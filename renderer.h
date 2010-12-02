@@ -27,6 +27,7 @@ public:
 	void deleteArea(Area* area);
 	
 	void config(const boost::program_options::variables_map &c);
+    int render_this_round;
 
 private:
 	

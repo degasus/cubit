@@ -1,6 +1,8 @@
 #ifndef _MAP_H_
 #define _MAP_H_
 
+#include <map>
+
 #include <boost/program_options.hpp>
 #include <SDL/SDL_opengl.h>
 
@@ -11,9 +13,10 @@ class BlockPosition;
 // including Air == 0
 const int NUMBER_OF_MATERIALS = 5;
 
-const int AREASIZE_X = 16;
-const int AREASIZE_Y = 16;
-const int AREASIZE_Z = 16;
+// must be a pow of two 
+const int AREASIZE_X = 32;
+const int AREASIZE_Y = 32;
+const int AREASIZE_Z = 32;
 
 typedef unsigned char Material;
 class NotLoadedException {};
@@ -106,12 +109,27 @@ struct BlockPosition {
 class Area {
 public:
 	Area();
+	~Area();
+	
 	BlockPosition pos;
 	Material m[AREASIZE_X][AREASIZE_Y][AREASIZE_Z];
 	int revision;
 	bool gllist_generated;
 	GLuint gllist;
 	bool needupdate;
+	bool isnew;
+	
+	inline bool operator<< (const BlockPosition &position) {
+		return
+			(position.x & ~(AREASIZE_X-1))  == pos.x && 
+			(position.y & ~(AREASIZE_Y-1))  == pos.y &&
+			(position.z & ~(AREASIZE_Z-1))  == pos.z
+		;
+	}
+	
+	inline Material get(const BlockPosition &position) {
+		return m[position.x-pos.x][position.y-pos.y][position.z-pos.z];
+	}
 };
 
 /**
@@ -166,8 +184,11 @@ public:
 	 */
 	void blockChangedEvent(BlockPosition pos, Material m);
 private:
-	Area area;
 	Controller *c;
+	Area *lastarea;
+	
+	std::map<int,std::map<int,std::map<int,Area> > > areas;
+
 };
 
 
