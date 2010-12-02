@@ -49,22 +49,23 @@ void randomArea(int schieben, Area* a) {
 }
 Area* Map::getArea(BlockPosition pos)
 {
-	Area *a = &areas[pos.area()];
-	if(a->isnew) {
-		randomArea(pos.z & ~(AREASIZE_Z-1), a);
-		a->isnew = 0;
-		a->pos = pos.area();		
+	Area **a = &areas[pos.area()];
+	if(!(*a)) {
+		(*a) = new Area();
+		randomArea(pos.z & ~(AREASIZE_Z-1), (*a));
+		(*a)->pos = pos.area();		
 	}
-	return a;
+	return (*a);
 }
 
 void Map::setPosition(PlayerPosition pos)
 {
-	std::map< BlockPosition, Area >::iterator it, it_save;
+	std::map< BlockPosition, Area* >::iterator it, it_save;
 	
 	for(it = areas.begin(); it != areas.end(); it++) {
-		if(shouldDelArea(it->second.pos,pos)) {
+		if(shouldDelArea(it->second->pos,pos)) {
 			it_save = it++;
+			delete it_save->second;
 			areas.erase(it_save);
 			if(it == areas.end())
 				break;
@@ -101,7 +102,6 @@ void Map::blockChangedEvent(BlockPosition pos, Material m)
 Area::Area()
 {
 	gllist_generated = 0;
-	isnew = 1;
 }
 
 Area::~Area()

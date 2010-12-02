@@ -143,9 +143,6 @@ public:
 	// compairable with the server
 	int revision;
 	
-	// indicate, that this is an new empty block without information
-	bool isnew;
-	
 	// for saving the GL-List
 	GLuint gllist;
 	bool gllist_generated;
@@ -194,7 +191,10 @@ public:
 	 * @throws NotLoadedException
 	 */
 	inline Material getBlock(BlockPosition pos){
-		return areas[pos.area()].get(pos);
+		if(areas.find(pos.area()) == areas.end())
+			throw NotLoadedException();
+		
+		return areas[pos.area()]->get(pos);
 	}
 
 	/**
@@ -202,7 +202,10 @@ public:
 	 * @throws NotLoadedException falls diese Gebiet noch nicht geladen ist
 	 */
 	void setBlock(BlockPosition pos, Material m){
-		areas[pos.area()].set(pos,m);
+		if(areas.find(pos.area()) == areas.end())
+			throw NotLoadedException();
+		
+		areas[pos.area()]->set(pos,m);
 	}
 
 	/**
@@ -242,7 +245,7 @@ private:
 	
 //	std::map<int,std::map<int,std::map<int,Area> > > areas;
 	
-	std::map<BlockPosition, Area> areas;
+	std::map<BlockPosition, Area*> areas;
 	
 	double destroyArea;
 

@@ -121,6 +121,7 @@ void Movement::performAction(ActionEvent event)
 			break;
 
 		case ActionEvent::ROTATE_HORIZONTAL:
+			//std::cout << "r_hor: " << event.value << std::endl;
 			position.orientationHorizontal += event.value;
 			if(position.orientationHorizontal > 360)
 				position.orientationHorizontal -= 360;
@@ -128,6 +129,7 @@ void Movement::performAction(ActionEvent event)
 				position.orientationHorizontal += 360;
 			break;
 		case ActionEvent::ROTATE_VERTICAL:
+			//std::cout << "r_ver: " << event.value << std::endl;
 			position.orientationVertical += event.value;
 			if(position.orientationVertical > 90)
 				position.orientationVertical = 90;
