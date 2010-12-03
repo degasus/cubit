@@ -4,6 +4,7 @@
 #include "controller.h"
 
 #include "movement.h"
+#include "map.h"
 
 
 
@@ -40,6 +41,8 @@ void Movement::config(const boost::program_options::variables_map& c)
 	slowMovementSpeed	= c["slowMovementSpeed"].as<float>();
 	normalMovementSpeed	= c["normalMovementSpeed"].as<float>();
 	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<float>();
+	maxFallingSpeed		= c["maxFallingSpeed"].as<double>();
+	jumpSpeed			= c["jumpSpeed"].as<double>();
 
 	movementSpeed = normalMovementSpeed;
 }
@@ -151,7 +154,7 @@ void Movement::setPosition(PlayerPosition pos)
 	position = pos;
 }
 
-void Movement::calcMovement()
+void Movement::calcNewSpeed()
 {
 	if(forwardPressed){
 		if(speedForward <= movementSpeed)
@@ -198,16 +201,56 @@ void Movement::calcMovement()
 			speedRight = 0;
 	}
 
-	position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360);
-	position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360);
+	int blockDown = 1;
+	try{
+		blockDown = c->map.getBlock(position.block()+DIRECTION_DOWN);
+	}
+	catch(NotLoadedException e){
+		
+	}
+	//Luft unten drunter -> fallen
+	if(blockDown == 0){
+		if(speedUp >= maxFallingSpeed)
+			speedUp -= accelVertical;
+		else
+			speedUp = maxFallingSpeed;
+	}
+	else if(speedUp < 0){
+		speedUp = 0;
+	}
+	if(blockDown != 0 && position.z-std::floor(position.z)-personSize < 0.1 && jumpPressed)
+		speedUp = jumpSpeed;
 
-	position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360);
-	position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360);
+	int block = 0;
+	int block2 = 0;
+	try{
+		block = c->map.getBlock(position.block());
+	}
+	catch(NotLoadedException e){
+		
+	}
+	if(block != 0){
+		position.z = std::floor(position.z)+0.5;
+		position.z += 1.0;
+	}
 }
 
+void Movement::calcCollisionAndMove()
+{
+	PlayerPosition oldPos = position;
+	
+	position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360);
+	position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360);
+	
+	position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360);
+	position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360);
+
+	position.z += speedUp;
+}
 
 void Movement::triggerNextFrame()
 {
-	calcMovement();
+	calcNewSpeed();
+	calcCollisionAndMove();
 	//calcBuilding();
 }

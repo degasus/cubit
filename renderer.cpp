@@ -188,7 +188,7 @@ void Renderer::render(PlayerPosition pos)
 
 
 	//Eigene Position
-	glTranslatef(-(pos.x), -(pos.y), -(pos.z+AREASIZE_Z/2+2.5));
+	glTranslatef(-(pos.x), -(pos.y), -(pos.z));
 
 
 	for(int x=-(visualRange)+pos.x; x<(visualRange)+pos.x; x+=AREASIZE_X)

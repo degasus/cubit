@@ -34,6 +34,8 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	k_left			= c["k_left"].as<int>();
 	k_right			= c["k_right"].as<int>();
 	k_moveFast		= c["k_moveFast"].as<int>();
+	k_catchMouse	= c["k_catchMouse"].as<int>();
+	k_jump			= c["k_jump"].as<int>();
 	k_quit			= c["k_quit"].as<int>();
 
 	turningSpeed	= c["turningSpeed"].as<double>();
@@ -141,6 +143,12 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	if(code == k_moveFast){
 		ae.name = ActionEvent::PRESS_FAST_SPEED;
 	}
+	if(code == k_catchMouse){
+		catchMouse = !catchMouse;
+	}
+	if(code == k_jump){
+		ae.name = ActionEvent::PRESS_JUMP;
+	}
 	if(code == k_quit){
 		done = 1;
 	}
@@ -166,6 +174,9 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	}
 	if(code == k_right){
 		ae.name = ActionEvent::RELEASE_RIGHT;
+	}
+	if(code == k_jump){
+		ae.name = ActionEvent::RELEASE_JUMP;
 	}
 	if(code == k_moveFast){
 		ae.name = ActionEvent::RELEASE_FAST_SPEED;
