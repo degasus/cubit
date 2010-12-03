@@ -71,6 +71,8 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning")
 		("jumpSpeed", po::value<double>()->default_value(0.24), "initial speed when jumping")
 		
+		("mapDirectory", po::value<string>()->default_value("maps"), "Maps for saving areas")
+		
 		("k_forward", po::value<int>()->default_value(119), "KeyCode for moving forward")
 		("k_backwards", po::value<int>()->default_value(115), "KeyCode for moving backwards")
 		("k_left", po::value<int>()->default_value(97), "KeyCode for moving left")
