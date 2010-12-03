@@ -4,6 +4,7 @@
 #include "controller.h"
 
 #include "movement.h"
+#include "map.h"
 
 
 
@@ -41,6 +42,7 @@ void Movement::config(const boost::program_options::variables_map& c)
 	normalMovementSpeed	= c["normalMovementSpeed"].as<float>();
 	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<float>();
 	maxFallingSpeed		= c["maxFallingSpeed"].as<double>();
+	jumpSpeed			= c["jumpSpeed"].as<double>();
 
 	movementSpeed = normalMovementSpeed;
 }
@@ -198,14 +200,39 @@ void Movement::calcNewSpeed()
 		if(speedRight > 0)
 			speedRight = 0;
 	}
-	if(c->map.getBlock(position.block()+DIRECTION_DOWN) != 0){
+
+	int blockDown = 1;
+	try{
+		blockDown = c->map.getBlock(position.block()+DIRECTION_DOWN);
+	}
+	catch(NotLoadedException e){
+		
+	}
+	//Luft unten drunter -> fallen
+	if(blockDown == 0){
 		if(speedUp >= maxFallingSpeed)
 			speedUp -= accelVertical;
 		else
-			speedUp = -maxFallingSpeed;
+			speedUp = maxFallingSpeed;
 	}
-	else if(std::floor(position.z) > 0.1)
+	else if(speedUp < 0){
 		speedUp = 0;
+	}
+	if(blockDown != 0 && position.z-std::floor(position.z)-personSize < 0.1 && jumpPressed)
+		speedUp = jumpSpeed;
+
+	int block = 0;
+	int block2 = 0;
+	try{
+		block = c->map.getBlock(position.block());
+	}
+	catch(NotLoadedException e){
+		
+	}
+	if(block != 0){
+		position.z = std::floor(position.z)+0.5;
+		position.z += 1.0;
+	}
 }
 
 void Movement::calcCollisionAndMove()

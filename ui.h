@@ -67,6 +67,7 @@ private:
 	int k_moveFast;
 	int k_Duck;
 	int k_quit;
+	int k_catchMouse;
 };
 
 

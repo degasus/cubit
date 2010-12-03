@@ -128,6 +128,7 @@ private:
 	float movementSpeed;
 	float fastSpeedMultiplier;
 	double maxFallingSpeed;
+	double jumpSpeed;
 	
 	Controller *c;
 	bool forwardPressed;

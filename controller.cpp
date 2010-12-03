@@ -67,14 +67,17 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("slowMovementSpeed", po::value<float>()->default_value(0.03f), "speed when moving slowly")
 		("normalMovementSpeed", po::value<float>()->default_value(0.2f), "speed when moving normally")
 		("fastSpeedMultiplier", po::value<float>()->default_value(5.72341f), "speed multiplier when moving fast")
-		("maxFallingSpeed", po::value<double>()->default_value(0.3f), "fastest reachable speed on falling")
+		("maxFallingSpeed", po::value<double>()->default_value(-0.4), "fastest reachable speed on falling")
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning")
+		("jumpSpeed", po::value<double>()->default_value(0.24), "initial speed when jumping")
 		
 		("k_forward", po::value<int>()->default_value(119), "KeyCode for moving forward")
 		("k_backwards", po::value<int>()->default_value(115), "KeyCode for moving backwards")
 		("k_left", po::value<int>()->default_value(97), "KeyCode for moving left")
 		("k_right", po::value<int>()->default_value(100), "KeyCode for moving right")
 		("k_moveFast", po::value<int>()->default_value(102), "KeyCode for moving fastly")
+		("k_catchMouse", po::value<int>()->default_value(109), "KeyCode for catching mouse")
+		("k_jump", po::value<int>()->default_value(32), "KeyCode for jumping")
 		("k_quit", po::value<int>()->default_value(27), "KeyCode for exiting")
 	;
 
