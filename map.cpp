@@ -21,7 +21,8 @@ Map::~Map()
 	std::map< BlockPosition, Area* >::iterator it;
 	
 	for(it = areas.begin(); it != areas.end(); it++) {
-		store(it->second);
+		if(storeMaps)
+			store(it->second);
 		delete it->second;
 	}
 }
@@ -31,6 +32,7 @@ void Map::config(const boost::program_options::variables_map& c)
 {
 	destroyArea = c["destroyArea"].as<double>();
 	mapDirectory = c["mapDirectory"].as<std::string>();
+	storeMaps = c["storeMaps"].as<bool>();
 }
 
 void Map::init()
@@ -66,7 +68,7 @@ Area* Map::getArea(BlockPosition pos)
 	Area **a = &areas[pos.area()];
 	if(!(*a)) {
 		(*a) = new Area(pos.area());
-		if(!load(*a))
+		if(!storeMaps || !load(*a))
 			randomArea(pos.area().z, (*a));	
 	}
 	return (*a);
@@ -79,7 +81,8 @@ void Map::setPosition(PlayerPosition pos)
 	for(it = areas.begin(); it != areas.end(); it++) {
 		if(shouldDelArea(it->second->pos,pos)) {
 			it_save = it++;
-			store(it_save->second);
+			if(storeMaps)
+				store(it_save->second);
 			delete it_save->second;
 			areas.erase(it_save);
 			if(it == areas.end())

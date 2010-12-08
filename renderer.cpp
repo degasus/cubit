@@ -106,9 +106,16 @@ void Renderer::init()
 void Renderer::renderArea(Area* area)
 {
 
-	if((!area->gllist_generated || area->needupdate) /*&& (areasRendered <= areasPerFrame)*/) {
+	if((!area->gllist_generated || area->needupdate) && (areasRendered <= areasPerFrame)) {
 		areasRendered++;
-		
+	
+/*		std::cout << "render Area" << std::endl;
+		if(area->needupdate)
+			std::cout << "Area needs update" << std::endl;
+		if(!area->gllist_generated )
+			std::cout << "Area not generated" << std::endl;
+*/
+	
 		if(!area->gllist_generated) {
 			area->gllist_generated = 1;
 			area->gllist = glGenLists(1);

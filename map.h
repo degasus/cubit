@@ -300,7 +300,7 @@ private:
 	
 	double destroyArea;
     std::string mapDirectory;
-
+	bool storeMaps;
 };
 
 
