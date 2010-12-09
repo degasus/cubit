@@ -189,13 +189,17 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 void UInterface::handleUserEvents(SDL_UserEvent e)
 {
 	c->movement.triggerNextFrame();
-	PlayerPosition pos = c->movement.getPosition();
-	c->map.setPosition(pos);
-	c->renderer.render(pos);
 	
-	drawHUD();
-	
-	SDL_GL_SwapBuffers();
+	SDL_Event next;	
+	if(SDL_PeepEvents(&next, 1, SDL_PEEKEVENT, SDL_USEREVENT) == 0) {
+		PlayerPosition pos = c->movement.getPosition();
+		c->map.setPosition(pos);
+		c->renderer.render(pos);
+		
+		drawHUD();
+		
+		SDL_GL_SwapBuffers();
+	}
 }
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
