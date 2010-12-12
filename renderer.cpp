@@ -184,7 +184,7 @@ void Renderer::renderArea(Area* area)
 }
 
 
-bool areaInViewport(BlockPosition apos, PlayerPosition ppos) {
+bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 	bool left = 0;
 	bool right = 0;
 	
@@ -192,6 +192,9 @@ bool areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 		double diffx = apos.x - ppos.x + AREASIZE_X*(i&1);
 		double diffy = apos.y - ppos.y + AREASIZE_Y*(i&2);
 		double diffz = apos.z - ppos.z + AREASIZE_Z*(i&4);
+		
+		if(diffx*diffx + diffy*diffy + diffz*diffz > visualRange*visualRange*16*8)
+			continue;
 		
 		double horizontal = (std::atan2(diffy,diffx)*180/M_PI+360) - ppos.orientationHorizontal;
 		

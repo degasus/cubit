@@ -31,7 +31,9 @@ public:
 private:
 	
 	void renderArea(Area* area);
-    int areasPerFrame;
+	bool areaInViewport(BlockPosition apos, PlayerPosition ppos);
+	
+	int areasPerFrame;
 	int areasRendered;
 	
 	GLuint texture[NUMBER_OF_MATERIALS];
