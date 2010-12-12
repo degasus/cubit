@@ -54,9 +54,9 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("texture02", po::value<string>()->default_value("wood.bmp"), "Wood")
 		("texture03", po::value<string>()->default_value("bricks.bmp"), "Bricks")
 		("texture04", po::value<string>()->default_value("marble.bmp"), "Marble")
-		("visualRange", po::value<float>()->default_value(50.0), "maximal distance for rendering")
-		("destroyArea", po::value<double>()->default_value(50.0*4), "distance for destroying areas")
-		("areasPerFrame", po::value<int>()->default_value(20), "set the maximal rendered areas per frame")
+		("visualRange", po::value<float>()->default_value(6), "maximal distance for rendering")
+		("destroyArea", po::value<double>()->default_value(6*4*16), "distance for destroying areas")
+		("areasPerFrame", po::value<int>()->default_value(2), "set the maximal rendered areas per frame")
 		("storeMaps", po::value<bool>()->default_value(0), "should maps be saved and loaded from harddisk")
 	
 		("offset", po::value<double>()->default_value(0.3), "offset for horizontal collision detection")

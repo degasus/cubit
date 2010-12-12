@@ -32,12 +32,12 @@ class AreaEmptyException {};
 
 const int DIRECTION_COUNT = 6;
 enum DIRECTION {
-	DIRECTION_EAST=0,
-	DIRECTION_WEST=1,
-	DIRECTION_SOUTH=2,
-	DIRECTION_NORTH=3,
-	DIRECTION_UP=4,
-	DIRECTION_DOWN=5
+	DIRECTION_EAST=0,  // x positive
+	DIRECTION_WEST=1,  // x negative
+	DIRECTION_SOUTH=2, // y positive
+	DIRECTION_NORTH=3, // y negative
+	DIRECTION_UP=4,    // z positive
+	DIRECTION_DOWN=5   // z negative
 };
 
 const int DIRECTION_NEXT_BOX[DIRECTION_COUNT][3] = {
