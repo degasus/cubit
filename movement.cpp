@@ -205,7 +205,7 @@ void Movement::calcNewSpeed()
 			speedRight = 0;
 	}
 	if(leftPressed){
-		if(speedRight >= movementSpeed)
+		if(speedRight >= -movementSpeed)
 			speedRight -= accelHorizontal;
 		else
 			speedRight = -movementSpeed;
@@ -237,8 +237,7 @@ void Movement::calcNewSpeed()
 	}
 }
 
-void Movement::calcCollisionAndMove()
-{
+void Movement::calcCollisionAndMove(){
 	PlayerPosition oldPos = position;
 
 	//Horizontal Movement
@@ -264,27 +263,6 @@ void Movement::calcCollisionAndMove()
 		std::cout << "feetBlock NotLoadedException" << std::endl;
 	}
 
-	//X-Collision
-	//x moving forward
-	if(position.x > oldPos.x){
-		
-	}
-	//x moving backwards
-	else if(position.x < oldPos.x){
-		
-	}
-
-	//Y-Collision
-	//y moving forward
-	if(position.y > oldPos.y){
-
-	}
-	//y moving backwards
-	else if(position.y < oldPos.y){
-
-	}
-
-
 	//Z-Collision
 	//Jumping
 	if(feetBlock != 0 && jumpPressed){
@@ -296,11 +274,81 @@ void Movement::calcCollisionAndMove()
 		speedUp = 0.0;
 		position.z = floor(position.z-personSize)+1.0+personSize;
 	}
+
+	//X-Collision
+	//resetting vars
+	posBlock = 0;
+	feetBlock = 1;
+	int offsetBlock = 1;
+	int offsetFeetBlock = 1;
+	feetPos = position;
+	feetPos.z -= personSize;
+	PlayerPosition offsetPos = position;
+	PlayerPosition offsetFeetPos = feetPos;
+	//x moving forward
+	if(position.x > oldPos.x){
+		offsetPos.x += offset;
+		offsetFeetPos.x += offset;
+	}
+	//x moving backwards
+	else if(position.x < oldPos.x){
+		offsetPos.x -= offset;
+		offsetFeetPos.x -= offset;
+	}
+	if(position.x != oldPos.x){
+		try{
+			posBlock = c->map.getBlock(position.block());
+			feetBlock = c->map.getBlock(feetPos.block());
+			offsetBlock = c->map.getBlock(offsetPos.block());
+			offsetFeetBlock = c->map.getBlock(offsetFeetPos.block());
+		}
+		catch(NotLoadedException e){
+			std::cout << "X-collision detection NotLoadedException" << std::endl;
+		}
+		int moveNot = posBlock + offsetBlock + feetBlock + offsetFeetBlock;
+		if(moveNot != 0)
+			position.x = oldPos.x;
+	}
+
+	//Y-Collision
+	//resetting vars
+	posBlock = 0;
+	feetBlock = 1;
+	offsetBlock = 1;
+	offsetFeetBlock = 1;
+	feetPos = position;
+	feetPos.z -= personSize;
+	offsetPos = position;
+	offsetFeetPos = feetPos;
+	//y moving forward
+	if(position.y > oldPos.y){
+		offsetPos.y += offset;
+		offsetFeetPos.y += offset;
+	}
+	//y moving backwards
+	else if(position.y < oldPos.y){
+		offsetPos.y -= offset;
+		offsetFeetPos.y -= offset;
+	}
+	if(position.y != oldPos.y){
+		try{
+			posBlock = c->map.getBlock(position.block());
+			feetBlock = c->map.getBlock(feetPos.block());
+			offsetBlock = c->map.getBlock(offsetPos.block());
+			offsetFeetBlock = c->map.getBlock(offsetFeetPos.block());
+		}
+		catch(NotLoadedException e){
+			std::cout << "Y-collision detection NotLoadedException" << std::endl;
+		}
+		int moveNot = posBlock + offsetBlock + feetBlock + offsetFeetBlock;
+		if(moveNot != 0)
+			position.y = oldPos.y;
+	}
 }
 
 void Movement::triggerNextFrame()
 {
-	//calcDucking();
+	calcDucking();
 	calcNewSpeed();
 	calcCollisionAndMove();
 	//calcBuilding();
