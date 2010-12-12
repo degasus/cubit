@@ -220,21 +220,15 @@ void Movement::calcNewSpeed()
 	}
 
 	int blockFeet = 1;
-	int blockUnderFeet = 1;
 	PlayerPosition feet = position;
 	feet.z -= personSize;
 	try{
 		blockFeet = c->map.getBlock(feet.block());
-		PlayerPosition underFeet = position;
-		underFeet.z -= 0.1;
-		blockUnderFeet = c->map.getBlock(underFeet.block());
-		std::cout << "blockFeet: " << blockFeet << std::endl;
-		std::cout << "blockUnderFeet: " << blockUnderFeet << std::endl;
 	}
 	catch(NotLoadedException e){
 		
 	}
-	//Luft unten drunter -> fallen
+	//Luft unten drunter -> fallen (inkl. Collision Detection on bottom)
 	if(blockFeet == 0){
 		if(speedUp >= maxFallingSpeed)
 			speedUp -= accelVertical;
@@ -289,15 +283,6 @@ void Movement::calcCollisionAndMove()
 	catch(NotLoadedException e){
 		
 	}
-	
-	//Z-Collision
-	//Falling
-	/*s
-	if(speedUp < 0 && feetBlock != 0){
-		speedUp == 0;
-		position.z = oldPos.z;
-	}*/
-	
 }
 
 void Movement::triggerNextFrame()
