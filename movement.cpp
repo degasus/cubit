@@ -16,7 +16,7 @@ Movement::Movement(Controller* controller)
 	speedUp = 0.0f;
 	position.x = 0.0;
 	position.y = 0.0;
-	position.z = 15.0;
+	position.z = 10.0;
 	position.orientationHorizontal = 0.0;
 	position.orientationVertical = 0.0;
 	forwardPressed = false;
@@ -32,16 +32,15 @@ Movement::Movement(Controller* controller)
 
 void Movement::config(const boost::program_options::variables_map& c)
 {
-	offset				= c["offset"].as<float>();
-	offsetFalling		= c["offsetFalling"].as<float>();
-	offsetTop			= c["offsetTop"].as<float>();
-	accelHorizontal		= c["accelHorizontal"].as<float>();
-	accelVertical		= c["accelVertical"].as<float>();
+	offset				= c["offset"].as<double>();
+	offsetAbove			= c["offsetAbove"].as<double>();
+	accelHorizontal		= c["accelHorizontal"].as<double>();
+	accelVertical		= c["accelVertical"].as<double>();
 	personSizeNormal	= c["personSizeNormal"].as<double>();
 	personSizeDucked	= c["personSizeDucked"].as<double>();
-	slowMovementSpeed	= c["slowMovementSpeed"].as<float>();
-	normalMovementSpeed	= c["normalMovementSpeed"].as<float>();
-	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<float>();
+	slowMovementSpeed	= c["slowMovementSpeed"].as<double>();
+	normalMovementSpeed	= c["normalMovementSpeed"].as<double>();
+	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<double>();
 	maxFallingSpeed		= c["maxFallingSpeed"].as<double>();
 	jumpSpeed			= c["jumpSpeed"].as<double>();
 
@@ -101,12 +100,10 @@ void Movement::performAction(ActionEvent event)
 			
 		case ActionEvent::PRESS_DUCK:
 			duckPressed = true;
-			offsetFalling *= 2;
 			movementSpeed = slowMovementSpeed;
 			break;
 		case ActionEvent::RELEASE_DUCK:
 			duckPressed = false;
-			offsetFalling /= 2;
 			movementSpeed = normalMovementSpeed;
 			break;
 			
@@ -208,7 +205,7 @@ void Movement::calcNewSpeed()
 			speedRight = 0;
 	}
 	if(leftPressed){
-		if(speedRight >= movementSpeed)
+		if(speedRight >= -movementSpeed)
 			speedRight -= accelHorizontal;
 		else
 			speedRight = -movementSpeed;
@@ -219,17 +216,17 @@ void Movement::calcNewSpeed()
 			speedRight = 0;
 	}
 
-	int blockFeet = 1;
-	PlayerPosition feet = position;
-	feet.z -= personSize;
+	int feetBlock = 1;
+	PlayerPosition feetPos = position;
+	feetPos.z -= personSize;
 	try{
-		blockFeet = c->map.getBlock(feet.block());
+		feetBlock = c->map.getBlock(feetPos.block());
 	}
 	catch(NotLoadedException e){
-		
+		std::cout << "blockFeet NotLoadedException" << std::endl;
 	}
 	//Luft unten drunter -> fallen (inkl. Collision Detection on bottom)
-	if(blockFeet == 0){
+	if(feetBlock == 0){
 		if(speedUp >= maxFallingSpeed)
 			speedUp -= accelVertical;
 		else
@@ -238,28 +235,9 @@ void Movement::calcNewSpeed()
 	else if(speedUp < 0){
 		speedUp = 0;
 	}
-	if(blockFeet != 0 && jumpPressed){
-		std::cout << "jump" << std::endl;
-		speedUp = jumpSpeed/**(speedRight/normalMovementSpeed)*/;
-	}
-	
-	int block = 0;
-	int block2 = 0;
-	try{
-		block = c->map.getBlock(position.block());
-		feet.z += 0.01;
-		block2 = c->map.getBlock(feet.block());
-	}
-	catch(NotLoadedException e){
-		
-	}
-	if((block != 0 || block2 != 0) && speedUp < 1.0){
-		speedUp += 0.01;
-	}
 }
 
-void Movement::calcCollisionAndMove()
-{
+void Movement::calcCollisionAndMove(){
 	PlayerPosition oldPos = position;
 
 	//Horizontal Movement
@@ -274,20 +252,103 @@ void Movement::calcCollisionAndMove()
 
 	int posBlock = 0;
 	int feetBlock = 1;
-	PlayerPosition feet = position;
-	feet.z -= personSize;
+	PlayerPosition feetPos = position;
+	feetPos.z -= personSize;
 	try{
 		posBlock = c->map.getBlock(position.block());
-		feetBlock = c->map.getBlock(feet.block());
+		feetBlock = c->map.getBlock(feetPos.block());
 	}
 	catch(NotLoadedException e){
-		
+		std::cout << "posBlock NotLoadedException" << std::endl;
+		std::cout << "feetBlock NotLoadedException" << std::endl;
+	}
+
+	//Z-Collision
+	//Jumping
+	if(feetBlock != 0 && jumpPressed){
+		std::cout << "jump" << std::endl;
+		speedUp = jumpSpeed*(movementSpeed/normalMovementSpeed);
+	}
+	//Falling
+	if((posBlock != 0 || feetBlock != 0) && speedUp <= 0){
+		speedUp = 0.0;
+		position.z = floor(position.z-personSize)+1.0+personSize;
+	}
+
+	//X-Collision
+	//resetting vars
+	posBlock = 0;
+	feetBlock = 1;
+	int offsetBlock = 1;
+	int offsetFeetBlock = 1;
+	feetPos = position;
+	feetPos.z -= personSize;
+	PlayerPosition offsetPos = position;
+	PlayerPosition offsetFeetPos = feetPos;
+	//x moving forward
+	if(position.x > oldPos.x){
+		offsetPos.x += offset;
+		offsetFeetPos.x += offset;
+	}
+	//x moving backwards
+	else if(position.x < oldPos.x){
+		offsetPos.x -= offset;
+		offsetFeetPos.x -= offset;
+	}
+	if(position.x != oldPos.x){
+		try{
+			posBlock = c->map.getBlock(position.block());
+			feetBlock = c->map.getBlock(feetPos.block());
+			offsetBlock = c->map.getBlock(offsetPos.block());
+			offsetFeetBlock = c->map.getBlock(offsetFeetPos.block());
+		}
+		catch(NotLoadedException e){
+			std::cout << "X-collision detection NotLoadedException" << std::endl;
+		}
+		int moveNot = posBlock + offsetBlock + feetBlock + offsetFeetBlock;
+		if(moveNot != 0)
+			position.x = oldPos.x;
+	}
+
+	//Y-Collision
+	//resetting vars
+	posBlock = 0;
+	feetBlock = 1;
+	offsetBlock = 1;
+	offsetFeetBlock = 1;
+	feetPos = position;
+	feetPos.z -= personSize;
+	offsetPos = position;
+	offsetFeetPos = feetPos;
+	//y moving forward
+	if(position.y > oldPos.y){
+		offsetPos.y += offset;
+		offsetFeetPos.y += offset;
+	}
+	//y moving backwards
+	else if(position.y < oldPos.y){
+		offsetPos.y -= offset;
+		offsetFeetPos.y -= offset;
+	}
+	if(position.y != oldPos.y){
+		try{
+			posBlock = c->map.getBlock(position.block());
+			feetBlock = c->map.getBlock(feetPos.block());
+			offsetBlock = c->map.getBlock(offsetPos.block());
+			offsetFeetBlock = c->map.getBlock(offsetFeetPos.block());
+		}
+		catch(NotLoadedException e){
+			std::cout << "Y-collision detection NotLoadedException" << std::endl;
+		}
+		int moveNot = posBlock + offsetBlock + feetBlock + offsetFeetBlock;
+		if(moveNot != 0)
+			position.y = oldPos.y;
 	}
 }
 
 void Movement::triggerNextFrame()
 {
-	//calcDucking();
+	calcDucking();
 	calcNewSpeed();
 	calcCollisionAndMove();
 	//calcBuilding();

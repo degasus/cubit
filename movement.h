@@ -103,9 +103,8 @@ private:
 	PlayerPosition position;
 
 	//offsets for collision detection
-	float offset;
-	float offsetFalling;
-	float offsetTop;
+	double offset;
+	double offsetAbove;
 
 	//Current speed
 	float speedForward;
