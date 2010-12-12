@@ -1,0 +1,14 @@
+*.map
+*~*
+~*
+*~
+*anjuta*
+CMakeCache.txt
+Makefile
+TODO.tasks
+cmake_install.cmake
+gmon.out
+openminecraft
+*.swp
+.kdev4/
+CMakeFiles/
