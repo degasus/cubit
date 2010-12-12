@@ -16,7 +16,7 @@ Movement::Movement(Controller* controller)
 	speedUp = 0.0f;
 	position.x = 0.0;
 	position.y = 0.0;
-	position.z = 0.0;
+	position.z = 32.0;
 	position.orientationHorizontal = 0.0;
 	position.orientationVertical = 0.0;
 	forwardPressed = false;
@@ -37,7 +37,8 @@ void Movement::config(const boost::program_options::variables_map& c)
 	offsetTop			= c["offsetTop"].as<float>();
 	accelHorizontal		= c["accelHorizontal"].as<float>();
 	accelVertical		= c["accelVertical"].as<float>();
-	personSize			= c["personSize"].as<float>();
+	personSizeNormal	= c["personSizeNormal"].as<double>();
+	personSizeDucked	= c["personSizeDucked"].as<double>();
 	slowMovementSpeed	= c["slowMovementSpeed"].as<float>();
 	normalMovementSpeed	= c["normalMovementSpeed"].as<float>();
 	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<float>();
@@ -45,6 +46,7 @@ void Movement::config(const boost::program_options::variables_map& c)
 	jumpSpeed			= c["jumpSpeed"].as<double>();
 
 	movementSpeed = normalMovementSpeed;
+	personSize = personSizeNormal;
 }
 
 void Movement::init()
@@ -154,6 +156,22 @@ void Movement::setPosition(PlayerPosition pos)
 	position = pos;
 }
 
+void Movement::calcDucking()
+{
+	if(duckPressed && personSize > personSizeDucked){
+		personSize -= 0.05;
+		position.z -= 0.05;
+		if(personSize < personSizeDucked)
+			personSize = personSizeDucked;
+	}
+	if(!duckPressed && personSize < personSizeNormal){
+		personSize += 0.05;
+		position.z += 0.05;
+		if(personSize > personSizeNormal)
+			personSize = personSizeNormal;
+	}
+}
+
 void Movement::calcNewSpeed()
 {
 	if(forwardPressed){
@@ -201,15 +219,23 @@ void Movement::calcNewSpeed()
 			speedRight = 0;
 	}
 
-	int blockDown = 1;
+	int blockFeet = 1;
+	int blockUnderFeet = 1;
+	PlayerPosition feet = position;
+	feet.z -= personSize;
 	try{
-		blockDown = c->map.getBlock(position.block()+DIRECTION_DOWN);
+		blockFeet = c->map.getBlock(feet.block());
+		PlayerPosition underFeet = position;
+		underFeet.z -= 0.1;
+		blockUnderFeet = c->map.getBlock(underFeet.block());
+		std::cout << "blockFeet: " << blockFeet << std::endl;
+		std::cout << "blockUnderFeet: " << blockUnderFeet << std::endl;
 	}
 	catch(NotLoadedException e){
 		
 	}
 	//Luft unten drunter -> fallen
-	if(blockDown == 0){
+	if(blockFeet == 0){
 		if(speedUp >= maxFallingSpeed)
 			speedUp -= accelVertical;
 		else
@@ -218,38 +244,65 @@ void Movement::calcNewSpeed()
 	else if(speedUp < 0){
 		speedUp = 0;
 	}
-	if(blockDown != 0 && position.z-std::floor(position.z)-personSize < 0.1 && jumpPressed)
-		speedUp = jumpSpeed;
-
+	if(blockFeet != 0 && jumpPressed){
+		std::cout << "jump" << std::endl;
+		speedUp = jumpSpeed/**(speedRight/normalMovementSpeed)*/;
+	}
+	
 	int block = 0;
 	int block2 = 0;
 	try{
 		block = c->map.getBlock(position.block());
+		feet.z += 0.01;
+		block2 = c->map.getBlock(feet.block());
 	}
 	catch(NotLoadedException e){
 		
 	}
-	if(block != 0){
-		position.z = std::floor(position.z)+0.5;
-		position.z += 1.0;
+	if((block != 0 || block2 != 0) && speedUp < 1.0){
+		speedUp += 0.01;
 	}
 }
 
 void Movement::calcCollisionAndMove()
 {
 	PlayerPosition oldPos = position;
-	
+
+	//Horizontal Movement
+	//Forward/Back
 	position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360);
 	position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360);
-	
+	//Right/Left
 	position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360);
 	position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360);
-
+	//Z-Movement Up/Down
 	position.z += speedUp;
+
+	int posBlock = 0;
+	int feetBlock = 1;
+	PlayerPosition feet = position;
+	feet.z -= personSize;
+	try{
+		posBlock = c->map.getBlock(position.block());
+		feetBlock = c->map.getBlock(feet.block());
+	}
+	catch(NotLoadedException e){
+		
+	}
+	
+	//Z-Collision
+	//Falling
+	/*s
+	if(speedUp < 0 && feetBlock != 0){
+		speedUp == 0;
+		position.z = oldPos.z;
+	}*/
+	
 }
 
 void Movement::triggerNextFrame()
 {
+	//calcDucking();
 	calcNewSpeed();
 	calcCollisionAndMove();
 	//calcBuilding();

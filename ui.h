@@ -65,10 +65,12 @@ private:
 	int k_left;
 	int k_right;
 	int k_jump;
+	int k_duck;
 	int k_moveFast;
 	int k_Duck;
 	int k_quit;
 	int k_catchMouse;
+	
 };
 
 

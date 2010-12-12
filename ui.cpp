@@ -36,6 +36,7 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	k_moveFast		= c["k_moveFast"].as<int>();
 	k_catchMouse	= c["k_catchMouse"].as<int>();
 	k_jump			= c["k_jump"].as<int>();
+	k_duck			= c["k_duck"].as<int>();
 	k_quit			= c["k_quit"].as<int>();
 
 	turningSpeed	= c["turningSpeed"].as<double>();
@@ -149,6 +150,9 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	if(code == k_jump){
 		ae.name = ActionEvent::PRESS_JUMP;
 	}
+	if(code == k_duck){
+		ae.name = ActionEvent::PRESS_DUCK;
+	}
 	if(code == k_quit){
 		done = 1;
 	}
@@ -181,6 +185,9 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	if(code == k_moveFast){
 		ae.name = ActionEvent::RELEASE_FAST_SPEED;
 	}
+	if(code == k_duck){
+		ae.name = ActionEvent::RELEASE_DUCK;
+	}
 	
 	if(ae.name != ActionEvent::NONE)
 		c->movement.performAction(ae);
@@ -191,7 +198,7 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 	c->movement.triggerNextFrame();
 	
 	SDL_Event next;	
-	if(SDL_PeepEvents(&next, 1, SDL_PEEKEVENT, SDL_USEREVENT) == 0) {
+	//if(SDL_PeepEvents(&next, 1, SDL_PEEKEVENT, SDL_USEREVENT) == 0) {
 		PlayerPosition pos = c->movement.getPosition();
 		c->map.setPosition(pos);
 		c->renderer.render(pos);
@@ -199,7 +206,7 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 		drawHUD();
 		
 		SDL_GL_SwapBuffers();
-	}
+	//}
 }
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)

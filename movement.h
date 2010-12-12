@@ -122,6 +122,8 @@ private:
 
 	//Size of person
 	float personSize;
+	double personSizeNormal;
+	double personSizeDucked;
 	
 	float slowMovementSpeed;
 	float normalMovementSpeed;
@@ -144,5 +146,6 @@ private:
 	void calcBuilding();
 	void calcNewSpeed();
 	void calcCollisionAndMove();
+	void calcDucking();
 };
 #endif
