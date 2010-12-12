@@ -185,6 +185,9 @@ void Renderer::renderArea(Area* area)
 
 
 bool areaInViewport(BlockPosition apos, PlayerPosition ppos) {
+	bool left = 0;
+	bool right = 0;
+	
 	for(int i=0; i<8; i++) {
 		double diffx = apos.x - ppos.x + AREASIZE_X*(i&1);
 		double diffy = apos.y - ppos.y + AREASIZE_Y*(i&2);
@@ -199,11 +202,15 @@ bool areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 		
 		if(horizontal <= 45 || horizontal >= 360-45 )
 			return 1;
+		
+		if(horizontal <= 90)
+			right = 1;
+		if(horizontal >= 360-90)
+			left = 1;
 	}
-	
-/*	std::cout << "Block: " << apos.x << ":" << apos.y << ":" << apos.z << std::endl;
-	std::cout << "Player: " << ppos.x << ":" << ppos.y << ":" << ppos.z << " - " << ppos.orientationHorizontal << ":" << ppos.orientationVertical << std::endl;
-	*/
+	if(left && right)
+		return 1;
+
 	return 0;
 }
 
