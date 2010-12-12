@@ -16,7 +16,7 @@ Movement::Movement(Controller* controller)
 	speedUp = 0.0f;
 	position.x = 0.0;
 	position.y = 0.0;
-	position.z = 32.0;
+	position.z = 15.0;
 	position.orientationHorizontal = 0.0;
 	position.orientationVertical = 0.0;
 	forwardPressed = false;

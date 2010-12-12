@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 
 #include "controller.h"
 #include "map.h"
@@ -182,6 +183,30 @@ void Renderer::renderArea(Area* area)
 	}
 }
 
+
+bool areaInViewport(BlockPosition apos, PlayerPosition ppos) {
+	for(int i=0; i<8; i++) {
+		double diffx = apos.x - ppos.x + AREASIZE_X*(i&1);
+		double diffy = apos.y - ppos.y + AREASIZE_Y*(i&2);
+		double diffz = apos.z - ppos.z + AREASIZE_Z*(i&4);
+		
+		double horizontal = (std::atan2(diffy,diffx)*180/M_PI+360) - ppos.orientationHorizontal;
+		
+		if(horizontal>=360) horizontal-=360;
+		if(horizontal<0) horizontal+=360;
+		if(horizontal>=360) horizontal-=360;
+		if(horizontal<0) horizontal+=360;
+		
+		if(horizontal <= 45 || horizontal >= 360-45 )
+			return 1;
+	}
+	
+/*	std::cout << "Block: " << apos.x << ":" << apos.y << ":" << apos.z << std::endl;
+	std::cout << "Player: " << ppos.x << ":" << ppos.y << ":" << ppos.z << " - " << ppos.orientationHorizontal << ":" << ppos.orientationVertical << std::endl;
+	*/
+	return 0;
+}
+
 void Renderer::render(PlayerPosition pos)
 {
 	// Clear the screen before drawing
@@ -197,7 +222,53 @@ void Renderer::render(PlayerPosition pos)
 	//Eigene Position
 	glTranslatef(-(pos.x), -(pos.y), -(pos.z));
 
+	glPushMatrix();
+	BlockPosition areapos = pos.block().area();
+	//areapos.z -= 32;
+	Area *area = c->map.getArea(areapos);
+	
+	glTranslatef(area->pos.x,area->pos.y,area->pos.z);
+	renderArea(area);
+	glPopMatrix();
 
+	int i=1;
+	for(int r=1; r<visualRange; r+=1)
+	for(int side=0; side<4; side++)
+	for(int position=0; position<r*2; position+=1) {
+		int x,y,z;
+		
+		switch(side) {
+			case 0:	x = areapos.x + AREASIZE_X*(position-r);
+						y = areapos.y + AREASIZE_Y*(-r);
+						break;
+			case 1:	x = areapos.x + AREASIZE_X*(r);
+						y = areapos.y + AREASIZE_Y*(position-r);
+						break;
+			case 2:	x = areapos.x + AREASIZE_X*(r-position);
+						y = areapos.y + AREASIZE_Y*(r); 
+						break;
+			case 3:	x = areapos.x + AREASIZE_X*(-r);
+						y = areapos.y + AREASIZE_Y*(r-position);
+						break;
+		}
+		z = areapos.z;
+		
+		if(!areaInViewport(BlockPosition::create(x,y,z), pos)) continue;
+		
+		glPushMatrix();
+		
+		Area *area = c->map.getArea(BlockPosition::create(x,y,z));
+
+		glTranslatef(area->pos.x,area->pos.y,area->pos.z);
+		renderArea(area);
+
+		glPopMatrix();
+		i++;
+	}
+	
+	std::cout << "gerenderte areas " << i << std::endl; 
+	
+	/*
 	for(int x=-(visualRange)+pos.x; x<(visualRange)+pos.x; x+=AREASIZE_X)
 	for(int y=-(visualRange)+pos.y; y<(visualRange)+pos.y; y+=AREASIZE_Y)
 	for(int z=-visualRange+pos.z; z<visualRange+pos.z; z+=AREASIZE_Z) {
@@ -211,7 +282,7 @@ void Renderer::render(PlayerPosition pos)
 
 		glPopMatrix();
 	}
-
+*/
 	
 }
 
