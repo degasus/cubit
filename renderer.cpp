@@ -193,7 +193,7 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 		double diffy = apos.y - ppos.y + AREASIZE_Y*(i&2);
 		double diffz = apos.z - ppos.z + AREASIZE_Z*(i&4);
 		
-		if(diffx*diffx + diffy*diffy + diffz*diffz > visualRange*visualRange*16*8)
+		if(diffx*diffx + diffy*diffy + diffz*diffz > visualRange*visualRange*16*16)
 			continue;
 		
 		double horizontal = (std::atan2(diffy,diffx)*180/M_PI+360) - ppos.orientationHorizontal;
@@ -234,8 +234,9 @@ void Renderer::render(PlayerPosition pos)
 
 	glPushMatrix();
 	BlockPosition areapos = pos.block().area();
-	//areapos.z -= 32;
 	Area *area = c->map.getArea(areapos);
+	areapos.z = 0;
+	area = c->map.getArea(areapos);
 	
 	glTranslatef(area->pos.x,area->pos.y,area->pos.z);
 	renderArea(area);
