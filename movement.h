@@ -98,6 +98,9 @@ public:
 	PlayerPosition getPosition();
 	void setPosition(PlayerPosition pos);
 
+	//Get block and plane the user is pointing on
+	void getPointingOn(BlockPosition* block, DIRECTION* plane);
+
 private:
 	//current position
 	PlayerPosition position;
@@ -123,7 +126,13 @@ private:
 	float personSize;
 	double personSizeNormal;
 	double personSizeDucked;
+
+	//Pointing on
+	BlockPosition pointingOnBlock;
+	DIRECTION pointingOnPlane;
+	int pointingDistance;
 	
+	//Movement settings
 	float slowMovementSpeed;
 	float normalMovementSpeed;
 	float movementSpeed;
@@ -146,5 +155,6 @@ private:
 	void calcNewSpeed();
 	void calcCollisionAndMove();
 	void calcDucking();
+	void calcPointingOn();
 };
 #endif

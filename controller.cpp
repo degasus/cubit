@@ -65,6 +65,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("accelVertical", po::value<double>()->default_value(0.02f), "accelleration in vertical diretion")
 		("personSizeNormal", po::value<double>()->default_value(1.5), "normal size of person (should be between 1.01 and 1.99)")
 		("personSizeDucked", po::value<double>()->default_value(1.2), "ducked size of person (should be between 1.01 and 1.99 && < personSizeNormal)")
+		("pointingDistance", po::value<int>()->default_value(4), "range to build and remove blocks")
 		("slowMovementSpeed", po::value<double>()->default_value(0.03f), "speed when moving slowly")
 		("normalMovementSpeed", po::value<double>()->default_value(0.2f), "speed when moving normally")
 		("fastSpeedMultiplier", po::value<double>()->default_value(5.72341f), "speed multiplier when moving fast")
@@ -72,7 +73,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning")
 		("jumpSpeed", po::value<double>()->default_value(0.24), "initial speed when jumping")
 		
-		("mapDirectory", po::value<string>()->default_value("maps"), "Maps for saving areas")
+		("mapDirectory", po::value<string>()->default_value("maps"), "Folder for saving areas")
 		
 		("k_forward", po::value<int>()->default_value(119), "KeyCode for moving forward")
 		("k_backwards", po::value<int>()->default_value(115), "KeyCode for moving backwards")

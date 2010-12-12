@@ -34,7 +34,7 @@ bg=orange</panel_attributes><additional_attributes/></element><element><type>com
 +value: double
 +type: enum
 
-bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>480</x><y>330</y><w>410</w><h>150</h></coordinates><panel_attributes>Movement
+bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>480</x><y>330</y><w>430</w><h>180</h></coordinates><panel_attributes>Movement
 --
 _Constructors_
 +Movement()
@@ -46,8 +46,9 @@ _Constructors_
 +triggerNextFrame()
 +setPosition(pos: PlayerPosition)
 +getPosition() : PlayerPosition
++getPointingOn(block : BlockPosition*, plane : DIRECTION*)
 
-bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>660</x><y>200</y><w>230</w><h>120</h></coordinates><panel_attributes>PlayerPosition
+bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>670</x><y>200</y><w>230</w><h>120</h></coordinates><panel_attributes>PlayerPosition
 --
 +x: double
 +y: double
@@ -55,7 +56,7 @@ bg=gray</panel_attributes><additional_attributes/></element><element><type>com.u
 +orientationHorizontal: double
 +orientationVertical: double
 
-bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>470</x><y>170</y><w>430</w><h>320</h></coordinates><panel_attributes>movement.h
+bg=gray</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Package</type><coordinates><x>470</x><y>170</y><w>450</w><h>350</h></coordinates><panel_attributes>movement.h
 
 bg=green</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>480</x><y>620</y><w>410</w><h>140</h></coordinates><panel_attributes>Renderer
 --
