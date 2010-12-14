@@ -142,6 +142,9 @@ private:
 	DIRECTION pointingOnPlane;
 	double pointingDistance;
 	bool isPointingOn;
+
+	//Building
+	int lastBuild;
 	
 	//Movement settings
 	float slowMovementSpeed;

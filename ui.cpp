@@ -215,12 +215,38 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
 {
+	ActionEvent ae;
+	ae.name = ActionEvent::NONE;
+	
+	switch(e.button){
+		case SDL_BUTTON_LEFT:
+			ae.name = ActionEvent::PRESS_BUILD_BLOCK;
+			break;
+		case SDL_BUTTON_RIGHT:
+			ae.name = ActionEvent::PRESS_REMOVE_BLOCK;
+			break;
+	}
 
+	if(ae.name != ActionEvent::NONE)
+		c->movement.performAction(ae);
 }
 
 void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 {
-
+	ActionEvent ae;
+	ae.name = ActionEvent::NONE;
+	
+	switch(e.button){
+		case SDL_BUTTON_LEFT:
+			ae.name = ActionEvent::RELEASE_BUILD_BLOCK;
+			break;
+		case SDL_BUTTON_RIGHT:
+			ae.name = ActionEvent::RELEASE_REMOVE_BLOCK;
+			break;
+	}
+	
+	if(ae.name != ActionEvent::NONE)
+		c->movement.performAction(ae);
 }
 
 void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)

@@ -29,6 +29,7 @@ Movement::Movement(Controller* controller)
 	removeBlockPressed = false;
 	moveFast = false;
 	isPointingOn = false;
+	lastBuild = 20;
 }
 
 void Movement::config(const boost::program_options::variables_map& c)
@@ -111,6 +112,10 @@ void Movement::performAction(ActionEvent event)
 			
 		case ActionEvent::PRESS_BUILD_BLOCK:
 			buildBlockPressed = true;
+			if(isPointingOn && buildBlockPressed){
+				c->map.setBlock(pointingOnBlock, (rand()%(NUMBER_OF_MATERIALS-1))+1);
+				lastBuild = 0;
+			}
 			break;
 		case ActionEvent::RELEASE_BUILD_BLOCK:
 			buildBlockPressed = false;
@@ -118,6 +123,10 @@ void Movement::performAction(ActionEvent event)
 			
 		case ActionEvent::PRESS_REMOVE_BLOCK:
 			removeBlockPressed = true;
+			if(isPointingOn && removeBlockPressed){
+				c->map.setBlock(pointingOnBlock+pointingOnPlane, 0);
+				lastBuild = 0;
+			}
 			break;
 		case ActionEvent::RELEASE_REMOVE_BLOCK:
 			removeBlockPressed = false;
@@ -436,13 +445,15 @@ DIRECTION Movement::calcPointingOnInBlock(PlayerPosition* posIn, BlockPosition b
 	return (DIRECTION)0;
 }
 
-int lastBuild = 20;
-
 void Movement::calcBuilding(){
 	lastBuild++;
 	if(lastBuild >= 20 && isPointingOn && buildBlockPressed){
 		c->map.setBlock(pointingOnBlock, (rand()%(NUMBER_OF_MATERIALS-1))+1);
-		lastBuild++;
+		lastBuild = 0;
+	}
+	if(lastBuild >= 20 && isPointingOn && removeBlockPressed){
+		c->map.setBlock(pointingOnBlock+pointingOnPlane, 0);
+		lastBuild = 0;
 	}
 }
 
