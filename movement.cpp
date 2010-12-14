@@ -139,7 +139,6 @@ void Movement::performAction(ActionEvent event)
 			if(position.orientationVertical < -90)
 				position.orientationVertical = -90;
 			break;
-
 		default:
 			break;
 	}
@@ -437,9 +436,14 @@ DIRECTION Movement::calcPointingOnInBlock(PlayerPosition* posIn, BlockPosition b
 	return (DIRECTION)0;
 }
 
+int lastBuild = 20;
 
 void Movement::calcBuilding(){
-
+	lastBuild++;
+	if(lastBuild >= 20 && isPointingOn && buildBlockPressed){
+		c->map.setBlock(pointingOnBlock, (rand()%(NUMBER_OF_MATERIALS-1))+1);
+		lastBuild++;
+	}
 }
 
 void Movement::triggerNextFrame(){
@@ -447,5 +451,5 @@ void Movement::triggerNextFrame(){
 	calcNewSpeed();
 	calcCollisionAndMove();
 	calcPointingOn();
-	//calcBuilding();
+	calcBuilding();
 }
