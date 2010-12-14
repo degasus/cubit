@@ -20,6 +20,7 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	fogDense			= c["fogDense"].as<float>();
 	fogStartFactor		= c["fogStartFactor"].as<float>();
 	visualRange			= c["visualRange"].as<float>();
+	maxareas			= c["maxareas"].as<int>();
 
 	string textureDirectory = c["textureDirectory"].as<string>();
 	Texture_Files[1]	= textureDirectory + "/" + c["texture01"].as<string>();
@@ -244,9 +245,9 @@ void Renderer::render(PlayerPosition pos)
 	glPopMatrix();
 
 	int i=1;
-	for(int r=1; r<visualRange; r+=1)
-	for(int side=0; side<4; side++)
-	for(int position=0; position<r*2; position+=1) {
+	for(int r=1; r<visualRange && i<maxareas; r+=1)
+	for(int side=0; side<4 && i<maxareas; side++)
+	for(int position=0; position<r*2 && i<maxareas; position+=1) {
 		int x,y,z;
 		
 		switch(side) {
@@ -277,24 +278,6 @@ void Renderer::render(PlayerPosition pos)
 		glPopMatrix();
 		i++;
 	}
-	
-	std::cout << "gerenderte areas " << i << std::endl; 
-	
-	/*
-	for(int x=-(visualRange)+pos.x; x<(visualRange)+pos.x; x+=AREASIZE_X)
-	for(int y=-(visualRange)+pos.y; y<(visualRange)+pos.y; y+=AREASIZE_Y)
-	for(int z=-visualRange+pos.z; z<visualRange+pos.z; z+=AREASIZE_Z) {
-		glPushMatrix();
-
-
-		Area *area = c->map.getArea(BlockPosition::create(x,y,z));
-
-		glTranslatef(area->pos.x,area->pos.y,area->pos.z);
-		renderArea(area);
-
-		glPopMatrix();
-	}
-*/
 	
 }
 
