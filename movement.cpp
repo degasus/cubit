@@ -113,7 +113,7 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::PRESS_BUILD_BLOCK:
 			buildBlockPressed = true;
 			if(isPointingOn && buildBlockPressed){
-				c->map.setBlock(pointingOnBlock, (rand()%(NUMBER_OF_MATERIALS-1))+1);
+				buildBlock();
 				lastBuild = 0;
 			}
 			break;
@@ -124,7 +124,7 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::PRESS_REMOVE_BLOCK:
 			removeBlockPressed = true;
 			if(isPointingOn && removeBlockPressed){
-				c->map.setBlock(pointingOnBlock+pointingOnPlane, 0);
+				removeBlock();
 				lastBuild = 0;
 			}
 			break;
@@ -281,7 +281,6 @@ void Movement::calcCollisionAndMove(){
 	//Z-Collision
 	//Jumping
 	if(feetBlock != 0 && jumpPressed){
-		std::cout << "jump" << std::endl;
 		speedUp = jumpSpeed*(movementSpeed/normalMovementSpeed);
 	}
 	//Falling
@@ -448,14 +447,37 @@ DIRECTION Movement::calcPointingOnInBlock(PlayerPosition* posIn, BlockPosition b
 void Movement::calcBuilding(){
 	lastBuild++;
 	if(lastBuild >= 20 && isPointingOn && buildBlockPressed){
-		c->map.setBlock(pointingOnBlock, (rand()%(NUMBER_OF_MATERIALS-1))+1);
+		buildBlock();
 		lastBuild = 0;
 	}
 	if(lastBuild >= 20 && isPointingOn && removeBlockPressed){
-		c->map.setBlock(pointingOnBlock+pointingOnPlane, 0);
+		removeBlock();
 		lastBuild = 0;
 	}
 }
+
+void Movement::buildBlock()
+{
+	if(pointingOnBlock != position.block() && pointingOnBlock != position.block()+DIRECTION_DOWN){
+		try{
+			c->map.setBlock(pointingOnBlock, (rand()%(NUMBER_OF_MATERIALS-1))+1);
+		}
+		catch(NotLoadedException e){
+			std::cout << "NotLoadedException buildBlock" << std::endl;
+		}
+	}
+}
+
+void Movement::removeBlock()
+{
+	try{
+		c->map.setBlock(pointingOnBlock+pointingOnPlane, 0);
+	}
+	catch(NotLoadedException e){
+		std::cout << "NotLoadedException removeBlock" << std::endl;
+	}
+}
+
 
 void Movement::triggerNextFrame(){
 	calcDucking();

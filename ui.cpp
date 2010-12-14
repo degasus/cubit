@@ -70,8 +70,7 @@ void UInterface::initWindow()
 	glLoadIdentity();					// Reset The Projection Matrix
 	
 	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, 1000.0f);
-
+	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.0001f, 1000.0f);
 	
 	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 	glLoadIdentity();					// Reset The Projection Matrix
@@ -124,8 +123,6 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	ActionEvent ae;
 	ae.name = ActionEvent::NONE;
 
-	std::cout << "keydown" << e.keysym.sym << std::endl;
-	
 	int code = (int)e.keysym.sym;
 	if(code == k_forward){
 		ae.name = ActionEvent::PRESS_FORWARD;

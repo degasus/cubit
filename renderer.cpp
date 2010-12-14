@@ -21,6 +21,8 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	fogStartFactor		= c["fogStartFactor"].as<float>();
 	visualRange			= c["visualRange"].as<float>();
 	maxareas			= c["visualRange"].as<float>()*c["visualRange"].as<float>();
+	enableLight			= c["enableLight"].as<bool>();
+	enableFog			= c["enableFog"].as<bool>();
 
 	string textureDirectory = c["textureDirectory"].as<string>();
 	Texture_Files[1]	= textureDirectory + "/" + c["texture01"].as<string>();
@@ -56,8 +58,10 @@ void Renderer::init()
 	glLightfv(GL_LIGHT1, GL_AMBIENT,  LightAmbient);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE,  LightDiffuse);
 	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHTING);
+	if(enableLight){
+		glEnable(GL_LIGHT1);
+		glEnable(GL_LIGHTING);
+	}
 
 	glFogi(GL_FOG_MODE, GL_LINEAR);		// Fog Mode
 	glFogfv(GL_FOG_COLOR, bgColor);	// Set Fog Color
@@ -65,7 +69,9 @@ void Renderer::init()
 	glHint(GL_FOG_HINT, GL_DONT_CARE);	// Fog Hint Value
 	glFogf(GL_FOG_START, visualRange*fogStartFactor*AREASIZE_X/5.);
 	glFogf(GL_FOG_END, visualRange*AREASIZE_X/5.);
-	glEnable(GL_FOG);					// Enables GL_FOG
+	if(enableFog)
+		glEnable(GL_FOG);					// Enables GL_FOG
+
 
 
 
@@ -322,7 +328,10 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 		glEnable(GL_DEPTH_TEST);
 		
 		glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
-		glEnable(GL_LIGHT1);
-		glEnable(GL_LIGHTING);
+
+		if(enableLight){
+			glEnable(GL_LIGHT1);
+			glEnable(GL_LIGHTING);
+		}
 }
 

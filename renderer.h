@@ -38,6 +38,8 @@ private:
 	int areasPerFrame;
 	int areasRendered;
 	int maxareas;
+	bool enableLight;
+	bool enableFog;
 	
 	GLuint texture[NUMBER_OF_MATERIALS];
 	std::string Texture_Files[NUMBER_OF_MATERIALS];
