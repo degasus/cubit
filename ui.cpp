@@ -203,7 +203,7 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 		c->map.setPosition(pos);
 		c->renderer.render(pos);
 		
-		drawHUD();
+		//drawHUD();
 		
 		SDL_GL_SwapBuffers();
 	//}
@@ -240,14 +240,14 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 
 
 void UInterface::drawHUD() {
-/*	glLoadIdentity();
+	glLoadIdentity();
 	glDisable(GL_DEPTH_TEST);
 
 	glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 	glEnable(GL_BLEND);
 
-	glTranslatef(0.0f,0.0f,-16.0f);
+	glTranslatef(0.0f,0.0f,0.0f);
 	float lineWidth = 0.012f;
 	float lineLength = 0.25f;
 
@@ -266,5 +266,5 @@ void UInterface::drawHUD() {
 	glEnd();
 
 	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST); */
+	glEnable(GL_DEPTH_TEST);
 }

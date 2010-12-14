@@ -349,7 +349,7 @@ void Movement::calcCollisionAndMove(){
 	}
 }
 
-/*void Movement::calcPointingOn(){
+void Movement::calcPointingOn(){
 	PlayerPosition lastPos = position;
 	lastPos.x = lastPos.x - floor(lastPos.x);
 	lastPos.y = lastPos.y - floor(lastPos.y);
@@ -405,7 +405,7 @@ void Movement::calcCollisionAndMove(){
 //Berechnet die Fläche, auf die von der Startposition aus (Parameter) mit der aktuellen Blickrichtung
 //@return: ID der Fläche, auf die man zeigt
 //Am Ende sind die Parameter auf den Schnittpunkt gesetzt
-int Movement::calcPointingOnInBlock(double* startX, double* startY, double* startZ){
+int Movement::calcPointingOnInBlock(DIRECTION directionToNextBlock){
 	Matrix<double,3,3> left(0);
 	Matrix<double,1,3> right(0);
 	Matrix<double,1,3> result(0);
@@ -497,7 +497,8 @@ int Movement::calcPointingOnInBlock(double* startX, double* startY, double* star
 							
 							//Falls keine Austrittsebene gefunden wird Error
 							return -1;
-}*/
+}+
+
 
 void Movement::calcBuilding(){
 
