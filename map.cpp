@@ -30,7 +30,7 @@ Map::~Map()
 
 void Map::config(const boost::program_options::variables_map& c)
 {
-	destroyArea = c["destroyArea"].as<double>();
+	destroyArea = c["visualRange"].as<float>()*c["destroyAreaFaktor"].as<double>()*2*16;
 	mapDirectory = c["mapDirectory"].as<std::string>();
 	storeMaps = c["storeMaps"].as<bool>();
 }

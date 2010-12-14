@@ -71,9 +71,7 @@ void UInterface::initWindow()
 	
 	// Calculate The Aspect Ratio Of The Window
 	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, 1000.0f);
-	glScalef(-1,1,1);	
-	glRotatef(90.0,0.0f,0.0f,1.0f);
-	glRotatef(90.0,0.0f,1.0f,0.0f);
+
 	
 	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 	glLoadIdentity();					// Reset The Projection Matrix
@@ -270,6 +268,9 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 
 void UInterface::drawHUD() {
 	glLoadIdentity();
+	glScalef(-1,1,1);	
+	glRotatef(90.0,0.0f,0.0f,1.0f);
+	glRotatef(90.0,0.0f,1.0f,0.0f);
 	glDisable(GL_DEPTH_TEST);
 
 	glColor4f(0.0f, 1.0f, 1.0f, 0.5f);

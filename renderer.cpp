@@ -20,7 +20,7 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	fogDense			= c["fogDense"].as<float>();
 	fogStartFactor		= c["fogStartFactor"].as<float>();
 	visualRange			= c["visualRange"].as<float>();
-	maxareas			= c["maxareas"].as<int>();
+	maxareas			= c["visualRange"].as<float>()*c["visualRange"].as<float>();
 
 	string textureDirectory = c["textureDirectory"].as<string>();
 	Texture_Files[1]	= textureDirectory + "/" + c["texture01"].as<string>();
@@ -51,6 +51,8 @@ void Renderer::init()
 	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat LightPosition[] = { 0.5f, 1.0f, 5.0f, 1.0f };
 
+	//GLfloat LightPosition[] = { 0.5f, 0.1f, 1.0f, 1.0f };
+	
 	glLightfv(GL_LIGHT1, GL_AMBIENT,  LightAmbient);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE,  LightDiffuse);
 	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
@@ -61,8 +63,8 @@ void Renderer::init()
 	glFogfv(GL_FOG_COLOR, bgColor);	// Set Fog Color
 	glFogf(GL_FOG_DENSITY, fogDense);	// How Dense Will The Fog Be
 	glHint(GL_FOG_HINT, GL_DONT_CARE);	// Fog Hint Value
-	glFogf(GL_FOG_START, visualRange*fogStartFactor);
-	glFogf(GL_FOG_END, visualRange);
+	glFogf(GL_FOG_START, visualRange*fogStartFactor*AREASIZE_X/5.);
+	glFogf(GL_FOG_END, visualRange*AREASIZE_X/5.);
 	glEnable(GL_FOG);					// Enables GL_FOG
 
 
@@ -228,6 +230,10 @@ void Renderer::render(PlayerPosition pos)
 	// Clear the screen before drawing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
 	glLoadIdentity();							// Reset The View
+		glScalef(-1,1,1);	
+	glRotatef(90.0,0.0f,0.0f,1.0f);
+	glRotatef(90.0,0.0f,1.0f,0.0f);
+	
 	areasRendered = 0;
 	
 	//Mausbewegung
