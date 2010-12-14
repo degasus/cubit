@@ -124,7 +124,7 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::PRESS_REMOVE_BLOCK:
 			removeBlockPressed = true;
 			if(isPointingOn && removeBlockPressed){
-				
+				removeBlock();
 				lastBuild = 0;
 			}
 			break;
@@ -452,7 +452,7 @@ void Movement::calcBuilding(){
 		lastBuild = 0;
 	}
 	if(lastBuild >= 20 && isPointingOn && removeBlockPressed){
-		c->map.setBlock(pointingOnBlock+pointingOnPlane, 0);
+		removeBlock();
 		lastBuild = 0;
 	}
 }
@@ -468,6 +468,17 @@ void Movement::buildBlock()
 		}
 	}
 }
+
+void Movement::removeBlock()
+{
+	try{
+		c->map.setBlock(pointingOnBlock+pointingOnPlane, 0);
+	}
+	catch(NotLoadedException e){
+		std::cout << "NotLoadedException removeBlock" << std::endl;
+	}
+}
+
 
 void Movement::triggerNextFrame(){
 	calcDucking();
