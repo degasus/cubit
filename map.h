@@ -139,45 +139,6 @@ inline bool operator<(const BlockPosition &posa, const BlockPosition &posb) {
 	if (posa.z<posb.z) return 1;
 	return 0;
 }
-/*
-//Berechnet die Fläche, auf die von der Startposition aus (Parameter) mit der aktuellen Blickrichtung
-//@return: ID der Fläche, auf die man zeigt
-//Am Ende sind die Parameter auf den Schnittpunkt gesetzt
-inline DIRECTION calcPointingOnInBlock(PlayerPosition pos){
-	Matrix<double,3,3> left(0);
-	Matrix<double,1,3> right(0);
-	Matrix<double,1,3> result(0);
-
-	//bleibt immer gleich (Blickrichtung)
-	left.data[2][0] = sin(M_PI*x/180.) * cos(M_PI*y/180.);
-	left.data[2][1] = -sin(M_PI*y/180.);
-	left.data[2][2] = -cos(M_PI*x/180.) * cos(M_PI*y/180.);
-
-	for(int i=0; i<DIRECTION_COUNT; i++) {
-		left.data[0][0] = ;
-		left.data[0][1] = ;
-		left.data[0][2] = ;
-		left.data[1][0] = ;
-		left.data[1][1] = ;
-		left.data[1][2] = ;
-		right.data[0][0] = 1-*startX;
-		right.data[0][1] = 1-*startY;
-		right.data[0][2] = -*startZ;
-		result = left.LU().solve(right);
-		if( 0 <= result.data[0][0] && result.data[0][0] <= 1
-		&& 0 <= result.data[0][1] && result.data[0][1] <= 1
-		&& 0 < result.data[0][2]) {
-			*startX = 1-result[0][0];
-			*startY = 1-result[0][1];
-			*startZ = 0;
-			return 0;
-		}
-	}
-
-	//Falls keine Austrittsebene gefunden wird Error
-	return -1;
-}
-*/
 
 /**
  * kleines Gebiet auf der Karte.

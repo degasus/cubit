@@ -108,6 +108,9 @@ void Renderer::init()
 
 void Renderer::renderArea(Area* area)
 {
+	glPushMatrix();
+	glTranslatef(area->pos.x,area->pos.y,area->pos.z);
+		
 
 	if((!area->gllist_generated || area->needupdate) && (areasRendered <= areasPerFrame)) {
 		areasRendered++;
@@ -183,6 +186,7 @@ void Renderer::renderArea(Area* area)
 	} else {
 		// do nothing
 	}
+	glPopMatrix();
 }
 
 
@@ -234,17 +238,30 @@ void Renderer::render(PlayerPosition pos)
 	//Eigene Position
 	glTranslatef(-(pos.x), -(pos.y), -(pos.z));
 
-	glPushMatrix();
+	// eigenes gebiet
 	BlockPosition areapos = pos.block().area();
+	
+	int i=0;
+	
+	for(int x = areapos.x-2*AREASIZE_X; x < areapos.x+2*AREASIZE_X; x+= AREASIZE_X)
+	for(int y = areapos.y-2*AREASIZE_Y; y < areapos.y+2*AREASIZE_Y; y+= AREASIZE_Y)
+	for(int z = areapos.z-2*AREASIZE_Z; z < areapos.z+2*AREASIZE_Z; z+= AREASIZE_Z) {
+		if(z == 0) continue;
+		
+		Area *area = c->map.getArea(BlockPosition::create(x,y,z));
+
+		renderArea(area);
+
+		i++;
+	}
+		
+	// zentrales gebiet unter sich selber
 	Area *area = c->map.getArea(areapos);
 	areapos.z = 0;
 	area = c->map.getArea(areapos);
-	
-	glTranslatef(area->pos.x,area->pos.y,area->pos.z);
 	renderArea(area);
-	glPopMatrix();
-
-	int i=1;
+	i++;
+	
 	for(int r=1; r<visualRange && i<maxareas; r+=1)
 	for(int side=0; side<4 && i<maxareas; side++)
 	for(int position=0; position<r*2 && i<maxareas; position+=1) {
@@ -268,17 +285,13 @@ void Renderer::render(PlayerPosition pos)
 		
 		if(!areaInViewport(BlockPosition::create(x,y,z), pos)) continue;
 		
-		glPushMatrix();
 		
 		Area *area = c->map.getArea(BlockPosition::create(x,y,z));
 
-		glTranslatef(area->pos.x,area->pos.y,area->pos.z);
 		renderArea(area);
 
-		glPopMatrix();
 		i++;
-	}
-	
+	}	
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
