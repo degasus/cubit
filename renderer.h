@@ -25,6 +25,8 @@ public:
 
 	void render(PlayerPosition pos);
 	void deleteArea(Area* area);
+
+	void highlightBlockDirection(BlockPosition, DIRECTION);
 	
 	void config(const boost::program_options::variables_map &c);
 

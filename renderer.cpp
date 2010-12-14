@@ -281,3 +281,29 @@ void Renderer::render(PlayerPosition pos)
 	
 }
 
+void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
+		//glDisable(GL_LIGHT1);
+		//glDisable(GL_LIGHTING);
+		
+		glDisable(GL_DEPTH_TEST);
+		glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
+		glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
+		glEnable(GL_BLEND);
+		glBegin(GL_QUADS);		
+
+		for(int i = 0; i < POINTS_PER_POLYGON; i++){
+			glVertex3f(block.x + POINTS_OF_DIRECTION[direct][i][0],
+					   block.y + POINTS_OF_DIRECTION[direct][i][1],
+					   block.z + POINTS_OF_DIRECTION[direct][i][2]
+  					);
+		}
+		
+		glEnd();
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
+		
+		glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
+		//glEnable(GL_LIGHT1);
+		//glEnable(GL_LIGHTING);
+}
+

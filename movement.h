@@ -19,7 +19,7 @@ struct ActionEvent;
  * @param orientationHorizontal horizontal orientation in degrees, 0 = east, 90 = south, 180 = west, 270 = north
  * @param orientationVertical vertical orientation in degrees, 0 = horizontal, 90 = up, -90 = down
  */
-struct PlayerPosition {
+struct PlayerPosition{
 	double x;
 	double y;
 	double z;
@@ -33,6 +33,16 @@ struct PlayerPosition {
 		b.z=std::floor(z);
 
 		return b;
+	}
+
+	inline std::string to_string(){
+
+		std::ostringstream oss (std::ostringstream::out);
+
+		oss << "pPos X = " << x << "; Y = " << y << "; Z = " << z
+			<< "; Orientation: (" << orientationHorizontal << "°, " << orientationVertical << "°);";
+			
+		return oss.str();
 	}
 };
 
@@ -99,7 +109,7 @@ public:
 	void setPosition(PlayerPosition pos);
 
 	//Get block and plane the user is pointing on
-	void getPointingOn(BlockPosition* block, DIRECTION* plane);
+	bool getPointingOn(BlockPosition* block, DIRECTION* plane);
 
 private:
 	//current position
@@ -130,7 +140,8 @@ private:
 	//Pointing on
 	BlockPosition pointingOnBlock;
 	DIRECTION pointingOnPlane;
-	int pointingDistance;
+	double pointingDistance;
+	bool isPointingOn;
 	
 	//Movement settings
 	float slowMovementSpeed;
@@ -156,5 +167,6 @@ private:
 	void calcCollisionAndMove();
 	void calcDucking();
 	void calcPointingOn();
+	DIRECTION calcPointingOnInBlock(PlayerPosition*, BlockPosition);
 };
 #endif

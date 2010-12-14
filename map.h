@@ -115,6 +115,15 @@ struct BlockPosition {
 		return create(x & ~(AREASIZE_X-1),y & ~(AREASIZE_Y-1),z & ~(AREASIZE_Z-1));
 	}
 
+	inline std::string to_string(){
+
+		std::ostringstream oss (std::ostringstream::out);
+
+		oss << "bPos X = " << x << "; Y = " << y << "; Z = " << z;
+
+		return oss.str();
+	}
+
 	int x;
 	int y;
 	int z;

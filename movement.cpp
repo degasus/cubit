@@ -14,8 +14,8 @@ Movement::Movement(Controller* controller)
 	speedForward = 0.0f;
 	speedRight = 0.0f;
 	speedUp = 0.0f;
-	position.x = 0.0;
-	position.y = 0.0;
+	position.x = 0.01;
+	position.y = 0.01;
 	position.z = 10.0;
 	position.orientationHorizontal = 0.0;
 	position.orientationVertical = 0.0;
@@ -28,6 +28,7 @@ Movement::Movement(Controller* controller)
 	buildBlockPressed = false;
 	removeBlockPressed = false;
 	moveFast = false;
+	isPointingOn = false;
 }
 
 void Movement::config(const boost::program_options::variables_map& c)
@@ -51,7 +52,7 @@ void Movement::config(const boost::program_options::variables_map& c)
 
 void Movement::init()
 {
-
+	
 }
 
 void Movement::performAction(ActionEvent event)
@@ -152,9 +153,12 @@ void Movement::setPosition(PlayerPosition pos){
 	position = pos;
 }
 
-void Movement::getPointingOn(BlockPosition* block, DIRECTION* plane){
-	*block = pointingOnBlock;
-	*plane = pointingOnPlane;
+bool Movement::getPointingOn(BlockPosition* block, DIRECTION* plane){
+	if(isPointingOn){
+		*block = pointingOnBlock;
+		*plane = pointingOnPlane;
+	}
+	return isPointingOn;
 }
 
 void Movement::calcDucking(){
@@ -351,153 +355,87 @@ void Movement::calcCollisionAndMove(){
 
 void Movement::calcPointingOn(){
 	PlayerPosition lastPos = position;
-	lastPos.x = lastPos.x - floor(lastPos.x);
-	lastPos.y = lastPos.y - floor(lastPos.y);
-	lastPos.z = lastPos.z - floor(lastPos.z);
-
-	//int blockX = floor(posX);
-	//int blockY = floor(posY + personSize);
-	//int blockZ = floor(posZ);
-	
-	pointingOnPlane = -2;
+	pointingOnBlock = position.block();
+	BlockPosition lastPointingOnBlock = pointingOnBlock;
 	
 	double distanceQ = 0;
 	int counter = 0;
-	
-	while(c->map.getBlock(lastPos.block()) == 0 && distanceQ <= pointingDistance*pointingDistance && counter <= 30 && pointingOnPlane != -1){
-		counter++;
-		lastPointingOn = calcPointingOnInBlock(&lastX, &lastY, &lastZ);
-		switch (lastPointingOn) {
-			//Back
-			case 0: blockZ--; lastZ++; break;
-			//Front
-			case 1: blockZ++; lastZ--; break;
-			//Bottom
-			case 2: blockY--; lastY++; break;
-			//Top
-			case 3: blockY++; lastY--; break;
-			//Left
-			case 4: blockX--; lastX++; break;
-			//Right
-			case 5: blockX++; lastX--; break;
+	try{
+		while(c->map.getBlock(pointingOnBlock) == 0 && distanceQ <= pointingDistance*pointingDistance && counter <= pointingDistance*3+2){
+			counter++;
+			//std::cout << "lastPos = " << lastPos.to_string() << std::endl;
+			//std::cout << "pointingOnBlock = " << pointingOnBlock.to_string() << std::endl;
+			lastPointingOnBlock = pointingOnBlock;
+			
+			pointingOnPlane = calcPointingOnInBlock(&lastPos, pointingOnBlock);
+			pointingOnBlock = pointingOnBlock + pointingOnPlane;
+
+			double dx = lastPos.x - position.x;
+			double dy = lastPos.y - position.y;
+			double dz = lastPos.z - position.z;
+
+			distanceQ = dx*dx + dy*dy + dz*dz;
+			//std::cout << "pointingOnPlane = " << pointingOnPlane << std::endl << std::endl;
+
 		}
-		
-		double dx = blockX+lastX-posX;
-		double dy = blockY+lastY-posY-personSize;
-		double dz = blockZ+lastZ-posZ;
-		
-		distanceQ = dx*dx + dy*dy + dz*dz;
-	}
-	
-	
-	if(landschaft[blockX*ysize*zsize + blockY*zsize  + blockZ] != 0){
-		pointingOnX = floor(blockX);
-		pointingOnY = floor(blockY);
-		pointingOnZ = floor(blockZ);
-	}
-	else{
-		pointingOnX = -1;
-		pointingOnY = -1;
-		pointingOnZ = -1;
+
+		//std::cout <<  std::endl << std::endl;
+
+		if(c->map.getBlock(pointingOnBlock) == 0)
+			isPointingOn = false;
+		else
+			isPointingOn = true;
+
+		pointingOnBlock = lastPointingOnBlock;
+	} catch(NotLoadedException e){
+		isPointingOn = false;
 	}
 }
 
 //Berechnet die Fläche, auf die von der Startposition aus (Parameter) mit der aktuellen Blickrichtung
 //@return: ID der Fläche, auf die man zeigt
 //Am Ende sind die Parameter auf den Schnittpunkt gesetzt
-int Movement::calcPointingOnInBlock(DIRECTION directionToNextBlock){
+DIRECTION Movement::calcPointingOnInBlock(PlayerPosition* posIn, BlockPosition blockIn){
+	
 	Matrix<double,3,3> left(0);
 	Matrix<double,1,3> right(0);
 	Matrix<double,1,3> result(0);
 	
 	//bleibt immer gleich (Blickrichtung)
-	left.data[2][0] = sin(M_PI*x/180.) * cos(M_PI*y/180.);
-	left.data[2][1] = -sin(M_PI*y/180.);
-	left.data[2][2] = -cos(M_PI*x/180.) * cos(M_PI*y/180.);
-	
-	//Fläche 0 (Front)
-	left.data[0][0] = 1;
-	left.data[1][1] = 1;
-	right.data[0][0] = 1-*startX;
-	right.data[0][1] = 1-*startY;
-	right.data[0][2] = -*startZ;
-	result = left.LU().solve(right);
-	if( 0 <= result.data[0][0] && result.data[0][0] <= 1
-		&& 0 <= result.data[0][1] && result.data[0][1] <= 1
-		&& 0 < result.data[0][2]) {
-		*startX = 1-result[0][0];
-	*startY = 1-result[0][1];
-	*startZ = 0;
-	return 0;
-		}
-		
-		//Fläche 1 (Back)
-		right.data[0][2] = 1-*startZ;
+	left.data[2][0] = -cos(M_PI*posIn->orientationHorizontal/180.) * cos(M_PI*posIn->orientationVertical/180.);
+	left.data[2][1] = -sin(M_PI*posIn->orientationHorizontal/180.) * cos(M_PI*posIn->orientationVertical/180.);
+	left.data[2][2] = -sin(M_PI*posIn->orientationVertical/180.);
+
+	for(int i = 0; i < DIRECTION_COUNT; i++){
+		left.data[0][0] = POINTS_OF_DIRECTION[i][1][0] - POINTS_OF_DIRECTION[i][0][0];
+		left.data[0][1] = POINTS_OF_DIRECTION[i][1][1] - POINTS_OF_DIRECTION[i][0][1];
+		left.data[0][2] = POINTS_OF_DIRECTION[i][1][2] - POINTS_OF_DIRECTION[i][0][2];
+		left.data[1][0] = POINTS_OF_DIRECTION[i][3][0] - POINTS_OF_DIRECTION[i][0][0];
+		left.data[1][1] = POINTS_OF_DIRECTION[i][3][1] - POINTS_OF_DIRECTION[i][0][1];
+		left.data[1][2] = POINTS_OF_DIRECTION[i][3][2] - POINTS_OF_DIRECTION[i][0][2];
+		right.data[0][0] = posIn->x - blockIn.x - POINTS_OF_DIRECTION[i][0][0];
+		right.data[0][1] = posIn->y - blockIn.y - POINTS_OF_DIRECTION[i][0][1];
+		right.data[0][2] = posIn->z - blockIn.z - POINTS_OF_DIRECTION[i][0][2];
 		result = left.LU().solve(right);
 		if( 0 <= result.data[0][0] && result.data[0][0] <= 1
 			&& 0 <= result.data[0][1] && result.data[0][1] <= 1
-			&& 0 < result.data[0][2]) {
-			*startX = 1-result[0][0];
-		*startY = 1-result[0][1];
-		*startZ = 1;
-		return 1;
-			}
-			
-			//Fläche 2 (Top)
-			left.data[1][1] = 0;
-			left.data[1][2] = 1;
-			right.data[0][1] = -*startY;
-			result = left.LU().solve(right);
-			if( 0 <= result.data[0][0] && result.data[0][0] <= 1
-				&& 0 <= result.data[0][1] && result.data[0][1] <= 1
-				&& 0 < result.data[0][2]){
-				*startX = 1-result[0][0];
-			*startY = 0;
-			*startZ = 1-result[0][1];
-			return 2;
-				}
-				
-				//Fläche 3 (Bottom)
-				right.data[0][1] = 1-*startY;
-				result = left.LU().solve(right);
-				if( 0 <= result.data[0][0] && result.data[0][0] <= 1
-					&& 0 <= result.data[0][1] && result.data[0][1] <= 1
-					&& 0 < result.data[0][2]){
-					*startX = 1-result[0][0];
-				*startY = 1;
-				*startZ = 1-result[0][1];
-				return 3;
-					}
-					
-					//Fläche 4 (Right)
-					left.data[0][0] = 0;
-					left.data[0][1] = 1;
-					right.data[0][0] = -*startX;
-					result = left.LU().solve(right);
-					if( 0 <= result.data[0][0] && result.data[0][0] <= 1
-						&& 0 <= result.data[0][1] && result.data[0][1] <= 1
-						&& 0 < result.data[0][2]){
-						*startX = 0;
-					*startY = 1-result[0][0];
-					*startZ = 1-result[0][1];
-					return 4;
-						}
-						
-						//Fläche 5 (Left)
-						right.data[0][0] = 1-*startX;
-						result = left.LU().solve(right);
-						if( 0 <= result.data[0][0] && result.data[0][0] <= 1
-							&& 0 <= result.data[0][1] && result.data[0][1] <= 1
-							&& 0 < result.data[0][2]){
-							*startX = 1;
-						*startY = 1-result[0][0];
-						*startZ = 1-result[0][1];
-						return 5;
-							}
-							
-							//Falls keine Austrittsebene gefunden wird Error
-							return -1;
-}+
+			&& 0 < result.data[0][2])
+		{
+			posIn->x = blockIn.x + POINTS_OF_DIRECTION[i][0][0]
+						+ result[0][0] * left.data[0][0]
+						+ result[0][1] * left.data[1][0];
+			posIn->y = blockIn.y + POINTS_OF_DIRECTION[i][0][1]
+						+ result[0][0] * left.data[0][1]
+						+ result[0][1] * left.data[1][1];
+			posIn->z = blockIn.z + POINTS_OF_DIRECTION[i][0][2]
+						+ result[0][0] * left.data[0][2]
+						+ result[0][1] * left.data[1][2];
+
+			return (DIRECTION)i;
+		}
+	}
+	return (DIRECTION)0;
+}
 
 
 void Movement::calcBuilding(){
@@ -508,6 +446,6 @@ void Movement::triggerNextFrame(){
 	calcDucking();
 	calcNewSpeed();
 	calcCollisionAndMove();
-	//calcPointingOn();
+	calcPointingOn();
 	//calcBuilding();
 }
