@@ -46,7 +46,7 @@ void Renderer::init()
 	glHint(GL_LINE_SMOOTH, GL_NICEST);
 	glEnable(GL_LINE_SMOOTH);
 
-/*
+
 	GLfloat LightAmbient[]  = { 0.5f, 0.5f, 0.5f, 1.0f };
 	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat LightPosition[] = { 0.5f, 1.0f, 5.0f, 1.0f };
@@ -64,7 +64,7 @@ void Renderer::init()
 	glFogf(GL_FOG_START, visualRange*fogStartFactor);
 	glFogf(GL_FOG_END, visualRange);
 	glEnable(GL_FOG);					// Enables GL_FOG
-*/
+
 
 
 	glGenTextures( NUMBER_OF_MATERIALS, texture );
@@ -295,8 +295,8 @@ void Renderer::render(PlayerPosition pos)
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
-		//glDisable(GL_LIGHT1);
-		//glDisable(GL_LIGHTING);
+		glDisable(GL_LIGHT1);
+		glDisable(GL_LIGHTING);
 		
 		glDisable(GL_DEPTH_TEST);
 		glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
@@ -316,7 +316,7 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 		glEnable(GL_DEPTH_TEST);
 		
 		glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
-		//glEnable(GL_LIGHT1);
-		//glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT1);
+		glEnable(GL_LIGHTING);
 }
 
