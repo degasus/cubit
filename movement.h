@@ -145,6 +145,7 @@ private:
 
 	//Building
 	int lastBuild;
+	void buildBlock();
 	
 	//Movement settings
 	float slowMovementSpeed;

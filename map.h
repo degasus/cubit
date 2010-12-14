@@ -110,6 +110,14 @@ struct BlockPosition {
 			z+DIRECTION_NEXT_BOX[dir][2]
  		);
 	}
+
+	inline bool operator== (const BlockPosition &position) {
+		return (position.x == x && position.y == y && position.z == z);
+	}
+
+	inline bool operator!= (const BlockPosition &position) {
+		return !(position.x == x && position.y == y && position.z == z);
+	}
 	
 	BlockPosition area() {
 		return create(x & ~(AREASIZE_X-1),y & ~(AREASIZE_Y-1),z & ~(AREASIZE_Z-1));

@@ -57,6 +57,9 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("texture05", po::value<string>()->default_value("bee.bmp"), "Black/Yellow")
 		("visualRange", po::value<float>()->default_value(10), "maximal distance for rendering")
  		("maxareas", po::value<int>()->default_value(100), "maximal count of areas for rendering")
+		("enableLight", po::value<bool>()->default_value(0), "enable Light")
+		("enableFog", po::value<bool>()->default_value(0), "enable Fog")
+		
 		("destroyArea", po::value<double>()->default_value(40*4*16), "distance for destroying areas")
 		("areasPerFrame", po::value<int>()->default_value(40), "set the maximal rendered areas per frame")
 		("storeMaps", po::value<bool>()->default_value(0), "should maps be saved and loaded from harddisk")

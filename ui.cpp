@@ -70,7 +70,7 @@ void UInterface::initWindow()
 	glLoadIdentity();					// Reset The Projection Matrix
 	
 	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, 1000.0f);
+	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.0001f, 1000.0f);
 	glScalef(-1,1,1);	
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
