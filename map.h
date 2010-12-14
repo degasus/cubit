@@ -226,6 +226,9 @@ public:
 			throw NotLoadedException();
 		
 		areas[pos.area()]->set(pos,m);
+		
+		for(int i=0; i<DIRECTION_COUNT; i++)
+			areas[(pos+(DIRECTION)i).area()]->needupdate = 1;
 	}
 
 	/**
