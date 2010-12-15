@@ -27,9 +27,11 @@ Movement::Movement(Controller* controller)
 	jumpPressed = false;
 	buildBlockPressed = false;
 	removeBlockPressed = false;
+	fastPressed = false;
 	moveFast = false;
 	isPointingOn = false;
 	lastBuild = 20;
+	stepProgress = 0;
 }
 
 void Movement::config(const boost::program_options::variables_map& c)
@@ -64,6 +66,9 @@ void Movement::performAction(ActionEvent event)
 			break;
 		case ActionEvent::RELEASE_FORWARD:
 			forwardPressed = false;
+			//Steps
+			stepProgress = 0;
+			personSize = personSizeNormal;
 			break;
 			
 		case ActionEvent::PRESS_BACKWARDS:
@@ -71,6 +76,9 @@ void Movement::performAction(ActionEvent event)
 			break;
 		case ActionEvent::RELEASE_BACKWARDS:
 			backwardsPressed = false;
+			//Steps
+			stepProgress = 0;
+			personSize = personSizeNormal;
 			break;
 			
 		case ActionEvent::PRESS_LEFT:
@@ -78,6 +86,9 @@ void Movement::performAction(ActionEvent event)
 			break;
 		case ActionEvent::RELEASE_LEFT:
 			leftPressed = false;
+			//Steps
+			stepProgress = 0;
+			personSize = personSizeNormal;
 			break;
 			
 		case ActionEvent::PRESS_RIGHT:
@@ -85,6 +96,9 @@ void Movement::performAction(ActionEvent event)
 			break;
 		case ActionEvent::RELEASE_RIGHT:
 			rightPressed = false;
+			//Steps
+			stepProgress = 0;
+			personSize = personSizeNormal;
 			break;
 			
 		case ActionEvent::PRESS_JUMP:
@@ -95,9 +109,11 @@ void Movement::performAction(ActionEvent event)
 			break;
 
 		case ActionEvent::PRESS_FAST_SPEED:
+			fastPressed = true;
 			movementSpeed *= fastSpeedMultiplier;
 			break;
 		case ActionEvent::RELEASE_FAST_SPEED:
+			fastPressed = false;
 			movementSpeed /= fastSpeedMultiplier;
 			break;
 			
@@ -287,6 +303,14 @@ void Movement::calcCollisionAndMove(){
 		std::cout << "feetBlock NotLoadedException" << std::endl;
 		notLoaded = true;
 	}
+	//Steps
+	stepProgress++;
+	if(stepProgress > 25){//FPS
+		stepProgress = 0;
+	}
+	personSize = personSizeNormal+abs(sin((M_PI/25)*(double)stepProgress));
+	std::cout << personSize << std::endl;
+	
 	//Z-Collision
 	//Jumping
 	if(feetBlock != 0 && jumpPressed){
@@ -458,11 +482,11 @@ DIRECTION Movement::calcPointingOnInBlock(PlayerPosition* posIn, BlockPosition b
 
 void Movement::calcBuilding(){
 	lastBuild++;
-	if(lastBuild >= 20 && isPointingOn && buildBlockPressed){
+	if((lastBuild >= 20 || fastPressed) && isPointingOn && buildBlockPressed){
 		buildBlock();
 		lastBuild = 0;
 	}
-	if(lastBuild >= 20 && isPointingOn && removeBlockPressed){
+	if((lastBuild >= 20 || fastPressed) && isPointingOn && removeBlockPressed){
 		removeBlock();
 		lastBuild = 0;
 	}

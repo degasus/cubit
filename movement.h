@@ -155,6 +155,9 @@ private:
 	float fastSpeedMultiplier;
 	double maxFallingSpeed;
 	double jumpSpeed;
+
+	//Steps
+	int stepProgress;
 	
 	Controller *c;
 	bool forwardPressed;
@@ -166,6 +169,7 @@ private:
 	bool buildBlockPressed;
 	bool removeBlockPressed;
 	bool moveFast;
+	bool fastPressed;
 
 	void calcBuilding();
 	void calcNewSpeed();
