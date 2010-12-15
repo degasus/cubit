@@ -54,7 +54,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("texture02", po::value<string>()->default_value("wood.bmp"), "Wood")
 		("texture03", po::value<string>()->default_value("bricks.bmp"), "Bricks")
 		("texture04", po::value<string>()->default_value("alu.bmp"), "Marble")
-		("texture05", po::value<string>()->default_value("bee.bmp"), "Black/Yellow")
+		("texture05", po::value<string>()->default_value("marble.bmp"), "Black/Yellow")
 		("visualRange", po::value<float>()->default_value(8), "maximal distance for rendering")
 		("enableLight", po::value<bool>()->default_value(0), "enable Light")
 		("enableFog", po::value<bool>()->default_value(0), "enable Fog")
