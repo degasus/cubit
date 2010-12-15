@@ -29,6 +29,7 @@ public:
 	void highlightBlockDirection(BlockPosition, DIRECTION);
 	
 	void config(const boost::program_options::variables_map &c);
+	GLuint texture[NUMBER_OF_MATERIALS];
 
 private:
 	
@@ -41,7 +42,6 @@ private:
 	bool enableLight;
 	bool enableFog;
 	
-	GLuint texture[NUMBER_OF_MATERIALS];
 	std::string Texture_Files[NUMBER_OF_MATERIALS];
 	
 	//fog

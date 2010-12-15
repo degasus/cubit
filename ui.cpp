@@ -8,6 +8,7 @@ UInterface::UInterface(Controller *controller)
 	c = controller;
 	done = 0;
 	catchMouse = 1;
+	cubeTurn = 0.0;
 }
 
 void UInterface::init()
@@ -240,6 +241,7 @@ void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 	if(catchMouse) {
 		ActionEvent ae;
 		ae.name = ActionEvent::NONE;
+		Material nextMat = 0;
 		
 		switch(e.button){
 			case SDL_BUTTON_RIGHT:
@@ -247,6 +249,24 @@ void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 				break;
 			case SDL_BUTTON_LEFT:
 				ae.name = ActionEvent::RELEASE_REMOVE_BLOCK;
+				break;
+			case SDL_BUTTON_WHEELUP:
+				ae.name = ActionEvent::SELECT_MATERIAL;
+				nextMat = c->movement.getSelectedMaterial();
+				if(nextMat >= NUMBER_OF_MATERIALS-1)
+					nextMat = 1;
+				else
+					nextMat++;
+				ae.iValue = nextMat;
+				break;
+			case SDL_BUTTON_WHEELDOWN:
+				ae.name = ActionEvent::SELECT_MATERIAL;
+				nextMat = c->movement.getSelectedMaterial();
+				if(nextMat <= 1)
+					nextMat = NUMBER_OF_MATERIALS-1;
+				else
+					nextMat--;
+				ae.iValue = nextMat;
 				break;
 		}
 		
@@ -276,10 +296,10 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 
 void UInterface::drawHUD() {
 	glLoadIdentity();
+	glClear(GL_DEPTH_BUFFER_BIT);
 	glScalef(-1,1,1);	
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
-	glDisable(GL_DEPTH_TEST);
 
 	glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
@@ -304,7 +324,33 @@ void UInterface::drawHUD() {
 	glEnd();
 
 	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
+
+	glBindTexture( GL_TEXTURE_2D, c->renderer.texture[c->movement.getSelectedMaterial()] );
+	glTranslatef(6.0f,-7.2f,-3.7f);
+	cubeTurn++;
+	if(cubeTurn > 360)
+		cubeTurn -= 360;
+	glRotatef(cubeTurn, 0.0, 0.0, 1.0);
+	glRotatef(35.2644, 0.0, 1.0, 0.0);
+	glRotatef(45, 1.0, 0.0, 0.0);
+	glTranslatef(-0.5, -0.5, -0.5);
+	
+	glBegin(GL_QUADS);
+		for(int dir=0; dir < DIRECTION_COUNT; dir++) {
+			glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer
+			for(int point=0; point < POINTS_PER_POLYGON; point++) {
+				glTexCoord2f(
+					TEXTUR_POSITION_OF_DIRECTION[dir][point][0],
+					TEXTUR_POSITION_OF_DIRECTION[dir][point][1]
+				);
+				glVertex3f(
+					POINTS_OF_DIRECTION[dir][point][0],
+							POINTS_OF_DIRECTION[dir][point][1],
+							POINTS_OF_DIRECTION[dir][point][2]
+				);
+			}
+		}
+	glEnd();
 
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 }

@@ -48,6 +48,7 @@ struct PlayerPosition{
 
 struct ActionEvent {
 	double value;
+	int iValue;
 	
 	enum type {
 		//DUMMY
@@ -82,6 +83,9 @@ struct ActionEvent {
 		
 		//turning around
 		ROTATE_HORIZONTAL, ROTATE_VERTICAL,
+
+		//Select a Material
+		SELECT_MATERIAL,
 	} name;
 };
 
@@ -108,12 +112,16 @@ public:
 	PlayerPosition getPosition();
 	void setPosition(PlayerPosition pos);
 
+	//Selected Material
+	Material getSelectedMaterial();
+
 	//Get block and plane the user is pointing on
 	bool getPointingOn(BlockPosition* block, DIRECTION* plane);
 
 private:
-	//current position
+	//player stats
 	PlayerPosition position;
+	Material selectedMaterial;
 
 	//offsets for collision detection
 	double offset;

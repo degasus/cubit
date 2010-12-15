@@ -32,6 +32,7 @@ Movement::Movement(Controller* controller)
 	isPointingOn = false;
 	lastBuild = 20;
 	stepProgress = 0;
+	selectedMaterial = 1;
 }
 
 void Movement::config(const boost::program_options::variables_map& c)
@@ -164,6 +165,8 @@ void Movement::performAction(ActionEvent event)
 			if(position.orientationVertical < -90)
 				position.orientationVertical = -90;
 			break;
+		case ActionEvent::SELECT_MATERIAL:
+			selectedMaterial = Material(event.iValue);
 		default:
 			break;
 	}
@@ -175,6 +178,10 @@ PlayerPosition Movement::getPosition(){
 
 void Movement::setPosition(PlayerPosition pos){
 	position = pos;
+}
+
+Material Movement::getSelectedMaterial(){
+	return selectedMaterial;
 }
 
 bool Movement::getPointingOn(BlockPosition* block, DIRECTION* plane){
@@ -502,7 +509,7 @@ void Movement::buildBlock()
 {
 	if(pointingOnBlock != position.block() && pointingOnBlock != position.block()+DIRECTION_DOWN){
 		try{
-			c->map.setBlock(pointingOnBlock, (rand()%(NUMBER_OF_MATERIALS-1))+1);
+			c->map.setBlock(pointingOnBlock, selectedMaterial);
 		}
 		catch(NotLoadedException e){
 			std::cout << "NotLoadedException buildBlock" << std::endl;
