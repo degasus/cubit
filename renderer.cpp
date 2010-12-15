@@ -278,9 +278,9 @@ void Renderer::render(PlayerPosition pos)
 	} catch (NotLoadedException e) {}
 
 	
-	for(int r=1; r<visualRange && i<maxareas; r+=1)
-	for(int side=0; side<4 && i<maxareas; side++)
-	for(int position=0; position<r*2 && i<maxareas; position+=1) {
+	for(int r=1; r<visualRange; r+=1)
+	for(int side=0; side<4; side++)
+	for(int position=0; position<r*2; position+=1) {
 		int x,y,z;
 		
 		switch(side) {
@@ -303,8 +303,8 @@ void Renderer::render(PlayerPosition pos)
 		
 		try {
 			Area *area = c->map.getArea(BlockPosition::create(x,y,z));
-
-			renderArea(area);
+			if(i < maxareas)
+				renderArea(area);
 
 			i++;
 		} catch (NotLoadedException e) {}
