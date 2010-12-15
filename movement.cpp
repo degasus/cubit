@@ -275,6 +275,7 @@ void Movement::calcCollisionAndMove(){
 
 	int posBlock = 0;
 	int feetBlock = 1;
+	bool notLoaded = false;
 	PlayerPosition feetPos = position;
 	feetPos.z -= personSize;
 	try{
@@ -284,6 +285,7 @@ void Movement::calcCollisionAndMove(){
 	catch(NotLoadedException e){
 		std::cout << "posBlock NotLoadedException" << std::endl;
 		std::cout << "feetBlock NotLoadedException" << std::endl;
+		notLoaded = true;
 	}
 	//Z-Collision
 	//Jumping
@@ -365,6 +367,9 @@ void Movement::calcCollisionAndMove(){
 		if(moveNot != 0)
 			position.y = oldPos.y;
 	}
+
+	if(notLoaded)
+		position = oldPos;
 }
 
 void Movement::calcPointingOn(){
