@@ -66,17 +66,17 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 	
 		("offset", po::value<double>()->default_value(0.3), "offset for horizontal collision detection")
 		("offsetAbove", po::value<double>()->default_value(0.1f), "offset above person for vertical collision detection")
-		("accelHorizontal", po::value<double>()->default_value(0.04f), "accelleration in horizontal diretion")
-		("accelVertical", po::value<double>()->default_value(0.02f), "accelleration in vertical diretion")
+		("accelHorizontal", po::value<double>()->default_value(0.04), "accelleration in horizontal diretion")
+		("accelVertical", po::value<double>()->default_value(0.016), "accelleration in vertical diretion")
 		("personSizeNormal", po::value<double>()->default_value(1.5), "normal size of person (should be between 1.01 and 1.99)")
 		("personSizeDucked", po::value<double>()->default_value(1.2), "ducked size of person (should be between 1.01 and 1.99 && < personSizeNormal)")
 		("pointingDistance", po::value<int>()->default_value(4), "range to build and remove blocks")
-		("slowMovementSpeed", po::value<double>()->default_value(0.03f), "speed when moving slowly")
-		("normalMovementSpeed", po::value<double>()->default_value(0.2f), "speed when moving normally")
-		("fastSpeedMultiplier", po::value<double>()->default_value(5.72341f), "speed multiplier when moving fast")
+		("slowMovementSpeed", po::value<double>()->default_value(0.05), "speed when moving slowly")
+		("normalMovementSpeed", po::value<double>()->default_value(0.1), "speed when moving normally")
+		("fastSpeedMultiplier", po::value<double>()->default_value(5.72341), "speed multiplier when moving fast")
 		("maxFallingSpeed", po::value<double>()->default_value(-0.99), "fastest reachable speed on falling")
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning")
-		("jumpSpeed", po::value<double>()->default_value(0.24), "initial speed when jumping")
+		("jumpSpeed", po::value<double>()->default_value(0.187), "initial speed when jumping")
 		
 		("mapDirectory", po::value<string>()->default_value("../maps"), "Folder for saving areas")
 		

@@ -232,13 +232,18 @@ void Movement::calcNewSpeed()
 	}
 
 	int feetBlock = 1;
+	int aboveHeadBlock = 1;
 	PlayerPosition feetPos = position;
+	PlayerPosition aboveHeadPos = position;
+	aboveHeadPos.z += offsetAbove;
 	feetPos.z -= personSize;
 	try{
 		feetBlock = c->map.getBlock(feetPos.block());
+		aboveHeadBlock = c->map.getBlock(aboveHeadPos.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "blockFeet NotLoadedException" << std::endl;
+		std::cout << "aboveHeadBlock NotLoadedException" << std::endl;
 	}
 	//Luft unten drunter -> fallen (inkl. Collision Detection on bottom)
 	if(feetBlock == 0){
@@ -250,6 +255,9 @@ void Movement::calcNewSpeed()
 	else if(speedUp < 0){
 		speedUp = 0;
 	}
+	//Collision above
+	if(aboveHeadBlock != 0 && speedUp > 0.0)
+		speedUp = 0.0;
 }
 
 void Movement::calcCollisionAndMove(){
@@ -277,7 +285,6 @@ void Movement::calcCollisionAndMove(){
 		std::cout << "posBlock NotLoadedException" << std::endl;
 		std::cout << "feetBlock NotLoadedException" << std::endl;
 	}
-
 	//Z-Collision
 	//Jumping
 	if(feetBlock != 0 && jumpPressed){
