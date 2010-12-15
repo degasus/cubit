@@ -67,8 +67,8 @@ void Renderer::init()
 	glFogfv(GL_FOG_COLOR, bgColor);	// Set Fog Color
 	glFogf(GL_FOG_DENSITY, fogDense);	// How Dense Will The Fog Be
 	glHint(GL_FOG_HINT, GL_DONT_CARE);	// Fog Hint Value
-	glFogf(GL_FOG_START, visualRange*fogStartFactor*AREASIZE_X/5.);
-	glFogf(GL_FOG_END, visualRange*AREASIZE_X/5.);
+	glFogf(GL_FOG_START, (visualRange-2)*fogStartFactor*AREASIZE_X);
+	glFogf(GL_FOG_END, (visualRange-2)*AREASIZE_X);
 	if(enableFog)
 		glEnable(GL_FOG);					// Enables GL_FOG
 
@@ -264,7 +264,6 @@ void Renderer::render(PlayerPosition pos)
 
 		renderArea(area);
 
-		i++;
 	}
 		
 	// zentrales gebiet unter sich selber
