@@ -282,6 +282,8 @@ private:
 	double destroyArea;
     std::string mapDirectory;
 	bool storeMaps;
+	int areasPerFrameLoading;
+	int areasPerFrameLoadingFree;
 };
 
 
