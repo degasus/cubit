@@ -14,6 +14,7 @@
 Map::Map(Controller *controller) {
 	c = controller;
 	lastarea = 0;
+	areasPerFrameLoadingFree = 0;
 }
 
 Map::~Map()
@@ -33,6 +34,7 @@ void Map::config(const boost::program_options::variables_map& c)
 	destroyArea = c["visualRange"].as<float>()*c["destroyAreaFaktor"].as<double>()*2*16;
 	mapDirectory = c["mapDirectory"].as<std::string>();
 	storeMaps = c["storeMaps"].as<bool>();
+	areasPerFrameLoading = c["areasPerFrameLoading"].as<int>();
 }
 
 void Map::init()
@@ -64,19 +66,28 @@ void randomArea(int schieben, Area* a) {
 	}
 }
 
-int areasPerFrameFromHarddisk = 1;
-
 Area* Map::getArea(BlockPosition pos)
 {
 	if(areas.find(pos.area()) != areas.end()) {
 		assert(areas[pos.area()]);
 		return areas[pos.area()];
 	} else {
-		if(areasPerFrameFromHarddisk>0) {
-			areasPerFrameFromHarddisk--;
+		if(areasPerFrameLoadingFree>0) {
+			areasPerFrameLoadingFree--;
 			
 			Area *a = new Area(pos.area());
 			areas[pos.area()] = a;
+			
+			for(int i=0; i<DIRECTION_COUNT; i++) {
+				BlockPosition pos2 = pos.area();
+				pos2.x += AREASIZE_X*DIRECTION_NEXT_BOX[i][0];
+				pos2.y += AREASIZE_Y*DIRECTION_NEXT_BOX[i][1];
+				pos2.z += AREASIZE_Z*DIRECTION_NEXT_BOX[i][2];
+				
+				if(areas.find(pos2) != areas.end()) {
+					areas[pos2]->needupdate = 1;
+				}
+			}
 
 			if(!storeMaps || !load(a))
 				randomArea(pos.area().z, a);
@@ -90,7 +101,7 @@ Area* Map::getArea(BlockPosition pos)
 
 void Map::setPosition(PlayerPosition pos)
 {
-	areasPerFrameFromHarddisk = 1;
+	areasPerFrameLoadingFree = areasPerFrameLoading;
 	std::map< BlockPosition, Area* >::iterator it, it_save;
 	
 	for(it = areas.begin(); it != areas.end(); it++) {
@@ -155,6 +166,7 @@ Area::Area(BlockPosition p)
 {
 	pos = p;
 	gllist_generated = 0;
+	needupdate = 1;
 }
 
 Area::~Area()

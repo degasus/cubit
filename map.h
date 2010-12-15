@@ -235,8 +235,10 @@ public:
 		
 		areas[pos.area()]->set(pos,m);
 		
-		for(int i=0; i<DIRECTION_COUNT; i++)
-			areas[(pos+(DIRECTION)i).area()]->needupdate = 1;
+		for(int i=0; i<DIRECTION_COUNT; i++) {
+			if(areas.find((pos+(DIRECTION)i).area()) != areas.end())
+				areas[(pos+(DIRECTION)i).area()]->needupdate = 1;
+		}
 	}
 
 	/**
@@ -282,6 +284,8 @@ private:
 	double destroyArea;
     std::string mapDirectory;
 	bool storeMaps;
+	int areasPerFrameLoading;
+	int areasPerFrameLoadingFree;
 };
 
 
