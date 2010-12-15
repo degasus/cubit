@@ -70,7 +70,7 @@ void UInterface::initWindow()
 	glLoadIdentity();					// Reset The Projection Matrix
 	
 	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.0001f, 1000.0f);
+	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, 1000.0f);
 	
 	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 	glLoadIdentity();					// Reset The Projection Matrix
@@ -214,10 +214,10 @@ void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
 	ae.name = ActionEvent::NONE;
 	
 	switch(e.button){
-		case SDL_BUTTON_LEFT:
+		case SDL_BUTTON_RIGHT:
 			ae.name = ActionEvent::PRESS_BUILD_BLOCK;
 			break;
-		case SDL_BUTTON_RIGHT:
+		case SDL_BUTTON_LEFT:
 			ae.name = ActionEvent::PRESS_REMOVE_BLOCK;
 			break;
 	}
@@ -232,10 +232,10 @@ void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 	ae.name = ActionEvent::NONE;
 	
 	switch(e.button){
-		case SDL_BUTTON_LEFT:
+		case SDL_BUTTON_RIGHT:
 			ae.name = ActionEvent::RELEASE_BUILD_BLOCK;
 			break;
-		case SDL_BUTTON_RIGHT:
+		case SDL_BUTTON_LEFT:
 			ae.name = ActionEvent::RELEASE_REMOVE_BLOCK;
 			break;
 	}
