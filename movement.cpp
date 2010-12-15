@@ -304,12 +304,18 @@ void Movement::calcCollisionAndMove(){
 		notLoaded = true;
 	}
 	//Steps
-	stepProgress++;
-	if(stepProgress > 25){//FPS
-		stepProgress = 0;
+	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && feetBlock != 0){
+		stepProgress++;
+		if(stepProgress > 10){//FPS*2
+			stepProgress = 0;
+		}
+		double sizeChange = fabs(sin((M_PI/10)*stepProgress)*0.04);
+		double oldSize = personSize;
+		personSize = personSizeNormal+sizeChange;
+		position.z += personSize-oldSize;
 	}
-	personSize = personSizeNormal+abs(sin((M_PI/25)*(double)stepProgress));
-	std::cout << personSize << std::endl;
+	else
+		personSize = personSizeNormal;
 	
 	//Z-Collision
 	//Jumping
