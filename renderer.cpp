@@ -164,8 +164,12 @@ void Renderer::renderArea(Area* area)
 							else if(areas[dir] && (*areas[dir]) << next)
 								next_m = areas[dir]->get(next);
 							else {
-								areas[dir] = c->map.getArea(next);
-								next_m = areas[dir]->get(next);
+								try {
+									areas[dir] = c->map.getArea(next);
+									next_m = areas[dir]->get(next);
+								} catch(NotLoadedException e) {
+										next_m = 1;
+								}
 							}
 
 							if(!next_m) {
@@ -259,19 +263,20 @@ void Renderer::render(PlayerPosition pos)
 	for(int y = areapos.y-2*AREASIZE_Y; y < areapos.y+2*AREASIZE_Y; y+= AREASIZE_Y)
 	for(int z = areapos.z-2*AREASIZE_Z; z < areapos.z+2*AREASIZE_Z; z+= AREASIZE_Z) {
 		if(z == 0) continue;
-		
-		Area *area = c->map.getArea(BlockPosition::create(x,y,z));
-
-		renderArea(area);
-
+		try {
+			Area *area = c->map.getArea(BlockPosition::create(x,y,z));
+			renderArea(area);
+		} catch (NotLoadedException e) {}
 	}
 		
 	// zentrales gebiet unter sich selber
-	Area *area = c->map.getArea(areapos);
 	areapos.z = 0;
-	area = c->map.getArea(areapos);
-	renderArea(area);
-	i++;
+	try {
+		Area *area = c->map.getArea(areapos);
+		renderArea(area);
+		i++;
+	} catch (NotLoadedException e) {}
+
 	
 	for(int r=1; r<visualRange && i<maxareas; r+=1)
 	for(int side=0; side<4 && i<maxareas; side++)
@@ -296,12 +301,13 @@ void Renderer::render(PlayerPosition pos)
 		
 		if(!areaInViewport(BlockPosition::create(x,y,z), pos)) continue;
 		
-		
-		Area *area = c->map.getArea(BlockPosition::create(x,y,z));
+		try {
+			Area *area = c->map.getArea(BlockPosition::create(x,y,z));
 
-		renderArea(area);
+			renderArea(area);
 
-		i++;
+			i++;
+		} catch (NotLoadedException e) {}
 	}	
 }
 

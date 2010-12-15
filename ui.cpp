@@ -63,6 +63,8 @@ void UInterface::initWindow()
 	if(catchMouse) {
 		SDL_ShowCursor(SDL_DISABLE);
 		SDL_WarpMouse(screenX/2, screenY/2);
+	} else {
+		SDL_ShowCursor(SDL_ENABLE);
 	}
 	
 	glViewport(0, 0, screenX, screenY);	// Reset The Current Viewport
@@ -141,6 +143,11 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	}
 	if(code == k_catchMouse){
 		catchMouse = !catchMouse;
+		if(catchMouse) {
+			SDL_ShowCursor(SDL_DISABLE);
+		} else {
+			SDL_ShowCursor(SDL_ENABLE);
+		}
 	}
 	if(code == k_jump){
 		ae.name = ActionEvent::PRESS_JUMP;
@@ -210,38 +217,42 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
 {
-	ActionEvent ae;
-	ae.name = ActionEvent::NONE;
-	
-	switch(e.button){
-		case SDL_BUTTON_RIGHT:
-			ae.name = ActionEvent::PRESS_BUILD_BLOCK;
-			break;
-		case SDL_BUTTON_LEFT:
-			ae.name = ActionEvent::PRESS_REMOVE_BLOCK;
-			break;
-	}
+	if(catchMouse) {
+		ActionEvent ae;
+		ae.name = ActionEvent::NONE;
+		
+		switch(e.button){
+			case SDL_BUTTON_RIGHT:
+				ae.name = ActionEvent::PRESS_BUILD_BLOCK;
+				break;
+			case SDL_BUTTON_LEFT:
+				ae.name = ActionEvent::PRESS_REMOVE_BLOCK;
+				break;
+		}
 
-	if(ae.name != ActionEvent::NONE)
-		c->movement.performAction(ae);
+		if(ae.name != ActionEvent::NONE)
+			c->movement.performAction(ae);
+	}
 }
 
 void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 {
-	ActionEvent ae;
-	ae.name = ActionEvent::NONE;
-	
-	switch(e.button){
-		case SDL_BUTTON_RIGHT:
-			ae.name = ActionEvent::RELEASE_BUILD_BLOCK;
-			break;
-		case SDL_BUTTON_LEFT:
-			ae.name = ActionEvent::RELEASE_REMOVE_BLOCK;
-			break;
+	if(catchMouse) {
+		ActionEvent ae;
+		ae.name = ActionEvent::NONE;
+		
+		switch(e.button){
+			case SDL_BUTTON_RIGHT:
+				ae.name = ActionEvent::RELEASE_BUILD_BLOCK;
+				break;
+			case SDL_BUTTON_LEFT:
+				ae.name = ActionEvent::RELEASE_REMOVE_BLOCK;
+				break;
+		}
+		
+		if(ae.name != ActionEvent::NONE)
+			c->movement.performAction(ae);
 	}
-	
-	if(ae.name != ActionEvent::NONE)
-		c->movement.performAction(ae);
 }
 
 void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)

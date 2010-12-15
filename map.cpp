@@ -63,19 +63,34 @@ void randomArea(int schieben, Area* a) {
 
 	}
 }
+
+int areasPerFrameFromHarddisk = 1;
+
 Area* Map::getArea(BlockPosition pos)
 {
-	Area **a = &areas[pos.area()];
-	if(!(*a)) {
-		(*a) = new Area(pos.area());
-		if(!storeMaps || !load(*a))
-			randomArea(pos.area().z, (*a));	
+	if(areas.find(pos.area()) != areas.end()) {
+		assert(areas[pos.area()]);
+		return areas[pos.area()];
+	} else {
+		if(areasPerFrameFromHarddisk>0) {
+			areasPerFrameFromHarddisk--;
+			
+			Area *a = new Area(pos.area());
+			areas[pos.area()] = a;
+
+			if(!storeMaps || !load(a))
+				randomArea(pos.area().z, a);
+			return a;
+		}
+		else {
+			throw NotLoadedException();
+		}
 	}
-	return (*a);
 }
 
 void Map::setPosition(PlayerPosition pos)
 {
+	areasPerFrameFromHarddisk = 1;
 	std::map< BlockPosition, Area* >::iterator it, it_save;
 	
 	for(it = areas.begin(); it != areas.end(); it++) {
