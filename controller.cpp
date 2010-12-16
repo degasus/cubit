@@ -59,7 +59,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("enableLight", po::value<bool>()->default_value(1), "enable Light")
 		("enableFog", po::value<bool>()->default_value(1), "enable Fog")
 		("areasPerFrame", po::value<int>()->default_value(10), "set the maximal rendered areas per frame")
-		("areasPerFrameLoading", po::value<int>()->default_value(30), "set the maximal from hard disk loaded areas per frame")
+		("areasPerFrameLoading", po::value<int>()->default_value(15), "set the maximal from hard disk loaded areas per frame")
 		
 		("destroyAreaFaktor", po::value<double>()->default_value(2), "distance for destroying areas")
 

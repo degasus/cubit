@@ -311,7 +311,7 @@ void Movement::calcCollisionAndMove(){
 		notLoaded = true;
 	}
 	//Steps
-	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && feetBlock != 0){
+	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && feetBlock != 0 && !duckPressed){
 		stepProgress++;
 		if(stepProgress > 10){//FPS*2
 			stepProgress = 0;
@@ -321,7 +321,7 @@ void Movement::calcCollisionAndMove(){
 		personSize = personSizeNormal+sizeChange;
 		position.z += personSize-oldSize;
 	}
-	else
+	else if(!duckPressed)
 		personSize = personSizeNormal;
 	
 	//Z-Collision

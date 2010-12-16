@@ -297,7 +297,7 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 void UInterface::drawHUD() {
 	glLoadIdentity();
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glScalef(-1,1,1);	
+	glScalef(-1,1,1);
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
 
@@ -325,32 +325,59 @@ void UInterface::drawHUD() {
 
 	glDisable(GL_BLEND);
 
-	glBindTexture( GL_TEXTURE_2D, c->renderer.texture[c->movement.getSelectedMaterial()] );
-	glTranslatef(6.0f,-7.2f,-3.7f);
-	cubeTurn++;
+	glColor4f(0.1f, 0.1f, 0.1f, 0.0f);
+
+	//glTranslatef(6.0f,-7.2f,-3.7f);
+	cubeTurn += 2;
 	if(cubeTurn > 360)
 		cubeTurn -= 360;
-	glRotatef(cubeTurn, 0.0, 0.0, 1.0);
+	/*glRotatef(cubeTurn, 0.0, 0.0, 1.0);
 	glRotatef(35.2644, 0.0, 1.0, 0.0);
 	glRotatef(45, 1.0, 0.0, 0.0);
-	glTranslatef(-0.5, -0.5, -0.5);
-	
-	glBegin(GL_QUADS);
-		for(int dir=0; dir < DIRECTION_COUNT; dir++) {
-			glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer
-			for(int point=0; point < POINTS_PER_POLYGON; point++) {
-				glTexCoord2f(
-					TEXTUR_POSITION_OF_DIRECTION[dir][point][0],
-					TEXTUR_POSITION_OF_DIRECTION[dir][point][1]
-				);
-				glVertex3f(
-					POINTS_OF_DIRECTION[dir][point][0],
-							POINTS_OF_DIRECTION[dir][point][1],
-							POINTS_OF_DIRECTION[dir][point][2]
-				);
-			}
-		}
-	glEnd();
+	glTranslatef(-0.5, -0.5, -0.5);*/
 
+	for(int mat = 1; mat < NUMBER_OF_MATERIALS; mat++){
+		glLoadIdentity();
+		glScalef(-1,1,1);
+		glRotatef(90.0,0.0f,0.0f,1.0f);
+		glRotatef(90.0,0.0f,1.0f,0.0f);
+		
+		glTranslatef(24.0f,-14.4f+(mat-1)*2.0,-9.0f);
+		glRotatef(cubeTurn, 0.0, 0.0, 1.0);
+		glRotatef(35.2644, 0.0, 1.0, 0.0);
+		glRotatef(45, 1.0, 0.0, 0.0);
+		glTranslatef(-1.0, -1.0, 0.0);
+		
+		glBindTexture( GL_TEXTURE_2D, c->renderer.texture[mat] );
+		//glBindTexture( GL_TEXTURE_2D, c->renderer.texture[c->movement.getSelectedMaterial()] );
+		if(c->movement.getSelectedMaterial() == mat){
+			glEnable(GL_LIGHT1);
+			glEnable(GL_LIGHTING);
+		}
+		else{
+			glDisable(GL_LIGHT1);
+			glDisable(GL_LIGHTING);
+		}
+		glTranslatef(0.0, 1.2, 0.0);
+		glBegin(GL_QUADS);
+			for(int dir=0; dir < DIRECTION_COUNT; dir++) {
+				glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer
+				for(int point=0; point < POINTS_PER_POLYGON; point++) {
+					glTexCoord2f(
+						TEXTUR_POSITION_OF_DIRECTION[dir][point][0],
+						TEXTUR_POSITION_OF_DIRECTION[dir][point][1]
+					);
+					glVertex3f(
+						POINTS_OF_DIRECTION[dir][point][0],
+								POINTS_OF_DIRECTION[dir][point][1],
+								POINTS_OF_DIRECTION[dir][point][2]
+					);
+				}
+			}
+		glEnd();
+	}
+
+	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHTING);
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 }
