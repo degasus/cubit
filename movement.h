@@ -84,6 +84,9 @@ struct ActionEvent {
 		//turning around
 		ROTATE_HORIZONTAL, ROTATE_VERTICAL,
 
+		//flying
+		PRESS_FLY, RELEASE_FLY,
+
 		//Select a Material
 		SELECT_MATERIAL,
 	} name;
@@ -139,6 +142,7 @@ private:
 	//Acceleration to set on movment
 	float accelHorizontal;
 	float accelVertical;
+	double normalAccelVertical;
 
 	//Size of person
 	float personSize;
@@ -163,6 +167,7 @@ private:
 	float fastSpeedMultiplier;
 	double maxFallingSpeed;
 	double jumpSpeed;
+	bool enableFly;
 
 	//Steps
 	int stepProgress;

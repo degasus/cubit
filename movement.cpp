@@ -16,7 +16,7 @@ Movement::Movement(Controller* controller)
 	speedUp = 0.0f;
 	position.x = 0.01;
 	position.y = 0.01;
-	position.z = 10.0;
+	position.z = 9.7;
 	position.orientationHorizontal = 0.0;
 	position.orientationVertical = 0.0;
 	forwardPressed = false;
@@ -30,6 +30,7 @@ Movement::Movement(Controller* controller)
 	fastPressed = false;
 	moveFast = false;
 	isPointingOn = false;
+	enableFly = false;
 	lastBuild = 20;
 	stepProgress = 0;
 	selectedMaterial = 1;
@@ -40,7 +41,7 @@ void Movement::config(const boost::program_options::variables_map& c)
 	offset				= c["offset"].as<double>();
 	offsetAbove			= c["offsetAbove"].as<double>();
 	accelHorizontal		= c["accelHorizontal"].as<double>();
-	accelVertical		= c["accelVertical"].as<double>();
+	normalAccelVertical	= c["accelVertical"].as<double>();
 	personSizeNormal	= c["personSizeNormal"].as<double>();
 	personSizeDucked	= c["personSizeDucked"].as<double>();
 	pointingDistance	= c["pointingDistance"].as<int>();
@@ -50,8 +51,9 @@ void Movement::config(const boost::program_options::variables_map& c)
 	maxFallingSpeed		= c["maxFallingSpeed"].as<double>();
 	jumpSpeed			= c["jumpSpeed"].as<double>();
 
-	movementSpeed = normalMovementSpeed;
-	personSize = personSizeNormal;
+	accelVertical	= normalAccelVertical;
+	movementSpeed 	= normalMovementSpeed;
+	personSize 		= personSizeNormal;
 }
 
 void Movement::init()
@@ -165,8 +167,19 @@ void Movement::performAction(ActionEvent event)
 			if(position.orientationVertical < -90)
 				position.orientationVertical = -90;
 			break;
+		case ActionEvent::PRESS_FLY:
+			if(enableFly){
+				enableFly = false;
+				accelVertical = normalAccelVertical;
+			}
+			else{
+				enableFly = true;
+				accelVertical = 0.0;
+			}
+			break;
 		case ActionEvent::SELECT_MATERIAL:
 			selectedMaterial = Material(event.iValue);
+			break;
 		default:
 			break;
 	}
@@ -269,14 +282,29 @@ void Movement::calcNewSpeed()
 		std::cout << "aboveHeadBlock NotLoadedException" << std::endl;
 	}
 	//Luft unten drunter -> fallen (inkl. Collision Detection on bottom)
-	if(feetBlock == 0){
-		if(speedUp >= maxFallingSpeed)
-			speedUp -= accelVertical;
-		else
-			speedUp = maxFallingSpeed;
+	if(!enableFly){
+		if(feetBlock == 0){
+			if(speedUp >= maxFallingSpeed)
+				speedUp -= accelVertical;
+			else
+				speedUp = maxFallingSpeed;
+		}
+		else if(speedUp < 0){
+			speedUp = 0;
+		}
 	}
-	else if(speedUp < 0){
-		speedUp = 0;
+	//Flying
+	else{
+		if((forwardPressed || backwardsPressed ) && speedUp <= movementSpeed){
+			speedUp += accelHorizontal;
+			if(speedUp > movementSpeed)
+				speedUp = movementSpeed;
+		}
+		else{
+			speedUp -= accelHorizontal;
+			if(speedUp < 0)
+				speedUp = 0.0;
+		}
 	}
 	//Collision above
 	if(aboveHeadBlock != 0 && speedUp > 0.0)
@@ -287,14 +315,31 @@ void Movement::calcCollisionAndMove(){
 	PlayerPosition oldPos = position;
 
 	//Horizontal Movement
-	//Forward/Back
-	position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360);
-	position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360);
-	//Right/Left
-	position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360);
-	position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360);
+	if(!enableFly){
+		//Forward/Back
+		position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360);
+		position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360);
+		//Right/Left
+		position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360);
+		position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360);
+	}
+	else{
+		//Forward/Back
+		position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
+		position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
+		//Right/Left
+		position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
+		position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
+	}
 	//Z-Movement Up/Down
-	position.z += speedUp;
+	if(!enableFly)
+		position.z += speedUp;
+	else{
+		if(forwardPressed)
+			position.z += speedUp*sin(2*M_PI*position.orientationVertical/360);
+		if(backwardsPressed)
+			position.z -= speedUp*sin(2*M_PI*position.orientationVertical/360);
+	}
 
 	int posBlock = 0;
 	int feetBlock = 1;

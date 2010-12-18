@@ -8,7 +8,8 @@ UInterface::UInterface(Controller *controller)
 	c = controller;
 	done = 0;
 	catchMouse = 1;
-	cubeTurn = 0.0;
+	for(int i = 0; i < NUMBER_OF_MATERIALS; i++)
+		cubeTurn[i] = 120.0/NUMBER_OF_MATERIALS;
 }
 
 void UInterface::init()
@@ -27,6 +28,7 @@ void UInterface::init()
 void UInterface::config(const boost::program_options::variables_map &c)
 {
 	noFullX 		= c["noFullX"].as<int>();
+	
 	noFullY 		= c["noFullY"].as<int>();
 	isFullscreen 	= c["fullscreen"].as<bool>();
 
@@ -38,6 +40,7 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	k_catchMouse	= c["k_catchMouse"].as<int>();
 	k_jump			= c["k_jump"].as<int>();
 	k_duck			= c["k_duck"].as<int>();
+	k_fly			= c["k_fly"].as<int>();
 	k_quit			= c["k_quit"].as<int>();
 
 	turningSpeed	= c["turningSpeed"].as<double>();
@@ -122,11 +125,13 @@ void UInterface::run()
 }
 
 void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
-{
+{	
 	ActionEvent ae;
 	ae.name = ActionEvent::NONE;
 
 	int code = (int)e.keysym.sym;
+	std::cout << "KeyPressed: " << code << std::endl;
+	
 	if(code == k_forward){
 		ae.name = ActionEvent::PRESS_FORWARD;
 	}
@@ -155,6 +160,9 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	}
 	if(code == k_duck){
 		ae.name = ActionEvent::PRESS_DUCK;
+	}
+	if(code == k_fly){
+		ae.name = ActionEvent::PRESS_FLY;
 	}
 	if(code == k_quit){
 		done = 1;
@@ -328,9 +336,9 @@ void UInterface::drawHUD() {
 	glColor4f(0.1f, 0.1f, 0.1f, 0.0f);
 
 	//glTranslatef(6.0f,-7.2f,-3.7f);
-	cubeTurn += 2;
-	if(cubeTurn > 360)
-		cubeTurn -= 360;
+	cubeTurn[c->movement.getSelectedMaterial()] += 2;
+	if(cubeTurn[c->movement.getSelectedMaterial()] > 360)
+		cubeTurn[c->movement.getSelectedMaterial()] -= 360;
 	/*glRotatef(cubeTurn, 0.0, 0.0, 1.0);
 	glRotatef(35.2644, 0.0, 1.0, 0.0);
 	glRotatef(45, 1.0, 0.0, 0.0);
@@ -342,14 +350,13 @@ void UInterface::drawHUD() {
 		glRotatef(90.0,0.0f,0.0f,1.0f);
 		glRotatef(90.0,0.0f,1.0f,0.0f);
 		
-		glTranslatef(24.0f,-14.4f+(mat-1)*2.0,-9.0f);
-		glRotatef(cubeTurn, 0.0, 0.0, 1.0);
-		glRotatef(35.2644, 0.0, 1.0, 0.0);
+		glTranslatef(24.0f,-14.4f+(mat-1)*2.0,-8.5f);
+		glRotatef(cubeTurn[mat], 0.0, 0.0, 1.0);
+		glRotatef(35.264389683, 0.0, 1.0, 0.0);
 		glRotatef(45, 1.0, 0.0, 0.0);
-		glTranslatef(-1.0, -1.0, 0.0);
+		glTranslatef(-0.5, -0.5, -0.5);
 		
 		glBindTexture( GL_TEXTURE_2D, c->renderer.texture[mat] );
-		//glBindTexture( GL_TEXTURE_2D, c->renderer.texture[c->movement.getSelectedMaterial()] );
 		if(c->movement.getSelectedMaterial() == mat){
 			glEnable(GL_LIGHT1);
 			glEnable(GL_LIGHTING);
@@ -358,7 +365,6 @@ void UInterface::drawHUD() {
 			glDisable(GL_LIGHT1);
 			glDisable(GL_LIGHTING);
 		}
-		glTranslatef(0.0, 1.2, 0.0);
 		glBegin(GL_QUADS);
 			for(int dir=0; dir < DIRECTION_COUNT; dir++) {
 				glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer

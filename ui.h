@@ -6,6 +6,7 @@ class UInterface;
 
 #include <boost/program_options.hpp>
 #include "renderer.h"
+#include "map.h"
 
 /**
  *
@@ -68,11 +69,12 @@ private:
 	int k_duck;
 	int k_moveFast;
 	int k_Duck;
+	int k_fly;
 	int k_quit;
 	int k_catchMouse;
 
 	//HUD
-	double cubeTurn;
+	double cubeTurn[NUMBER_OF_MATERIALS];
 	
 };
 
