@@ -261,9 +261,9 @@ void Renderer::render(PlayerPosition pos)
 	
 	int i=0;
 	
-	for(int x = areapos.x-2*AREASIZE_X; x < areapos.x+2*AREASIZE_X; x+= AREASIZE_X)
-	for(int y = areapos.y-2*AREASIZE_Y; y < areapos.y+2*AREASIZE_Y; y+= AREASIZE_Y)
-	for(int z = areapos.z-2*AREASIZE_Z; z < areapos.z+2*AREASIZE_Z; z+= AREASIZE_Z) {
+	for(int x = areapos.x-3*AREASIZE_X; x < areapos.x+3*AREASIZE_X; x+= AREASIZE_X)
+	for(int y = areapos.y-3*AREASIZE_Y; y < areapos.y+3*AREASIZE_Y; y+= AREASIZE_Y)
+	for(int z = areapos.z-3*AREASIZE_Z; z < areapos.z+3*AREASIZE_Z; z+= AREASIZE_Z) {
 		if(z == 0) continue;
 		try {
 			Area *area = c->map.getArea(BlockPosition::create(x,y,z));
