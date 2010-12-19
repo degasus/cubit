@@ -8,7 +8,7 @@ Makefile
 TODO.tasks
 cmake_install.cmake
 gmon.out
-openminecraft
+cubit
 *.swp
 .kdev4/
 CMakeFiles/
