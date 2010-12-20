@@ -75,7 +75,6 @@ private:
 
 	//HUD
 	double cubeTurn[NUMBER_OF_MATERIALS];
-	
 };
 
 

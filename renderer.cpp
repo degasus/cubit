@@ -33,6 +33,8 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	Texture_Files[6]	= textureDirectory + "/" + c["texture06"].as<string>();
 	Texture_Files[7]	= textureDirectory + "/" + c["texture07"].as<string>();
 
+	highlightWholePlane = c["highlightWholePlane"].as<bool>();
+
 	areasPerFrame		= c["areasPerFrame"].as<int>();
 }
 
@@ -316,8 +318,11 @@ void Renderer::render(PlayerPosition pos)
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 		glDisable(GL_LIGHT1);
 		glDisable(GL_LIGHTING);
-		
-		glDisable(GL_DEPTH_TEST);
+
+		if(highlightWholePlane)
+			glDisable(GL_DEPTH_TEST);
+		else
+			glEnable(GL_DEPTH_TEST);
 		glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
 		glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 		glEnable(GL_BLEND);
