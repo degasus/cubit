@@ -41,7 +41,7 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	k_jump			= c["k_jump"].as<int>();
 	k_duck			= c["k_duck"].as<int>();
 	k_fly			= c["k_fly"].as<int>();
-	k_quit			= c["k_quit"].as<int>();
+	k_quit			= c["k_quit"].as<int>();	
 
 	turningSpeed	= c["turningSpeed"].as<double>();
 }

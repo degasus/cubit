@@ -51,6 +51,8 @@ private:
 	float visualRange;
 	
 	Controller *c;
+
+	bool highlightWholePlane;
 };
 
 #endif
