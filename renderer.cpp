@@ -33,7 +33,7 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	Texture_Files[6]	= textureDirectory + "/" + c["texture06"].as<string>();
 	Texture_Files[7]	= textureDirectory + "/" + c["texture07"].as<string>();
 
-	areasPerFrame		= c["areasPerFrame"].as<int>();
+	areasPerFrame		= c["areasPerFrameRendering"].as<int>();
 }
 
 
