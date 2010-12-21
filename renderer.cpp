@@ -119,6 +119,7 @@ void Renderer::init()
 
 void Renderer::renderArea(Area* area)
 {
+//	if(area->empty) return;
 	glPushMatrix();
 	glTranslatef(area->pos.x,area->pos.y,area->pos.z);
 		
@@ -127,7 +128,6 @@ void Renderer::renderArea(Area* area)
 		areasRendered++;
 	
 		bool found_polygon = 0;
-		bool texture_used = 0;
 		
 		area->needupdate = 0;
 
@@ -205,6 +205,10 @@ void Renderer::renderArea(Area* area)
 		}
 		if(found_polygon)
 			glEndList();
+		else if(area->gllist_generated) {
+			area->gllist_generated = 0;
+			glDeleteLists(area->gllist,1);
+		}
 	} else if(area->gllist_generated) {
 		glCallList(area->gllist);
 	} else {
@@ -278,7 +282,8 @@ void Renderer::render(PlayerPosition pos)
 		try {
 			Area *area = c->map.getArea(BlockPosition::create(x,y,z));
 			renderArea(area);
-		} catch (NotLoadedException e) {}
+		} 	catch (NotLoadedException e) {}
+			catch (AreaEmptyException e) {}
 	}
 		
 	// zentrales gebiet unter sich selber
