@@ -33,9 +33,8 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	Texture_Files[6]	= textureDirectory + "/" + c["texture06"].as<string>();
 	Texture_Files[7]	= textureDirectory + "/" + c["texture07"].as<string>();
 
-	highlightWholePlane = c["highlightWholePlane"].as<bool>();
-
-	areasPerFrame		= c["areasPerFrame"].as<int>();
+	areasPerFrame		= c["areasPerFrameRendering"].as<int>();
+	highlightWholePlane	= c["highlightWholePlane"].as<bool>();
 }
 
 
@@ -120,35 +119,24 @@ void Renderer::init()
 
 void Renderer::renderArea(Area* area)
 {
+//	if(area->empty) return;
 	glPushMatrix();
 	glTranslatef(area->pos.x,area->pos.y,area->pos.z);
 		
 
-	if((!area->gllist_generated || area->needupdate) && (areasRendered <= areasPerFrame)) {
+	if(area->needupdate && (areasRendered <= areasPerFrame)) {
 		areasRendered++;
 	
-/*		std::cout << "render Area" << std::endl;
-		if(area->needupdate)
-			std::cout << "Area needs update" << std::endl;
-		if(!area->gllist_generated )
-			std::cout << "Area not generated" << std::endl;
-*/
-	
-		if(!area->gllist_generated) {
-			area->gllist_generated = 1;
-			area->gllist = glGenLists(1);
-		}
+		bool found_polygon = 0;
+		
 		area->needupdate = 0;
-
-		glNewList(area->gllist,GL_COMPILE_AND_EXECUTE);
 
 		Area* areas[DIRECTION_COUNT];
 		for(int i=0; i<DIRECTION_COUNT; i++)
 			areas[i] = 0;
 
 		for(int i=1; i < NUMBER_OF_MATERIALS; i++){
-			glBindTexture( GL_TEXTURE_2D, texture[i] );
-			glBegin( GL_QUADS );
+			bool texture_used = 0;
 
 			for(int x=area->pos.x; x<AREASIZE_X+area->pos.x; x++)
 			for(int y=area->pos.y; y<AREASIZE_Y+area->pos.y; y++)
@@ -177,6 +165,24 @@ void Renderer::renderArea(Area* area)
 							}
 
 							if(!next_m) {
+								if(!found_polygon) {
+									found_polygon = 1;
+									
+									if(!area->gllist_generated) {
+										area->gllist_generated = 1;
+										area->gllist = glGenLists(1);
+									}
+
+									glNewList(area->gllist,GL_COMPILE_AND_EXECUTE);
+								}
+								
+								if(!texture_used) {
+									texture_used = 1;
+									glBindTexture( GL_TEXTURE_2D, texture[i] );
+									glBegin( GL_QUADS );
+								}
+								
+								
 								glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer
 								for(int point=0; point < POINTS_PER_POLYGON; point++) {
 									glTexCoord2f(
@@ -194,9 +200,15 @@ void Renderer::renderArea(Area* area)
 					}
 				}
 			}
-		glEnd();
+		if(texture_used)
+			glEnd();
 		}
-		glEndList();
+		if(found_polygon)
+			glEndList();
+		else if(area->gllist_generated) {
+			area->gllist_generated = 0;
+			glDeleteLists(area->gllist,1);
+		}
 	} else if(area->gllist_generated) {
 		glCallList(area->gllist);
 	} else {
@@ -272,7 +284,8 @@ void Renderer::render(PlayerPosition pos)
 		try {
 			Area *area = c->map.getArea(BlockPosition::create(x,y,z));
 			renderArea(area);
-		} catch (NotLoadedException e) {}
+		} 	catch (NotLoadedException e) {}
+			catch (AreaEmptyException e) {}
 	}
 		
 	// zentrales gebiet unter sich selber
