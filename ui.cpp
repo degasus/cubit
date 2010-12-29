@@ -391,7 +391,6 @@ void UInterface::drawHUD() {
 			mat = NUMBER_OF_MATERIALS + mat - 1;
 		while(mat > (NUMBER_OF_MATERIALS - 1))
 			mat = mat - NUMBER_OF_MATERIALS - 1;
-		std::cout << "pos " << pos << " -> sel " << selectedMaterial <<" -> mat " << mat << " | pro " << fadingProgress << " -> fad " << fading << " -> num " << numberOfHUDcubes << std::endl;
 		glLoadIdentity();
 		glScalef(-1,1,1);
 		glRotatef(90.0,0.0f,0.0f,1.0f);
