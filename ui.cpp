@@ -10,6 +10,8 @@ UInterface::UInterface(Controller *controller)
 	catchMouse = 1;
 	for(int i = 0; i < NUMBER_OF_MATERIALS; i++)
 		cubeTurn[i] = 120.0/NUMBER_OF_MATERIALS;
+	fadingProgress = 0;
+	lastMaterial = 1;
 }
 
 void UInterface::init()
@@ -304,6 +306,7 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 
 void UInterface::drawHUD() {
 	glLoadIdentity();
+	glDisable(GL_FOG);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glScalef(-1,1,1);
 	glRotatef(90.0,0.0f,0.0f,1.0f);
@@ -344,13 +347,57 @@ void UInterface::drawHUD() {
 	glRotatef(45, 1.0, 0.0, 0.0);
 	glTranslatef(-0.5, -0.5, -0.5);*/
 
-	for(int mat = 1; mat < NUMBER_OF_MATERIALS; mat++){
+	int selectedMaterial = c->movement.getSelectedMaterial();
+	
+	if(fadingProgress>0)
+		fadingProgress -= 10;
+	else if(fadingProgress < 0)
+		fadingProgress += 10;
+
+	if(lastMaterial == 1 && selectedMaterial == NUMBER_OF_MATERIALS-1){
+		fadingProgress = -90;
+		lastMaterial = selectedMaterial;
+	}
+	else if(lastMaterial == NUMBER_OF_MATERIALS-1 && selectedMaterial == 1){
+		fadingProgress = 90;
+		lastMaterial = selectedMaterial;
+	}
+	if((lastMaterial < selectedMaterial)){
+		fadingProgress = 90;
+		lastMaterial = selectedMaterial;
+	}
+	else if((lastMaterial > selectedMaterial)){
+		fadingProgress = -90;
+		lastMaterial = selectedMaterial;
+	}
+
+	double fading = 0;
+	int numberOfHUDcubes = 5;
+	if(fadingProgress != 0){
+		numberOfHUDcubes = 6;
+	}
+
+	fading = sin(fadingProgress*M_PI/180)*2+2;
+	
+	for(int pos = -(numberOfHUDcubes/2); pos <= numberOfHUDcubes/2; pos++){
+		if(numberOfHUDcubes % 2 ==  0){
+			if(pos == numberOfHUDcubes/2 && fadingProgress > 0)
+				continue;
+			if(pos == -numberOfHUDcubes/2 && fadingProgress < 0)
+				continue;
+		}
+		int mat = selectedMaterial+pos;
+		while(mat < 1)
+			mat = NUMBER_OF_MATERIALS + mat - 1;
+		while(mat > (NUMBER_OF_MATERIALS - 1))
+			mat = mat - NUMBER_OF_MATERIALS - 1;
+		std::cout << "pos " << pos << " -> sel " << selectedMaterial <<" -> mat " << mat << " | pro " << fadingProgress << " -> fad " << fading << " -> num " << numberOfHUDcubes << std::endl;
 		glLoadIdentity();
 		glScalef(-1,1,1);
 		glRotatef(90.0,0.0f,0.0f,1.0f);
 		glRotatef(90.0,0.0f,1.0f,0.0f);
 		
-		glTranslatef(24.0f,-14.4f+(mat-1)*2.0,-8.5f);
+		glTranslatef(24.0f,-1.0f+pos*2.0+fading,-8.5f);
 		glRotatef(cubeTurn[mat], 0.0, 0.0, 1.0);
 		glRotatef(35.264389683, 0.0, 1.0, 0.0);
 		glRotatef(45, 1.0, 0.0, 0.0);
