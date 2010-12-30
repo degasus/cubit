@@ -336,8 +336,6 @@ void UInterface::drawHUD() {
 
 	glDisable(GL_BLEND);
 
-	glColor4f(0.1f, 0.1f, 0.1f, 0.0f);
-
 	//glTranslatef(6.0f,-7.2f,-3.7f);
 	cubeTurn[c->movement.getSelectedMaterial()] += 2;
 	if(cubeTurn[c->movement.getSelectedMaterial()] > 360)
@@ -380,7 +378,7 @@ void UInterface::drawHUD() {
 	fading = sin(fadingProgress*M_PI/180)*2+2;
 	
 	for(int pos = -(numberOfHUDcubes/2); pos <= numberOfHUDcubes/2; pos++){
-		if(numberOfHUDcubes % 2 ==  0){
+		if(numberOfHUDcubes % 2 == 0){
 			if(pos == numberOfHUDcubes/2 && fadingProgress > 0)
 				continue;
 			if(pos == -numberOfHUDcubes/2 && fadingProgress < 0)
@@ -390,13 +388,13 @@ void UInterface::drawHUD() {
 		while(mat < 1)
 			mat = NUMBER_OF_MATERIALS + mat - 1;
 		while(mat > (NUMBER_OF_MATERIALS - 1))
-			mat = mat - NUMBER_OF_MATERIALS - 1;
+			mat = mat - NUMBER_OF_MATERIALS + 1;
 		glLoadIdentity();
 		glScalef(-1,1,1);
 		glRotatef(90.0,0.0f,0.0f,1.0f);
 		glRotatef(90.0,0.0f,1.0f,0.0f);
 		
-		glTranslatef(24.0f,-1.0f+pos*2.0+fading,-8.5f);
+		glTranslatef(18.0f,-1.5f+pos*2.0+fading,-6.0f);
 		glRotatef(cubeTurn[mat], 0.0, 0.0, 1.0);
 		glRotatef(35.264389683, 0.0, 1.0, 0.0);
 		glRotatef(45, 1.0, 0.0, 0.0);
@@ -404,10 +402,14 @@ void UInterface::drawHUD() {
 		
 		glBindTexture( GL_TEXTURE_2D, c->renderer.texture[mat] );
 		if(c->movement.getSelectedMaterial() == mat){
+			//glDisable(GL_BLEND);
+			glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
 			glEnable(GL_LIGHT1);
 			glEnable(GL_LIGHTING);
 		}
 		else{
+			glColor4f(0.3f, 0.3f, 0.3f, 0.5f);
+
 			glDisable(GL_LIGHT1);
 			glDisable(GL_LIGHTING);
 		}
@@ -429,7 +431,8 @@ void UInterface::drawHUD() {
 		glEnd();
 	}
 
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHTING);
+	glDisable(GL_BLEND);
+	//glEnable(GL_LIGHT1);
+	//glEnable(GL_LIGHTING);
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 }
