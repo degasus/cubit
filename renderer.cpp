@@ -32,6 +32,8 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	Texture_Files[5]	= textureDirectory + "/" + c["texture05"].as<string>();
 	Texture_Files[6]	= textureDirectory + "/" + c["texture06"].as<string>();
 	Texture_Files[7]	= textureDirectory + "/" + c["texture07"].as<string>();
+	for(int i = 1; i <= 73; i++)
+		Texture_Files[i+7]	= textureDirectory + "/tex-" + boost::lexical_cast<std::string>(i) + ".bmp";
 
 	areasPerFrame		= c["areasPerFrameRendering"].as<int>();
 	highlightWholePlane	= c["highlightWholePlane"].as<bool>();

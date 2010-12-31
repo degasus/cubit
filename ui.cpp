@@ -370,9 +370,9 @@ void UInterface::drawHUD() {
 	}
 
 	double fading = 0;
-	int numberOfHUDcubes = 5;
+	int numberOfHUDcubes = 7;
 	if(fadingProgress != 0){
-		numberOfHUDcubes = 6;
+		numberOfHUDcubes += 1;
 	}
 
 	fading = sin(fadingProgress*M_PI/180)*2+2;
@@ -432,7 +432,7 @@ void UInterface::drawHUD() {
 	}
 
 	glDisable(GL_BLEND);
-	//glEnable(GL_LIGHT1);
-	//glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHTING);
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 }
