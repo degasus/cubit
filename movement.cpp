@@ -1,5 +1,8 @@
 #include <cmath>
 #include <iostream>
+#include <fstream>
+#include <boost/archive/text_oarchive.hpp>
+#include <cstdio>
 
 #include "controller.h"
 
@@ -14,11 +17,13 @@ Movement::Movement(Controller* controller)
 	speedForward = 0.0f;
 	speedRight = 0.0f;
 	speedUp = 0.0f;
-	position.x = 0.01;
-	position.y = 0.01;
-	position.z = 9.7;
-	position.orientationHorizontal = 0.0;
-	position.orientationVertical = 0.0;
+	if(!loadPosition()){
+		position.x = 0.01;
+		position.y = 0.01;
+		position.z = 9.7;
+		position.orientationHorizontal = 0.0;
+		position.orientationVertical = 0.0;
+	}
 	forwardPressed = false;
 	rightPressed = false;
 	leftPressed = false;
@@ -36,8 +41,11 @@ Movement::Movement(Controller* controller)
 	selectedMaterial = 1;
 }
 
-void Movement::config(const boost::program_options::variables_map& c)
-{
+Movement::~Movement(){
+	savePosition();
+}
+
+void Movement::config(const boost::program_options::variables_map& c){
 	offset				= c["offset"].as<double>();
 	offsetAbove			= c["offsetAbove"].as<double>();
 	accelHorizontal		= c["accelHorizontal"].as<double>();
@@ -59,6 +67,30 @@ void Movement::config(const boost::program_options::variables_map& c)
 void Movement::init()
 {
 	
+}
+
+void Movement::savePosition() {
+	std::ofstream of;
+	of.open((std::string(std::getenv("HOME")) + "/.cubit/position.dat").c_str());
+	
+	of << position.x << std::endl << position.y << std::endl << position.z << std::endl;
+	of << position.orientationHorizontal << std::endl << position.orientationVertical << std::endl;
+	
+	of.close();
+}
+	
+bool Movement::loadPosition()
+{
+	std::ifstream i;
+	bool success = false;
+	i.open((std::string(std::getenv("HOME")) + "/.cubit/position.dat").c_str());
+	if (i.is_open()) {
+		i >> position.x >> position.y >> position.z >> position.orientationHorizontal >> position.orientationVertical;
+		success = true;
+	}
+	i.close();
+
+	return success;
 }
 
 void Movement::performAction(ActionEvent event)

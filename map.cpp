@@ -138,8 +138,7 @@ void Map::areaLoadedSuccess(Area* area)
 
 }
 
-void Map::blockChangedEvent(BlockPosition pos, Material m)
-{
+void Map::blockChangedEvent(BlockPosition pos, Material m){
 
 }
 

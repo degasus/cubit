@@ -101,9 +101,14 @@ public:
 	 *
 	 */
 	Movement(Controller *controller);
+
+	~Movement();
 	
 	void init();
 	void config(const boost::program_options::variables_map &c);
+
+	bool loadPosition();
+	void savePosition();
 
 	//handle ActionEvents like pressing a key
 	void performAction(ActionEvent event);
