@@ -314,18 +314,13 @@ void Movement::calcNewSpeed()
 	}
 
 	int feetBlock = 1;
-	int aboveHeadBlock = 1;
 	PlayerPosition feetPos = position;
-	PlayerPosition aboveHeadPos = position;
-	aboveHeadPos.z += offsetAbove;
 	feetPos.z -= personSize;
 	try{
 		feetBlock = c->map.getBlock(feetPos.block());
-		aboveHeadBlock = c->map.getBlock(aboveHeadPos.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "blockFeet NotLoadedException" << std::endl;
-		std::cout << "aboveHeadBlock NotLoadedException" << std::endl;
 	}
 	//Luft unten drunter -> fallen (incl. Collision Detection on bottom)
 	if(!enableFly){
@@ -341,7 +336,7 @@ void Movement::calcNewSpeed()
 	}
 	//Flying
 	else{
-		if((forwardPressed || backwardsPressed ) && speedUp <= movementSpeed){
+		if((forwardPressed || backwardsPressed) && speedUp <= movementSpeed){
 			speedUp += accelHorizontal;
 			if(speedUp > movementSpeed)
 				speedUp = movementSpeed;
@@ -352,31 +347,11 @@ void Movement::calcNewSpeed()
 				speedUp = 0.0;
 		}
 	}
-	//Collision above
-	if(aboveHeadBlock != 0 && speedUp > 0.0)
-		speedUp = 0.0;
 }
 
 void Movement::calcCollisionAndMove(){
 	PlayerPosition oldPos = position;
-
-	//Horizontal Movement
-	if(!enableFly){
-		//Forward/Back
-		position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360);
-		position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360);
-		//Right/Left
-		position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360);
-		position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360);
-	}
-	else{
-		//Forward/Back
-		position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
-		position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
-		//Right/Left
-		position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
-		position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
-	}
+	
 	//Z-Movement Up/Down
 	if(!enableFly)
 		position.z += speedUp;
@@ -387,6 +362,23 @@ void Movement::calcCollisionAndMove(){
 			position.z -= speedUp*sin(2*M_PI*position.orientationVertical/360);
 	}
 
+	//Collision above
+	if(speedUp > 0){
+		int aboveHeadBlock = 1;
+		PlayerPosition aboveHeadPos = position;
+		aboveHeadPos.z += offsetAbove;
+		try{
+			aboveHeadBlock = c->map.getBlock(aboveHeadPos.block());
+		}
+		catch(NotLoadedException e){
+			std::cout << "aboveHeadBlock NotLoadedException" << std::endl;
+		}
+		if(aboveHeadBlock != 0){
+			speedUp = 0.0;
+			position.z = oldPos.z;
+		}
+	}
+	
 	int posBlock = 0;
 	int feetBlock = 1;
 	bool notLoaded = false;
@@ -415,7 +407,7 @@ void Movement::calcCollisionAndMove(){
 
 	//Z-Collision
 	//Jumping
-	if(feetBlock != 0 && jumpPressed){
+	if(feetBlock != 0 && jumpPressed && speedUp == -accelVertical){
 		speedUp = jumpSpeed*(movementSpeed/normalMovementSpeed);
 	}
 	//"Elevator"
@@ -426,6 +418,20 @@ void Movement::calcCollisionAndMove(){
 	else if(posBlock != 0 && speedUp <= 0){
 		speedUp = 0.0;
 		position.z = floor(position.z-personSize)+2.0+personSize;
+	}
+
+	//X Movement
+	if(!enableFly){
+		//Forward/Back
+		position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360);
+		//Right/Left
+		position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360);
+	}
+	else{
+		//Forward/Back
+		position.x += speedForward*cos(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
+		//Right/Left
+		position.x += -speedRight*sin(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
 	}
 
 	//X-Collision
@@ -461,6 +467,20 @@ void Movement::calcCollisionAndMove(){
 		int moveNot = posBlock + offsetBlock + feetBlock + offsetFeetBlock;
 		if(moveNot != 0)
 			position.x = oldPos.x;
+	}
+
+	//Y Movement
+	if(!enableFly){
+		//Forward/Back
+		position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360);
+		//Right/Left
+		position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360);
+	}
+	else{
+		//Forward/Back
+		position.y += speedForward*sin(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
+		//Right/Left
+		position.y += speedRight*cos(2*M_PI*position.orientationHorizontal/360)*cos(2*M_PI*position.orientationVertical/360);
 	}
 
 	//Y-Collision
