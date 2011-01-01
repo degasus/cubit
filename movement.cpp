@@ -71,7 +71,10 @@ void Movement::performAction(ActionEvent event)
 			forwardPressed = false;
 			//Steps
 			stepProgress = 0;
-			personSize = personSizeNormal;
+			if(!duckPressed)
+				personSize = personSizeNormal;
+			else
+				personSize = personSizeDucked;
 			break;
 			
 		case ActionEvent::PRESS_BACKWARDS:
@@ -81,7 +84,10 @@ void Movement::performAction(ActionEvent event)
 			backwardsPressed = false;
 			//Steps
 			stepProgress = 0;
-			personSize = personSizeNormal;
+			if(!duckPressed)
+				personSize = personSizeNormal;
+			else
+				personSize = personSizeDucked;
 			break;
 			
 		case ActionEvent::PRESS_LEFT:
@@ -91,7 +97,10 @@ void Movement::performAction(ActionEvent event)
 			leftPressed = false;
 			//Steps
 			stepProgress = 0;
-			personSize = personSizeNormal;
+			if(!duckPressed)
+				personSize = personSizeNormal;
+			else
+				personSize = personSizeDucked;
 			break;
 			
 		case ActionEvent::PRESS_RIGHT:
@@ -101,7 +110,10 @@ void Movement::performAction(ActionEvent event)
 			rightPressed = false;
 			//Steps
 			stepProgress = 0;
-			personSize = personSizeNormal;
+			if(!duckPressed)
+				personSize = personSizeNormal;
+			else
+				personSize = personSizeDucked;
 			break;
 			
 		case ActionEvent::PRESS_JUMP:
@@ -131,6 +143,7 @@ void Movement::performAction(ActionEvent event)
 			
 		case ActionEvent::PRESS_BUILD_BLOCK:
 			buildBlockPressed = true;
+			calcPointingOn();
 			if(isPointingOn && buildBlockPressed){
 				buildBlock();
 				lastBuild = 0;
@@ -142,6 +155,7 @@ void Movement::performAction(ActionEvent event)
 			
 		case ActionEvent::PRESS_REMOVE_BLOCK:
 			removeBlockPressed = true;
+			calcPointingOn();
 			if(isPointingOn && removeBlockPressed){
 				removeBlock();
 				lastBuild = 0;
@@ -281,7 +295,7 @@ void Movement::calcNewSpeed()
 		std::cout << "blockFeet NotLoadedException" << std::endl;
 		std::cout << "aboveHeadBlock NotLoadedException" << std::endl;
 	}
-	//Luft unten drunter -> fallen (inkl. Collision Detection on bottom)
+	//Luft unten drunter -> fallen (incl. Collision Detection on bottom)
 	if(!enableFly){
 		if(feetBlock == 0){
 			if(speedUp >= maxFallingSpeed)
@@ -358,7 +372,7 @@ void Movement::calcCollisionAndMove(){
 	//Steps
 	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && feetBlock != 0 && !duckPressed){
 		stepProgress++;
-		if(stepProgress > 10){//FPS*2
+		if(stepProgress > 10){
 			stepProgress = 0;
 		}
 		double sizeChange = fabs(sin((M_PI/10)*stepProgress)*0.04);
@@ -366,18 +380,20 @@ void Movement::calcCollisionAndMove(){
 		personSize = personSizeNormal+sizeChange;
 		position.z += personSize-oldSize;
 	}
-	else if(!duckPressed)
-		personSize = personSizeNormal;
-	
+
 	//Z-Collision
 	//Jumping
 	if(feetBlock != 0 && jumpPressed){
 		speedUp = jumpSpeed*(movementSpeed/normalMovementSpeed);
 	}
-	//Falling
-	if((posBlock != 0 || feetBlock != 0) && speedUp <= 0){
+	//"Elevator"
+	if(feetBlock != 0 && speedUp <= 0){
 		speedUp = 0.0;
 		position.z = floor(position.z-personSize)+1.0+personSize;
+	}
+	else if(posBlock != 0 && speedUp <= 0){
+		speedUp = 0.0;
+		position.z = floor(position.z-personSize)+2.0+personSize;
 	}
 
 	//X-Collision
@@ -540,11 +556,11 @@ DIRECTION Movement::calcPointingOnInBlock(PlayerPosition* posIn, BlockPosition b
 
 void Movement::calcBuilding(){
 	lastBuild++;
-	if((lastBuild >= 20 || fastPressed) && isPointingOn && buildBlockPressed){
+	if((lastBuild >= 10 || fastPressed) && isPointingOn && buildBlockPressed){
 		buildBlock();
 		lastBuild = 0;
 	}
-	if((lastBuild >= 20 || fastPressed) && isPointingOn && removeBlockPressed){
+	if((lastBuild >= 10 || fastPressed) && isPointingOn && removeBlockPressed){
 		removeBlock();
 		lastBuild = 0;
 	}
