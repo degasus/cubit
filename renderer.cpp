@@ -295,7 +295,7 @@ void Renderer::render(PlayerPosition pos)
 	//Eigene Position
 	glTranslatef(-(pos.x), -(pos.y), -(pos.z));
 	
-	GLfloat LightPosition[] = { 100000.0f, 66000.0f, 250000.0f, 1.0f };
+	GLfloat LightPosition[] = { 10000000.0f, 6600000.0f, 25000000.0f, 1.0f };
 	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
 
 	// eigenes gebiet
