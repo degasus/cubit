@@ -58,7 +58,6 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("texture06", po::value<string>()->default_value("hopscotch.bmp"), "Hopscotch")
 		("texture07", po::value<string>()->default_value("bee.bmp"), "Black/Yellow")
 		("visualRange", po::value<float>()->default_value(25), "maximal distance for rendering")
-		("enableLight", po::value<bool>()->default_value(1), "enable Light")
 		("enableFog", po::value<bool>()->default_value(1), "enable Fog")
 		("areasPerFrameRendering", po::value<int>()->default_value(5), "set the maximal rendered areas per frame")
 		("areasPerFrameLoading", po::value<int>()->default_value(10), "set the maximal from hard disk loaded areas per frame")

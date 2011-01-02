@@ -39,7 +39,6 @@ private:
 	int areasPerFrame;
 	int areasRendered;
 	int maxareas;
-	bool enableLight;
 	bool enableFog;
 	
 	std::string Texture_Files[NUMBER_OF_MATERIALS];

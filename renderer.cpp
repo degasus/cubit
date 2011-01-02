@@ -21,7 +21,6 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	fogStartFactor		= c["fogStartFactor"].as<float>();
 	visualRange			= c["visualRange"].as<float>();
 	maxareas			= c["visualRange"].as<float>()*c["visualRange"].as<float>();
-	enableLight			= c["enableLight"].as<bool>();
 	enableFog			= c["enableFog"].as<bool>();
 
 	string textureDirectory = c["textureDirectory"].as<string>();
@@ -53,8 +52,12 @@ void Renderer::init()
 	glHint(GL_LINE_SMOOTH, GL_NICEST);
 	glEnable(GL_LINE_SMOOTH);
 
+	
+	//LIGHT
 
-	GLfloat LightAmbient[]  = { 0.5f, 0.5f, 0.5f, 1.0f };
+	glEnable(GL_LIGHTING);
+	
+	/*GLfloat LightAmbient[]  = { 0.5f, 0.5f, 0.5f, 1.0f };
 	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat LightPosition[] = { 0.5f, 1.0f, 5.0f, 1.0f };
 
@@ -62,12 +65,28 @@ void Renderer::init()
 	
 	glLightfv(GL_LIGHT1, GL_AMBIENT,  LightAmbient);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE,  LightDiffuse);
-	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
-	if(enableLight){
-		glEnable(GL_LIGHT1);
-		glEnable(GL_LIGHTING);
-	}
+	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);*/
 
+	GLfloat LightAmbient[]  = { 0.8f, 0.8f, 0.8f, 1.0f };
+	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };	
+	
+	//glLightfv(GL_LIGHT1, GL_AMBIENT,  LightAmbient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE,  LightDiffuse);
+
+	/*Position is reset in every frame*/
+	//GLfloat LightPosition[] = { 0.5f, 0.1f, 1.0f, 1.0f };
+	//glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
+	
+	glEnable(GL_LIGHT1);
+
+	//Global Ambient
+	GLfloat global_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
+	
+
+	
+	//FOG
+	
 	glFogi(GL_FOG_MODE, GL_LINEAR);		// Fog Mode
 	glFogfv(GL_FOG_COLOR, bgColor);	// Set Fog Color
 	glFogf(GL_FOG_DENSITY, fogDense);	// How Dense Will The Fog Be
@@ -260,6 +279,8 @@ void Renderer::render(PlayerPosition pos)
 	glLoadIdentity();							// Reset The View
 	if(enableFog)
 		glEnable(GL_FOG);
+	else
+		glDisable(GL_FOG);
 	glScalef(-1,1,1);
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
@@ -273,6 +294,9 @@ void Renderer::render(PlayerPosition pos)
 
 	//Eigene Position
 	glTranslatef(-(pos.x), -(pos.y), -(pos.z));
+	
+	GLfloat LightPosition[] = { 100000.0f, 66000.0f, 250000.0f, 1.0f };
+	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
 
 	// eigenes gebiet
 	BlockPosition areapos = pos.block().area();
@@ -358,9 +382,7 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 		
 		glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 
-		if(enableLight){
-			glEnable(GL_LIGHT1);
-			glEnable(GL_LIGHTING);
-		}
+		glEnable(GL_LIGHT1);
+		glEnable(GL_LIGHTING);
 }
 

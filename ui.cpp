@@ -312,6 +312,9 @@ void UInterface::drawHUD() {
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
 
+	GLfloat LightPosition[] = { -200.0f, 200.0f, 300.0f, 1.0f };
+	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
+	
 	glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 	glEnable(GL_BLEND);
@@ -404,13 +407,10 @@ void UInterface::drawHUD() {
 		if(c->movement.getSelectedMaterial() == mat){
 			//glDisable(GL_BLEND);
 			glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
-			glEnable(GL_LIGHT1);
 			glEnable(GL_LIGHTING);
 		}
 		else{
 			glColor4f(0.3f, 0.3f, 0.3f, 0.5f);
-
-			glDisable(GL_LIGHT1);
 			glDisable(GL_LIGHTING);
 		}
 		glBegin(GL_QUADS);
@@ -432,7 +432,6 @@ void UInterface::drawHUD() {
 	}
 
 	glDisable(GL_BLEND);
-	glEnable(GL_LIGHT1);
 	glEnable(GL_LIGHTING);
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 }
