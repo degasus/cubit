@@ -17,13 +17,6 @@ Movement::Movement(Controller* controller)
 	speedForward = 0.0f;
 	speedRight = 0.0f;
 	speedUp = 0.0f;
-	if(!loadPosition()){
-		position.x = 0.01;
-		position.y = 0.01;
-		position.z = 9.7;
-		position.orientationHorizontal = 0.0;
-		position.orientationVertical = 0.0;
-	}
 	forwardPressed = false;
 	rightPressed = false;
 	leftPressed = false;
@@ -58,10 +51,19 @@ void Movement::config(const boost::program_options::variables_map& c){
 	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<double>();
 	maxFallingSpeed		= c["maxFallingSpeed"].as<double>();
 	jumpSpeed			= c["jumpSpeed"].as<double>();
+	workingDirectory	= c["workingDirectory"].as<std::string>();
 
 	accelVertical	= normalAccelVertical;
 	movementSpeed 	= normalMovementSpeed;
 	personSize 		= personSizeNormal;
+
+	if(!loadPosition()){
+		position.x = 0.01;
+		position.y = 0.01;
+		position.z = 9.7;
+		position.orientationHorizontal = 0.0;
+		position.orientationVertical = 0.0;
+	}
 }
 
 void Movement::init()
@@ -71,7 +73,7 @@ void Movement::init()
 
 void Movement::savePosition() {
 	std::ofstream of;
-	of.open((std::string(std::getenv("HOME")) + "/.cubit/position.dat").c_str());
+	of.open((workingDirectory + "position.dat").c_str());
 	
 	of << position.x << std::endl << position.y << std::endl << position.z << std::endl;
 	of << position.orientationHorizontal << std::endl << position.orientationVertical << std::endl;
@@ -83,7 +85,7 @@ bool Movement::loadPosition()
 {
 	std::ifstream i;
 	bool success = false;
-	i.open((std::string(std::getenv("HOME")) + "/.cubit/position.dat").c_str());
+	i.open((workingDirectory + "position.dat").c_str());
 	if (i.is_open()) {
 		i >> position.x >> position.y >> position.z >> position.orientationHorizontal >> position.orientationVertical;
 		success = true;

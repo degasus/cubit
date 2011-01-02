@@ -173,6 +173,7 @@ private:
 	double maxFallingSpeed;
 	double jumpSpeed;
 	bool enableFly;
+	std::string workingDirectory;
 
 	//Steps
 	int stepProgress;

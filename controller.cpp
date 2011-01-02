@@ -81,7 +81,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning")
 		("jumpSpeed", po::value<double>()->default_value(0.187), "initial speed when jumping")
 		
-		("mapDirectory", po::value<string>()->default_value("/home/arny/.cubit/maps"), "Folder for saving areas")
+		("workingDirectory", po::value<string>()->default_value((std::string(std::getenv("HOME")) + "/.cubit/").c_str()), "Folder for saving areas")
 		
 		//UI
 		("highlightWholePlane", po::value<bool>()->default_value(1), "highlight the pointing on plane without depth test")
@@ -103,7 +103,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 
 	//config file
 	std::ifstream i;
-	i.open((std::string(std::getenv("HOME")) + "/.cubit/cubit.conf").c_str());
+	i.open((vm["workingDirectory"].as<std::string>() + "cubit.conf").c_str());
 	if (i.is_open()) {
 		po::store(po::parse_config_file(i, desc), vm);
 	}
