@@ -379,14 +379,27 @@ void Movement::calcCollisionAndMove(){
 
 	//Collision above
 	if(speedUp > 0){
-		int aboveHeadBlock = 1;
+		int aboveHeadBlock = 0;
 		PlayerPosition aboveHeadPos = position;
 		aboveHeadPos.z += offsetAbove;
+		PlayerPosition offset1 = aboveHeadPos;
+		offset1.x += offset;
+		PlayerPosition offset2 = aboveHeadPos;
+		offset2.x -= offset;
+		PlayerPosition offset3 = aboveHeadPos;
+		offset3.y += offset;
+		PlayerPosition offset4 = aboveHeadPos;
+		offset4.y -= offset;
 		try{
 			aboveHeadBlock = c->map.getBlock(aboveHeadPos.block());
+			aboveHeadBlock += c->map.getBlock(offset1.block());
+			aboveHeadBlock += c->map.getBlock(offset2.block());
+			aboveHeadBlock += c->map.getBlock(offset3.block());
+			aboveHeadBlock += c->map.getBlock(offset4.block());
 		}
 		catch(NotLoadedException e){
 			std::cout << "aboveHeadBlock NotLoadedException" << std::endl;
+			aboveHeadBlock = 1;
 		}
 		if(aboveHeadBlock != 0){
 			speedUp = 0.0;
