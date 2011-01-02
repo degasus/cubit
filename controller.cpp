@@ -1,5 +1,6 @@
 #include <iostream>
 #include <time.h>
+#include <fstream>
 
 #include "controller.h"
 
@@ -97,7 +98,17 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("k_quit", po::value<int>()->default_value(27), "KeyCode for exiting")
 	;
 
+	//command-line args
 	po::store(po::parse_command_line(argc, argv, desc), vm);
+
+	//config file
+	std::ifstream i;
+	i.open((std::string(std::getenv("HOME")) + "/.cubit/cubit.conf").c_str());
+	if (i.is_open()) {
+		po::store(po::parse_config_file(i, desc), vm);
+	}
+	i.close();
+	
 	po::notify(vm);
 
 	if (vm.count("help")) {
