@@ -415,7 +415,6 @@ void Movement::calcCollisionAndMove(){
 	}
 	catch(NotLoadedException e){
 		std::cout << "posBlock NotLoadedException" << std::endl;
-		std::cout << "feetBlock NotLoadedException" << std::endl;
 		notLoaded = true;
 	}
 	
