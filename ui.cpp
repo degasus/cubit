@@ -182,6 +182,8 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	ae.name = ActionEvent::NONE;
 	
 	int code = (int)e.keysym.sym;
+	std::cout << "KeyReleased: " << code << std::endl;
+	
 	if(code == k_forward){
 		ae.name = ActionEvent::RELEASE_FORWARD;
 	}

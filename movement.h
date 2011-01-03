@@ -150,7 +150,7 @@ private:
 	double normalAccelVertical;
 
 	//Size of person
-	float personSize;
+	double personSize;
 	double personSizeNormal;
 	double personSizeDucked;
 

@@ -317,7 +317,7 @@ void Movement::calcNewSpeed()
 
 	int feetBlock = 0;
 	PlayerPosition feetPos = position;
-	feetPos.z -= personSize;
+	feetPos.z -= personSize + 0.00001;
 	PlayerPosition offset1 = feetPos;
 	offset1.x += offset;
 	PlayerPosition offset2 = feetPos;
@@ -334,7 +334,7 @@ void Movement::calcNewSpeed()
 		feetBlock += c->map.getBlock(offset4.block());
 	}
 	catch(NotLoadedException e){
-		std::cout << "blockFeet NotLoadedException" << std::endl;
+		std::cout << "feetBlock NotLoadedException" << std::endl;
 		feetBlock = 1;
 	}
 	//Luft unten drunter -> fallen (incl. Collision Detection on bottom)
@@ -346,7 +346,8 @@ void Movement::calcNewSpeed()
 				speedUp = maxFallingSpeed;
 		}
 		else if(speedUp < 0){
-			speedUp = 0;
+			speedUp = 0.0;
+			position.z = floor(position.z-personSize)+personSize;
 		}
 	}
 	//Flying
@@ -408,42 +409,37 @@ void Movement::calcCollisionAndMove(){
 	}
 	
 	int posBlock = 0;
-	bool notLoaded = false;
-
 	try{
 		posBlock = c->map.getBlock(position.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "posBlock NotLoadedException" << std::endl;
-		notLoaded = true;
 	}
 	
-	PlayerPosition feetPos = position;
-	feetPos.z -= personSize;
-	int feetBlock = 0;
-	feetPos = position;
-	feetPos.z -= personSize;
-	PlayerPosition offset1 = feetPos;
+	PlayerPosition belowFeetPos = position;
+	belowFeetPos.z -= personSize + 0.00001;
+	int belowFeetBlock = 0;
+	PlayerPosition offset1 = belowFeetPos;
 	offset1.x += offset;
-	PlayerPosition offset2 = feetPos;
+	PlayerPosition offset2 = belowFeetPos;
 	offset2.x -= offset;
-	PlayerPosition offset3 = feetPos;
+	PlayerPosition offset3 = belowFeetPos;
 	offset3.y += offset;
-	PlayerPosition offset4 = feetPos;
+	PlayerPosition offset4 = belowFeetPos;
 	offset4.y -= offset;
 	try{
-		feetBlock = c->map.getBlock(feetPos.block());
-		feetBlock += c->map.getBlock(offset1.block());
-		feetBlock += c->map.getBlock(offset2.block());
-		feetBlock += c->map.getBlock(offset3.block());
-		feetBlock += c->map.getBlock(offset4.block());
+		belowFeetBlock = c->map.getBlock(belowFeetPos.block());
+		belowFeetBlock += c->map.getBlock(offset1.block());
+		belowFeetBlock += c->map.getBlock(offset2.block());
+		belowFeetBlock += c->map.getBlock(offset3.block());
+		belowFeetBlock += c->map.getBlock(offset4.block());
 	}
 	catch(NotLoadedException e){
-		std::cout << "blockFeet NotLoadedException" << std::endl;
-		feetBlock = 1;
+		std::cout << "belowFeetBlock NotLoadedException" << std::endl;
+		belowFeetBlock = 1;
 	}
 	//Steps
-	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && feetBlock != 0 && !duckPressed){
+	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && belowFeetBlock != 0 && !duckPressed){
 		stepProgress++;
 		if(stepProgress > 10){
 			stepProgress = 0;
@@ -456,17 +452,8 @@ void Movement::calcCollisionAndMove(){
 
 	//Z-Collision
 	//Jumping
-	if(feetBlock != 0 && jumpPressed && speedUp == -accelVertical){
+	if(belowFeetBlock != 0 && jumpPressed){
 		speedUp = jumpSpeed*(movementSpeed/normalMovementSpeed);
-	}
-	//"Elevator"
-	if(feetBlock != 0 && speedUp <= 0){
-		speedUp = 0.0;
-		position.z = floor(position.z-personSize)+1.0+personSize;
-	}
-	else if(posBlock != 0 && speedUp <= 0){
-		speedUp = 0.0;
-		position.z = floor(position.z-personSize)+2.0+personSize;
 	}
 
 	//X Movement
@@ -486,10 +473,10 @@ void Movement::calcCollisionAndMove(){
 	//X-Collision
 	//resetting vars	
 	posBlock = 1;
-	feetBlock = 1;
+	int feetBlock = 1;
 	int offsetBlock = 1;
 	int offsetFeetBlock = 1;
-	feetPos = position;
+	PlayerPosition feetPos = position;
 	feetPos.z -= personSize;
 	PlayerPosition offsetPos = position;
 	PlayerPosition offsetFeetPos = feetPos;
@@ -567,8 +554,34 @@ void Movement::calcCollisionAndMove(){
 			position.y = oldPos.y;
 	}
 
-	if(notLoaded)
-		position = oldPos;
+	/*std::cout << "speedUp = " << speedUp << std::endl;
+	std::cout << "personSize = " << personSize << std::endl;
+	std::cout << "pos = " << position.to_string() << std::endl;*/
+
+	//"Elevator"
+	feetPos = position;
+	feetPos.z -= personSize;
+	feetBlock = 0;
+	posBlock = 0;
+	try{
+		posBlock = c->map.getBlock(position.block());
+		feetBlock = c->map.getBlock(feetPos.block());
+	}
+	catch(NotLoadedException e){
+		std::cout << "Elevator NotLoadedException" << std::endl;
+		feetBlock = 0;
+	}
+	if(feetBlock != 0 && speedUp <= 0){
+		speedUp = 0.0;
+		std::cout << "do the elevator (feetBlock)" << std::endl;
+		position.z = floor(position.z-personSize)+1.0+personSize;
+	}
+	else if(posBlock != 0 && speedUp <= 0){
+		speedUp = 0.0;
+		std::cout << "do the elevator (posBlock)" << std::endl;
+		position.z = floor(position.z-personSize)+1.0+personSize;
+	}
+	//std::cout << std::endl;
 }
 
 void Movement::calcPointingOn(){
