@@ -73,7 +73,7 @@ void Movement::init()
 
 void Movement::savePosition() {
 	std::ofstream of;
-	of.open((workingDirectory + "position.dat").c_str());
+	of.open((workingDirectory + "/position.dat").c_str());
 	
 	of << position.x << std::endl << position.y << std::endl << position.z << std::endl;
 	of << position.orientationHorizontal << std::endl << position.orientationVertical << std::endl;
@@ -85,7 +85,7 @@ bool Movement::loadPosition()
 {
 	std::ifstream i;
 	bool success = false;
-	i.open((workingDirectory + "position.dat").c_str());
+	i.open((workingDirectory + "/position.dat").c_str());
 	if (i.is_open()) {
 		i >> position.x >> position.y >> position.z >> position.orientationHorizontal >> position.orientationVertical;
 		success = true;

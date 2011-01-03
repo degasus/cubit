@@ -23,7 +23,7 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	maxareas			= c["visualRange"].as<float>()*c["visualRange"].as<float>();
 	enableFog			= c["enableFog"].as<bool>();
 
-	string textureDirectory = c["textureDirectory"].as<string>();
+	string textureDirectory = c["workingDirectory"].as<string>() + "/tex";
 	Texture_Files[1]	= textureDirectory + "/" + c["texture01"].as<string>();
 	Texture_Files[2]	= textureDirectory + "/" + c["texture02"].as<string>();
 	Texture_Files[3]	= textureDirectory + "/" + c["texture03"].as<string>();
@@ -305,7 +305,7 @@ void Renderer::render(PlayerPosition pos)
 	
 	int i=0;
 	
-	for(int x = areapos.x-3*AREASIZE_X; x < areapos.x+3*AREASIZE_X; x+= AREASIZE_X)
+/*	for(int x = areapos.x-3*AREASIZE_X; x < areapos.x+3*AREASIZE_X; x+= AREASIZE_X)
 	for(int y = areapos.y-3*AREASIZE_Y; y < areapos.y+3*AREASIZE_Y; y+= AREASIZE_Y)
 	for(int z = areapos.z-3*AREASIZE_Z; z < areapos.z+3*AREASIZE_Z; z+= AREASIZE_Z) {
 		if(z == 0) continue;
@@ -315,7 +315,7 @@ void Renderer::render(PlayerPosition pos)
 		} 	catch (NotLoadedException e) {}
 			catch (AreaEmptyException e) {}
 	}
-		
+	*/	
 	// zentrales gebiet unter sich selber
 	areapos.z = 0;
 	try {
