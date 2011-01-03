@@ -70,18 +70,17 @@ void Renderer::init()
 	GLfloat LightAmbient[]  = { 0.8f, 0.8f, 0.8f, 1.0f };
 	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };	
 	
-	//glLightfv(GL_LIGHT1, GL_AMBIENT,  LightAmbient);
+	glLightfv(GL_LIGHT1, GL_AMBIENT,  LightAmbient);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE,  LightDiffuse);
-
-	/*Position is reset in every frame*/
-	//GLfloat LightPosition[] = { 0.5f, 0.1f, 1.0f, 1.0f };
-	//glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
-	
 	glEnable(GL_LIGHT1);
 
+	glLightfv(GL_LIGHT2, GL_AMBIENT,  LightAmbient);
+	glLightfv(GL_LIGHT2, GL_DIFFUSE,  LightDiffuse);
+	glEnable(GL_LIGHT2);
+
 	//Global Ambient
-	GLfloat global_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
+	/*GLfloat global_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);*/
 	
 
 	
@@ -297,6 +296,9 @@ void Renderer::render(PlayerPosition pos)
 	
 	GLfloat LightPosition[] = { 10000000.0f, 6600000.0f, 25000000.0f, 1.0f };
 	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
+
+	GLfloat LightPosition2[] = { -10000000.0f, -2000000.0f, 25000000.0f, 1.0f };
+	glLightfv(GL_LIGHT2, GL_POSITION, LightPosition2);
 
 	// eigenes gebiet
 	BlockPosition areapos = pos.block().area();
