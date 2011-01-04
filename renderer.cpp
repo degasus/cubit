@@ -305,7 +305,7 @@ void Renderer::render(PlayerPosition pos)
 	
 	int i=0;
 	
-/*	for(int x = areapos.x-3*AREASIZE_X; x < areapos.x+3*AREASIZE_X; x+= AREASIZE_X)
+	for(int x = areapos.x-3*AREASIZE_X; x < areapos.x+3*AREASIZE_X; x+= AREASIZE_X)
 	for(int y = areapos.y-3*AREASIZE_Y; y < areapos.y+3*AREASIZE_Y; y+= AREASIZE_Y)
 	for(int z = areapos.z-3*AREASIZE_Z; z < areapos.z+3*AREASIZE_Z; z+= AREASIZE_Z) {
 		if(z == 0) continue;
@@ -315,7 +315,7 @@ void Renderer::render(PlayerPosition pos)
 		} 	catch (NotLoadedException e) {}
 			catch (AreaEmptyException e) {}
 	}
-	*/	
+	
 	// zentrales gebiet unter sich selber
 	areapos.z = 0;
 	try {
