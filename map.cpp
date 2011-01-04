@@ -47,10 +47,10 @@ void randomArea(int schieben, Area* a) {
 	int hoehe[AREASIZE_X][AREASIZE_Y];
 
 	for(int x=0; x<AREASIZE_X; x++) for(int y=0; y<AREASIZE_Y; y++) {
-		hoehe[x][y] = AREASIZE_Z/2;
+		hoehe[x][y] = AREASIZE_Z/2; //-1+rand()%3;
 
 		if(x>0 && y>0 && y<AREASIZE_Y-1) {
-			hoehe[x][y] = (hoehe[x-1][y-1] + hoehe[x-1][y] + hoehe[x-1][y+1] + rand()%8 - 2) / 3;
+			hoehe[x][y] = (hoehe[x-1][y-1] + hoehe[x-1][y] + hoehe[x-1][y+1] + rand()%7 - 2) / 3;
 			if(hoehe[x][y] < 1) hoehe[x][y] = 1;
 			if(hoehe[x][y] > AREASIZE_Z-2) hoehe[x][y] = AREASIZE_Z-2;
 
@@ -61,7 +61,7 @@ void randomArea(int schieben, Area* a) {
 		if(z>hoehe[x][y]-schieben)
 			a->m[x][y][z] = 0;
 		else
-			a->m[x][y][z] = (rand()%(NUMBER_OF_MATERIALS-1))+1;
+			a->m[x][y][z] = (rand()%3)+1;
 
 	}
 }

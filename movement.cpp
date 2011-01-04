@@ -368,10 +368,10 @@ void Movement::calcNewSpeed()
 void Movement::calcCollisionAndMove(){
 	PlayerPosition oldPos = position;
 	
-	std::cout << "speedUp = " << speedUp << std::endl;
+/*	std::cout << "speedUp = " << speedUp << std::endl;
 	std::cout << "personSize = " << personSize << std::endl;
 	std::cout << "pos = " << position.to_string() << std::endl;
-	
+	*/
 	//Z-Movement Up/Down
 	if(!enableFly)
 		position.z += speedUp;
@@ -581,7 +581,7 @@ void Movement::calcCollisionAndMove(){
 		std::cout << "do the elevator (posBlock)" << std::endl;
 		position.z = floor(position.z-personSize)+1.0+personSize;
 	}
-	std::cout << std::endl;
+//	std::cout << std::endl;
 }
 
 void Movement::calcPointingOn(){
