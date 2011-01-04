@@ -50,7 +50,6 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("bgColorA", po::value<float>()->default_value(1.0), "Background Color Aplha")
 		("fogDense", po::value<float>()->default_value(0.6), "Densitivity of Fog")
 		("fogStartFactor", po::value<float>()->default_value(0.8), "Percental distance to fog start")
-		("textureDirectory", po::value<string>()->default_value("/home/arny/.cubit/tex"), "Subdirectory for Textures")
 		("texture01", po::value<string>()->default_value("grass.bmp"), "Grass")
 		("texture02", po::value<string>()->default_value("wood.bmp"), "Wood")
 		("texture03", po::value<string>()->default_value("bricks.bmp"), "Bricks")
@@ -81,7 +80,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning")
 		("jumpSpeed", po::value<double>()->default_value(0.187), "initial speed when jumping")
 		
-		("workingDirectory", po::value<string>()->default_value((std::string(std::getenv("HOME")) + "/.cubit/").c_str()), "Folder for saving areas")
+		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for saving areas")
 		
 		//UI
 		("highlightWholePlane", po::value<bool>()->default_value(1), "highlight the pointing on plane without depth test")
