@@ -102,7 +102,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 
 	//config file
 	std::ifstream i;
-	i.open((vm["workingDirectory"].as<std::string>() + "cubit.conf").c_str());
+	i.open((vm["workingDirectory"].as<std::string>() + "/cubit.conf").c_str());
 	if (i.is_open()) {
 		po::store(po::parse_config_file(i, desc), vm);
 	}
