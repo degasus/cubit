@@ -315,31 +315,48 @@ void Movement::calcNewSpeed()
 			speedRight = 0;
 	}
 
-	int feetBlock = 0;
-	PlayerPosition feetPos = position;
-	feetPos.z -= personSize - speedUp + 0.001;
-	PlayerPosition offset1 = feetPos;
+	int belowFeetBlock = 0;
+	PlayerPosition belowFeetPos = position;
+	belowFeetPos.z -= personSize - speedUp + 0.001;
+	PlayerPosition offset1 = belowFeetPos;
 	offset1.x += offset;
-	PlayerPosition offset2 = feetPos;
+	PlayerPosition offset2 = belowFeetPos;
 	offset2.x -= offset;
-	PlayerPosition offset3 = feetPos;
+	PlayerPosition offset3 = belowFeetPos;
 	offset3.y += offset;
-	PlayerPosition offset4 = feetPos;
+	PlayerPosition offset4 = belowFeetPos;
 	offset4.y -= offset;
+	PlayerPosition offset5 = belowFeetPos;
+	offset5.x += offset/2;
+	offset5.y += offset/2;
+	PlayerPosition offset6 = belowFeetPos;
+	offset6.x += offset/2;
+	offset6.y -= offset/2;
+	PlayerPosition offset7 = belowFeetPos;
+	offset7.x -= offset/2;
+	offset7.y += offset/2;
+	PlayerPosition offset8 = belowFeetPos;
+	offset8.x -= offset/2;
+	offset8.y -= offset/2;
 	try{
-		feetBlock = c->map.getBlock(feetPos.block());
-		feetBlock += c->map.getBlock(offset1.block());
-		feetBlock += c->map.getBlock(offset2.block());
-		feetBlock += c->map.getBlock(offset3.block());
-		feetBlock += c->map.getBlock(offset4.block());
+		belowFeetBlock = c->map.getBlock(belowFeetPos.block());
+		belowFeetBlock += c->map.getBlock(offset1.block());
+		belowFeetBlock += c->map.getBlock(offset2.block());
+		belowFeetBlock += c->map.getBlock(offset3.block());
+		belowFeetBlock += c->map.getBlock(offset4.block());
+		belowFeetBlock += c->map.getBlock(offset5.block());
+		belowFeetBlock += c->map.getBlock(offset6.block());
+		belowFeetBlock += c->map.getBlock(offset7.block());
+		belowFeetBlock += c->map.getBlock(offset8.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "feetBlock NotLoadedException" << std::endl;
-		feetBlock = 1;
+		belowFeetBlock = 1;
 	}
+	
 	//Luft unten drunter -> fallen (incl. Collision Detection on bottom)
 	if(!enableFly){
-		if(feetBlock == 0){
+		if(belowFeetBlock == 0){
 			if(speedUp >= maxFallingSpeed)
 				speedUp -= accelVertical;
 			else
@@ -363,14 +380,37 @@ void Movement::calcNewSpeed()
 				speedUp = 0.0;
 		}
 	}
+
+	std::cout << "speedUp = " << speedUp << std::endl;
+	std::cout << "personSize = " << personSize << std::endl;
+	std::cout << "pos = " << position.to_string() << std::endl;
+
+	//Steps
+	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && belowFeetBlock != 0 && !duckPressed){
+		stepProgress++;
+		if(stepProgress > 10){
+			stepProgress = 1;
+		}
+		double stepChange = fabs(sin((M_PI/10)*stepProgress)*0.04);
+		double oldSize = personSize;
+		personSize = personSizeNormal+stepChange;
+		double sizeChange = personSize-oldSize;
+		position.z += sizeChange;
+		std::cout << "sizeChange = " << sizeChange << std::endl;
+	}
+
+	std::cout << "speedUp = " << speedUp << std::endl;
+	std::cout << "personSize = " << personSize << std::endl;
+	std::cout << "pos = " << position.to_string() << std::endl;
 }
 
 void Movement::calcCollisionAndMove(){
 	PlayerPosition oldPos = position;
-	
-	std::cout << "speedUp = " << speedUp << std::endl;
-	std::cout << "personSize = " << personSize << std::endl;
-	std::cout << "pos = " << position.to_string() << std::endl;
+
+	int posBlock;
+	int offsetBlock;
+	int feetBlock;
+	int offsetFeetBlock;
 	
 	//Z-Movement Up/Down
 	if(!enableFly)
@@ -395,12 +435,28 @@ void Movement::calcCollisionAndMove(){
 		offset3.y += offset;
 		PlayerPosition offset4 = aboveHeadPos;
 		offset4.y -= offset;
+		PlayerPosition offset5 = aboveHeadPos;
+		offset5.x += offset/2;
+		offset5.y += offset/2;
+		PlayerPosition offset6 = aboveHeadPos;
+		offset6.x += offset/2;
+		offset6.y -= offset/2;
+		PlayerPosition offset7 = aboveHeadPos;
+		offset7.x -= offset/2;
+		offset7.y += offset/2;
+		PlayerPosition offset8 = aboveHeadPos;
+		offset8.x -= offset/2;
+		offset8.y -= offset/2;
 		try{
 			aboveHeadBlock = c->map.getBlock(aboveHeadPos.block());
 			aboveHeadBlock += c->map.getBlock(offset1.block());
 			aboveHeadBlock += c->map.getBlock(offset2.block());
 			aboveHeadBlock += c->map.getBlock(offset3.block());
 			aboveHeadBlock += c->map.getBlock(offset4.block());
+			aboveHeadBlock += c->map.getBlock(offset5.block());
+			aboveHeadBlock += c->map.getBlock(offset6.block());
+			aboveHeadBlock += c->map.getBlock(offset7.block());
+			aboveHeadBlock += c->map.getBlock(offset8.block());
 		}
 		catch(NotLoadedException e){
 			std::cout << "aboveHeadBlock NotLoadedException" << std::endl;
@@ -412,12 +468,12 @@ void Movement::calcCollisionAndMove(){
 		}
 	}
 	
-	int posBlock = 0;
 	try{
 		posBlock = c->map.getBlock(position.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "posBlock NotLoadedException" << std::endl;
+		posBlock = 0;
 	}
 	
 	PlayerPosition belowFeetPos = position;
@@ -431,30 +487,34 @@ void Movement::calcCollisionAndMove(){
 	offset3.y += offset;
 	PlayerPosition offset4 = belowFeetPos;
 	offset4.y -= offset;
+	PlayerPosition offset5 = belowFeetPos;
+	offset5.x += offset/2;
+	offset5.y += offset/2;
+	PlayerPosition offset6 = belowFeetPos;
+	offset6.x += offset/2;
+	offset6.y -= offset/2;
+	PlayerPosition offset7 = belowFeetPos;
+	offset7.x -= offset/2;
+	offset7.y += offset/2;
+	PlayerPosition offset8 = belowFeetPos;
+	offset8.x -= offset/2;
+	offset8.y -= offset/2;
 	try{
 		belowFeetBlock = c->map.getBlock(belowFeetPos.block());
 		belowFeetBlock += c->map.getBlock(offset1.block());
 		belowFeetBlock += c->map.getBlock(offset2.block());
 		belowFeetBlock += c->map.getBlock(offset3.block());
 		belowFeetBlock += c->map.getBlock(offset4.block());
+		belowFeetBlock += c->map.getBlock(offset5.block());
+		belowFeetBlock += c->map.getBlock(offset6.block());
+		belowFeetBlock += c->map.getBlock(offset7.block());
+		belowFeetBlock += c->map.getBlock(offset8.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "belowFeetBlock NotLoadedException" << std::endl;
 		belowFeetBlock = 1;
 	}
-	//Steps
-	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && belowFeetBlock != 0 && !duckPressed){
-		stepProgress++;
-		if(stepProgress > 10){
-			stepProgress = 0;
-		}
-		double sizeChange = fabs(sin((M_PI/10)*stepProgress)*0.04);
-		double oldSize = personSize;
-		personSize = personSizeNormal+sizeChange;
-		position.z += personSize-oldSize;
-	}
-
-	//Z-Collision
+	
 	//Jumping
 	if(belowFeetBlock != 0 && jumpPressed){
 		speedUp = jumpSpeed*(movementSpeed/normalMovementSpeed);
@@ -477,32 +537,48 @@ void Movement::calcCollisionAndMove(){
 	//X-Collision
 	//resetting vars	
 	posBlock = 1;
-	int feetBlock = 1;
-	int offsetBlock = 1;
-	int offsetFeetBlock = 1;
+	feetBlock = 0;
+	offsetBlock = 0;
+	offsetFeetBlock = 0;
 	PlayerPosition feetPos = position;
 	feetPos.z -= personSize;
 	PlayerPosition offsetPos = position;
-	PlayerPosition offsetFeetPos = feetPos;
+	PlayerPosition offsetFeetPos1 = feetPos;
+	PlayerPosition offsetFeetPos2 = feetPos;
+	PlayerPosition offsetFeetPos3 = feetPos;
 	//x moving forward
 	if(position.x > oldPos.x){
 		offsetPos.x += offset;
-		offsetFeetPos.x += offset;
+		offsetFeetPos1.x += offset;
+		offsetFeetPos2.x += offset/2;
+		offsetFeetPos2.y += offset/2;
+		offsetFeetPos3.x += offset/2;
+		offsetFeetPos3.y -= offset/2;
 	}
 	//x moving backwards
 	else if(position.x < oldPos.x){
 		offsetPos.x -= offset;
-		offsetFeetPos.x -= offset;
+		offsetFeetPos1.x -= offset;
+		offsetFeetPos2.x -= offset/2;
+		offsetFeetPos2.y += offset/2;
+		offsetFeetPos3.x -= offset/2;
+		offsetFeetPos3.y -= offset/2;
 	}
 	if(position.x != oldPos.x){
 		try{
 			posBlock = c->map.getBlock(position.block());
 			offsetBlock = c->map.getBlock(offsetPos.block());
 			feetBlock = c->map.getBlock(feetPos.block());
-			offsetFeetBlock = c->map.getBlock(offsetFeetPos.block());
+			offsetFeetBlock = c->map.getBlock(offsetFeetPos1.block());
+			offsetFeetBlock += c->map.getBlock(offsetFeetPos2.block());
+			offsetFeetBlock += c->map.getBlock(offsetFeetPos3.block());
 		}
 		catch(NotLoadedException e){
 			std::cout << "X-collision detection NotLoadedException" << std::endl;
+			posBlock = 1;
+			feetBlock = 1;
+			offsetBlock = 1;
+			offsetFeetBlock = 1;
 		}
 		int moveNot = posBlock + offsetBlock + feetBlock + offsetFeetBlock;
 		if(moveNot != 0)
@@ -525,33 +601,45 @@ void Movement::calcCollisionAndMove(){
 
 	//Y-Collision
 	//resetting vars
-	feetBlock = 1;
 	feetPos = position;
 	feetPos.z -= personSize;
-	posBlock = 1;
-	offsetBlock = 1;
-	offsetFeetBlock = 1;
 	offsetPos = position;
-	offsetFeetPos = feetPos;
+	offsetFeetPos1 = feetPos;
+	offsetFeetPos2 = feetPos;
+	offsetFeetPos3 = feetPos;
 	//y moving forward
 	if(position.y > oldPos.y){
 		offsetPos.y += offset;
-		offsetFeetPos.y += offset;
+		offsetFeetPos1.y += offset;
+		offsetFeetPos2.y += offset/2;
+		offsetFeetPos2.x += offset/2;
+		offsetFeetPos3.y += offset/2;
+		offsetFeetPos3.x -= offset/2;
 	}
 	//y moving backwards
 	else if(position.y < oldPos.y){
 		offsetPos.y -= offset;
-		offsetFeetPos.y -= offset;
+		offsetFeetPos1.y -= offset;
+		offsetFeetPos2.y -= offset/2;
+		offsetFeetPos2.x += offset/2;
+		offsetFeetPos3.y -= offset/2;
+		offsetFeetPos3.x -= offset/2;
 	}
 	if(position.y != oldPos.y){
 		try{
 			posBlock = c->map.getBlock(position.block());
 			offsetBlock = c->map.getBlock(offsetPos.block());
 			feetBlock = c->map.getBlock(feetPos.block());
-			offsetFeetBlock = c->map.getBlock(offsetFeetPos.block());
+			offsetFeetBlock = c->map.getBlock(offsetFeetPos1.block());
+			offsetFeetBlock += c->map.getBlock(offsetFeetPos2.block());
+			offsetFeetBlock += c->map.getBlock(offsetFeetPos3.block());
 		}
 		catch(NotLoadedException e){
 			std::cout << "Y-collision detection NotLoadedException" << std::endl;
+			posBlock = 1;
+			feetBlock = 1;
+			offsetBlock = 1;
+			offsetFeetBlock = 1;
 		}
 		int moveNot = posBlock + offsetBlock + feetBlock + offsetFeetBlock;
 		if(moveNot != 0)
@@ -581,6 +669,7 @@ void Movement::calcCollisionAndMove(){
 		std::cout << "do the elevator (posBlock)" << std::endl;
 		position.z = floor(position.z-personSize)+1.0+personSize;
 	}
+	
 	std::cout << std::endl;
 }
 
