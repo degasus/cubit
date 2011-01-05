@@ -105,16 +105,17 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		//UI
 		("highlightWholePlane", po::value<bool>()->default_value(1), "highlight the pointing on plane without depth test")
 		
-		("k_forward", po::value<int>()->default_value(119), "KeyCode for moving forward")
-		("k_backwards", po::value<int>()->default_value(115), "KeyCode for moving backwards")
-		("k_left", po::value<int>()->default_value(97), "KeyCode for moving left")
-		("k_right", po::value<int>()->default_value(100), "KeyCode for moving right")
-		("k_moveFast", po::value<int>()->default_value(102), "KeyCode for moving fastly")
-		("k_catchMouse", po::value<int>()->default_value(109), "KeyCode for catching mouse")
-		("k_jump", po::value<int>()->default_value(32), "KeyCode for jumping")
-		("k_fly", po::value<int>()->default_value(60), "KeyCode for enabling/disabling fly")
-		("k_duck", po::value<int>()->default_value(304), "KeyCode for ducking")
-		("k_quit", po::value<int>()->default_value(27), "KeyCode for exiting")
+		("k_forward", po::value<int>()->default_value(119), "KeyCode for moving forward (w)")
+		("k_backwards", po::value<int>()->default_value(115), "KeyCode for moving backwards (s)")
+		("k_left", po::value<int>()->default_value(97), "KeyCode for moving left (a)")
+		("k_right", po::value<int>()->default_value(100), "KeyCode for moving right (d)")
+		("k_moveFast", po::value<int>()->default_value(102), "KeyCode for moving fastly (f)")
+		("k_catchMouse", po::value<int>()->default_value(109), "KeyCode for catching mouse (m)")
+		("k_jump", po::value<int>()->default_value(32), "KeyCode for jumping (Space)")
+		("k_fly", po::value<int>()->default_value(60), "KeyCode for enabling/disabling fly (<)")
+		("k_duck", po::value<int>()->default_value(304), "KeyCode for ducking (Left-Shift)")
+		("k_music", po::value<int>()->default_value(46), "KeyCode for start/stop music (.)")
+		("k_quit", po::value<int>()->default_value(27), "KeyCode for exiting (Esc)")
 	;
 
 	//command-line args

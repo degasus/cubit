@@ -2,6 +2,7 @@
 #define _MOVEMENT_H_
 
 #include <boost/program_options.hpp>
+#include <SDL/SDL_mixer.h>
 
 
 class Movement;
@@ -196,5 +197,8 @@ private:
 	void calcDucking();
 	void calcPointingOn();
 	DIRECTION calcPointingOnInBlock(PlayerPosition*, BlockPosition);
+	
+	//Sounds
+	
 };
 #endif

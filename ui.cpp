@@ -1,4 +1,5 @@
 #include <iostream>
+#include <SDL/SDL_mixer.h>
 
 #include "controller.h"
 #include "movement.h"
@@ -12,13 +13,27 @@ UInterface::UInterface(Controller *controller)
 		cubeTurn[i] = 120.0/NUMBER_OF_MATERIALS;
 	fadingProgress = 0;
 	lastMaterial = 1;
+	musicPlaying = true;
 }
 
 void UInterface::init()
 {
 	// Slightly different SDL initialization
-	if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0 ) {
+	if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0 ) {
 		printf("Unable to initialize SDL: %s\n", SDL_GetError());
+	}
+	
+	/* We're going to be requesting certain things from our audio
+	device, so we set them up beforehand */
+	int audio_rate = 22050;
+	Uint16 audio_format = AUDIO_S16; /* 16-bit stereo */
+	int audio_channels = 2;
+	int audio_buffers = 4096;
+	
+	/* This is where we open up our audio device.  Mix_OpenAudio takes
+	as its parameters the audio format we'd /like/ to have. */
+	if(Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) {
+		printf("Unable to open audio!\n");
 	}
 	
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
@@ -29,7 +44,9 @@ void UInterface::init()
 	
 	initWindow();
 	
-	
+	//load and start music
+	ingameMusic = Mix_LoadMUS((workingDirectory + "/sound/music/forest.ogg").c_str());
+	Mix_PlayMusic(ingameMusic, -1);
 }
 
 void UInterface::config(const boost::program_options::variables_map &c)
@@ -39,6 +56,8 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	noFullY 		= c["noFullY"].as<int>();
 	isFullscreen 	= c["fullscreen"].as<bool>();
 	enableAntiAliasing = c["enableAntiAliasing"].as<bool>();
+	
+	workingDirectory	= c["workingDirectory"].as<std::string>();
 
 	k_forward		= c["k_forward"].as<int>();
 	k_backwards		= c["k_backwards"].as<int>();
@@ -49,7 +68,8 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	k_jump			= c["k_jump"].as<int>();
 	k_duck			= c["k_duck"].as<int>();
 	k_fly			= c["k_fly"].as<int>();
-	k_quit			= c["k_quit"].as<int>();	
+	k_quit			= c["k_quit"].as<int>();
+	k_music			= c["k_music"].as<int>();
 
 	turningSpeed	= c["turningSpeed"].as<double>();
 }
@@ -140,7 +160,7 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	ae.name = ActionEvent::NONE;
 
 	int code = (int)e.keysym.sym;
-	//std::cout << "KeyPressed: " << code << std::endl;
+	std::cout << "KeyPressed: " << code << std::endl;
 	
 	if(code == k_forward){
 		ae.name = ActionEvent::PRESS_FORWARD;
@@ -188,7 +208,7 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	ae.name = ActionEvent::NONE;
 	
 	int code = (int)e.keysym.sym;
-	//std::cout << "KeyReleased: " << code << std::endl;
+	std::cout << "KeyReleased: " << code << std::endl;
 	
 	if(code == k_forward){
 		ae.name = ActionEvent::RELEASE_FORWARD;
@@ -211,7 +231,16 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	if(code == k_duck){
 		ae.name = ActionEvent::RELEASE_DUCK;
 	}
-	
+	if(code == k_music){
+		if(!musicPlaying) {
+			Mix_PlayMusic(ingameMusic, -1);
+			musicPlaying = true;		
+		} 
+		else {
+			Mix_HaltMusic();
+			musicPlaying = false;
+		}
+	}	
 	if(ae.name != ActionEvent::NONE)
 		c->movement.performAction(ae);
 }
