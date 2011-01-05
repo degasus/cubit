@@ -59,4 +59,10 @@ private:
     int textureFilterMethod;
 };
 
+
+struct polygon {
+	BlockPosition pos;
+	DIRECTION d;
+};
+
 #endif
