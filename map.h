@@ -292,6 +292,9 @@ public:
 
 	
 	void read_from_harddisk();
+	
+	std::map<BlockPosition, Area*> areas;
+	
     
 private:
 	bool shouldDelArea(BlockPosition posa, PlayerPosition posp);
@@ -302,7 +305,6 @@ private:
 	Controller *c;
 	Area *lastarea;
 	
-	std::map<BlockPosition, Area*> areas;
 	
 	double destroyArea;
 	bool storeMaps;
