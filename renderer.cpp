@@ -335,63 +335,13 @@ void Renderer::render(PlayerPosition pos)
 	BlockPosition areapos = pos.block().area();
 	generateViewPort(pos);
 	
-//	int i=0;
-	
-//	for(int x = areapos.x-visualRange*AREASIZE_X; x < areapos.x+visualRange*AREASIZE_X; x+= AREASIZE_X)
-//	for(int y = areapos.y-visualRange*AREASIZE_Y; y < areapos.y+visualRange*AREASIZE_Y; y+= AREASIZE_Y)
-//	for(int z = areapos.z-visualRange*AREASIZE_Z; z < areapos.z+visualRange*AREASIZE_Z; z+= AREASIZE_Z) 
-	for(std::map<BlockPosition, Area*>::iterator it = c->map->areas.begin(); it != c->map->areas.end(); it++)	{
-//		if(z == 0) continue;
-		try {
-			if(areaInViewport(it->first, pos)) {
-				if(it->second->state == Area::STATE_READY)
-					renderArea(it->second);
-			}
-		} 	catch (NotLoadedException e) {}
-			catch (AreaEmptyException e) {}
-	}
-/*	
-	// zentrales gebiet unter sich selber
-	areapos.z = 0;
-	try {
-		Area *area = c->map->getArea(areapos);
-		renderArea(area);
-		i++;
-	} catch (NotLoadedException e) {}
 
-	
-	for(int r=1; r<visualRange; r+=1)
-	for(int side=0; side<4; side++)
-	for(int position=0; position<r*2; position+=1) {
-		int x,y,z;
-		
-		switch(side) {
-			case 0:	x = areapos.x + AREASIZE_X*(position-r);
-						y = areapos.y + AREASIZE_Y*(-r);
-						break;
-			case 1:	x = areapos.x + AREASIZE_X*(r);
-						y = areapos.y + AREASIZE_Y*(position-r);
-						break;
-			case 2:	x = areapos.x + AREASIZE_X*(r-position);
-						y = areapos.y + AREASIZE_Y*(r); 
-						break;
-			case 3:	x = areapos.x + AREASIZE_X*(-r);
-						y = areapos.y + AREASIZE_Y*(r-position);
-						break;
+	for(Map::iterator it = c->map->areas.begin(); it != c->map->areas.end(); it++)	{
+		if(areaInViewport(it->first, pos)) {
+			if(it->second->state == Area::STATE_READY)
+				renderArea(it->second);
 		}
-		z = areapos.z;
-		
-		if(!areaInViewport(BlockPosition::create(x,y,z), pos)) continue;
-		
-		try {
-			Area *area = c->map->getArea(BlockPosition::create(x,y,z));
-			if(i < maxareas)
-				renderArea(area);
-
-			i++;
-		} catch (NotLoadedException e) {}
 	}
-	*/
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){

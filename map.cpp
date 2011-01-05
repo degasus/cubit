@@ -37,7 +37,7 @@ Map::~Map()
 	if(queue_mutex)
 		SDL_DestroyMutex(queue_mutex);
 	
-	std::map< BlockPosition, Area* >::iterator it;
+	iterator it;
 	
 	for(it = areas.begin(); it != areas.end(); it++) {
 		if(storeMaps && it->second->needstore)
@@ -95,6 +95,8 @@ void Map::read_from_harddisk() {
 				memcpy(a->m,sqlite3_column_blob(loadAreas, 3),AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material));
 				a->state = Area::STATE_READY;
 				
+			//	std::cout << "lade Area " << a->pos.x << "x" << a->pos.y << "x" << a->pos.z << std::endl;
+				
 				SDL_LockMutex(queue_mutex);
 				loaded.push(a);
 				SDL_UnlockMutex(queue_mutex);
@@ -102,6 +104,26 @@ void Map::read_from_harddisk() {
 			sqlite3_reset(loadAreas);
 			SDL_UnlockMutex(c->sql_mutex);
 		}
+		
+		empty = 1;
+		Area* tosave;
+		
+		do {
+			SDL_LockMutex(queue_mutex);
+			if(!empty) {
+				saved.push(tosave);
+			}
+			empty = to_save.empty();
+			if(!empty) {
+				tosave = to_save.front();
+				to_save.pop();
+			}
+			SDL_UnlockMutex(queue_mutex);
+			
+			if(!empty)
+				store(tosave);
+			
+		} while(!empty);
 		
 		SDL_Delay (10);
 	}
@@ -176,8 +198,9 @@ void randomArea(int schieben, Area* a) {
 
 Area* Map::getArea(BlockPosition pos)
 {
-	if(areas.find(pos.area()) != areas.end()) {
-		return areas[pos.area()];
+	iterator it = areas.find(pos.area());
+	if(it != areas.end()) {
+		return it->second;
 	} else {
 		throw NotLoadedException(); /*
 		if(areasPerFrameLoadingFree>0) {
@@ -217,6 +240,7 @@ void Map::setPosition(PlayerPosition pos)
 	
 	if(!inital_loaded) {
 		inital_loaded = 1;
+		lastpos = p;
 		
 		ToLoad l;
 		l.min.x = p.x-AREASIZE_X*visualRange;
@@ -232,49 +256,105 @@ void Map::setPosition(PlayerPosition pos)
 	}
 	
 	ToLoad l;
-	l.min.x = p.x;
-	l.min.y = p.y;
-	l.min.z = p.z;
-	l.max.x = p.x;
-	l.max.y = p.y;
-	l.max.z = p.z;
+	l.min.x = p.x-AREASIZE_X*visualRange;
+	l.min.y = p.y-AREASIZE_Y*visualRange;
+	l.min.z = p.z-AREASIZE_Z*visualRange;
+	l.max.x = p.x+AREASIZE_X*visualRange;
+	l.max.y = p.y+AREASIZE_Y*visualRange;
+	l.max.z = p.z+AREASIZE_Z*visualRange;
 	bool changed = 1;
 	
+	SDL_LockMutex(queue_mutex);
 	if(p.x > lastpos.x) {
-		ToLoad l;
+		std::cout << "lade +x" << std::endl;
 		l.min.x = p.x+AREASIZE_X*visualRange;
 		l.max.x = p.x+AREASIZE_X*visualRange;
+		
+		for(int y=p.y-AREASIZE_Y*visualRange; y<=p.y+AREASIZE_Y*visualRange; y++)
+		for(int z=p.z-AREASIZE_Z*visualRange; z<=p.z+AREASIZE_Z*visualRange; z++) {
+			BlockPosition pos = BlockPosition::create(lastpos.x-AREASIZE_X*visualRange,y,z);
+			iterator it = areas.find(pos);
+			if(it == areas.end()) continue;
+			to_save.push(it->second);
+			it->second->state = Area::STATE_TOSAVE;
+		}
 		lastpos.x = p.x;
 	} else if(p.x < lastpos.x) {
-		ToLoad l;
+		std::cout << "lade -x" << std::endl;
 		l.min.x = p.x-AREASIZE_X*visualRange;
 		l.max.x = p.x-AREASIZE_X*visualRange;
+		
+		for(int y=p.y-AREASIZE_Y*visualRange; y<=p.y+AREASIZE_Y*visualRange; y++)
+		for(int z=p.z-AREASIZE_Z*visualRange; z<=p.z+AREASIZE_Z*visualRange; z++) {
+			BlockPosition pos = BlockPosition::create(lastpos.x+AREASIZE_X*visualRange,y,z);
+			iterator it = areas.find(pos);
+			if(it == areas.end()) continue;
+			to_save.push(it->second);
+			it->second->state = Area::STATE_TOSAVE;
+		}
 		lastpos.x = p.x;
 	} else if(p.y > lastpos.y) {
-		ToLoad l;
+		std::cout << "lade +y" << std::endl;
 		l.min.y = p.y+AREASIZE_Y*visualRange;
 		l.max.y = p.y+AREASIZE_Y*visualRange;
+		
+		for(int x=p.x-AREASIZE_X*visualRange; x<=p.x+AREASIZE_X*visualRange; x++)
+		for(int z=p.z-AREASIZE_Z*visualRange; z<=p.z+AREASIZE_Z*visualRange; z++) {
+			BlockPosition pos = BlockPosition::create(x,lastpos.y-AREASIZE_Y*visualRange,z);
+			iterator it = areas.find(pos);
+			if(it == areas.end()) continue;
+			to_save.push(it->second);
+			it->second->state = Area::STATE_TOSAVE;
+		}
 		lastpos.y = p.y;
 	} else if(p.y < lastpos.y) {
-		ToLoad l;
+		std::cout << "lade -y" << std::endl;
 		l.min.y = p.y-AREASIZE_Y*visualRange;
 		l.max.y = p.y-AREASIZE_Y*visualRange;
+		
+		for(int x=p.x-AREASIZE_X*visualRange; x<=p.x+AREASIZE_X*visualRange; x++)
+		for(int z=p.z-AREASIZE_Z*visualRange; z<=p.z+AREASIZE_Z*visualRange; z++) {
+			BlockPosition pos = BlockPosition::create(x,lastpos.y+AREASIZE_Y*visualRange,z);
+			iterator it = areas.find(pos);
+			if(it == areas.end()) continue;
+			to_save.push(it->second);
+			it->second->state = Area::STATE_TOSAVE;
+		}
 		lastpos.y = p.y;
 	} else if(p.z > lastpos.z) {
-		ToLoad l;
+		std::cout << "lade +z" << std::endl;
 		l.min.z = p.z+AREASIZE_Z*visualRange;
 		l.max.z = p.z+AREASIZE_Z*visualRange;
+		
+		for(int x=p.x-AREASIZE_X*visualRange; x<=p.x+AREASIZE_X*visualRange; x++)
+		for(int y=p.y-AREASIZE_Y*visualRange; y<=p.y+AREASIZE_Y*visualRange; y++) {
+			BlockPosition pos = BlockPosition::create(x,y,lastpos.z-AREASIZE_Z*visualRange);
+			iterator it = areas.find(pos);
+			if(it == areas.end()) continue;
+			to_save.push(it->second);
+			it->second->state = Area::STATE_TOSAVE;
+		}
 		lastpos.z = p.z;
 	} else if(p.z < lastpos.z) {
-		ToLoad l;
+		std::cout << "lade -z" << std::endl;
 		l.min.z = p.z-AREASIZE_Z*visualRange;
 		l.max.z = p.z-AREASIZE_Z*visualRange;
+		
+		for(int x=p.x-AREASIZE_X*visualRange; x<=p.x+AREASIZE_X*visualRange; x++)
+		for(int y=p.y-AREASIZE_Y*visualRange; y<=p.y+AREASIZE_Y*visualRange; y++) {
+			BlockPosition pos = BlockPosition::create(x,y,lastpos.z+AREASIZE_Z*visualRange);
+			iterator it = areas.find(pos);
+			if(it == areas.end()) continue;
+			to_save.push(it->second);
+			it->second->state = Area::STATE_TOSAVE;
+		}
 		lastpos.z = p.z;
 	} else changed = 0;
 	
-	SDL_LockMutex(queue_mutex);
-	if(changed)
+	if(changed) {
+		std::cout << l.min.x << "x" <<l.min.y << "x" <<l.min.z << " - " <<l.max.x << "x" <<l.max.y << "x" <<l.max.z << std::endl;
 		to_load.push(l);
+	}
 	
 	while(!loaded.empty()) {
 		Area* a = loaded.front();
@@ -282,19 +362,18 @@ void Map::setPosition(PlayerPosition pos)
 		
 		areas[a->pos] = a;
 	}
+	
+	while(!saved.empty()) {
+		Area* a = saved.front();
+		saved.pop();
+		
+		iterator it = areas.find(a->pos);
+		if(it->second->state == Area::STATE_TOSAVE)
+			areas.erase(it);
+	}
+	
 	SDL_UnlockMutex(queue_mutex);
 }
-
-bool Map::shouldDelArea(BlockPosition posa, PlayerPosition posp)
-{
-	return (
-		(posa.x-posp.x)*(posa.x-posp.x) +
-		(posa.y-posp.y)*(posa.y-posp.y) +
-		(posa.z-posp.z)*(posa.z-posp.z)
-	) >= destroyArea*destroyArea;
-		
-}
-
 
 void Map::areaLoadedIsEmpty(BlockPosition pos)
 {
@@ -318,6 +397,8 @@ void Map::store(Area *a) {
 	
 	of.close();
 	*/
+	//std::cout << "store " << a->pos.x <<"x"<<a->pos.y <<"x"<<a->pos.z <<std::endl;
+	
 	SDL_LockMutex(c->sql_mutex);
 	sqlite3_bind_int(saveArea, 1, a->pos.x);
 	sqlite3_bind_int(saveArea, 2, a->pos.y);

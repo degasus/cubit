@@ -175,7 +175,8 @@ public:
 	
 	enum AreaState {
 		STATE_NEW,
-		STATE_READY
+		STATE_READY,
+		STATE_TOSAVE
 	} state;
 	
 	/**
@@ -212,6 +213,8 @@ public:
  * Sorgt für das Laden der Karteninformation von Server
  * und stellt sie unter einfachen Funktionen bereit.
  */
+
+
 class Map {
 public:
 	/**
@@ -228,14 +231,14 @@ public:
 	 * @throws NotLoadedException
 	 */
 	inline Material getBlock(BlockPosition pos){
-		if(areas.find(pos.area()) == areas.end())
+		iterator it = areas.find(pos.area());
+		if(it == areas.end())
 			throw NotLoadedException();
 		
-		Area* a = areas[pos.area()];
-		if(a->state != Area::STATE_READY)
+		if(it->second->state != Area::STATE_READY)
 			throw NotLoadedException();
 		
-		return a->get(pos);
+		return it->second->get(pos);
 	}
 
 	/**
@@ -243,19 +246,20 @@ public:
 	 * @throws NotLoadedException falls diese Gebiet noch nicht geladen ist
 	 */
 	void setBlock(BlockPosition pos, Material m){
-		if(areas.find(pos.area()) == areas.end())
+		iterator it = areas.find(pos.area());
+		if(it == areas.end())
 			throw NotLoadedException();
 		
-		Area* a = areas[pos.area()];
-		
-		if(a->state != Area::STATE_READY)
+		if(it->second->state != Area::STATE_READY)
 			throw NotLoadedException();
 		
-		a->set(pos,m);
+		it->second->set(pos,m);
 		
-		for(int i=0; i<DIRECTION_COUNT; i++) {
-			if(areas.find((pos+(DIRECTION)i).area()) != areas.end())
-				areas[(pos+(DIRECTION)i).area()]->needupdate = 1;
+		for(int i=0; i<DIRECTION_COUNT; i++) {	
+			iterator it2 = areas.find((pos+(DIRECTION)i).area());
+			if(it2 != areas.end()) {
+				it2->second->needupdate = 1;
+			}
 		}
 	}
 
@@ -294,7 +298,7 @@ public:
 	void read_from_harddisk();
 	
 	std::map<BlockPosition, Area*> areas;
-	
+	typedef std::map<BlockPosition, Area*>::iterator iterator;
     
 private:
 	bool shouldDelArea(BlockPosition posa, PlayerPosition posp);
@@ -320,6 +324,8 @@ private:
 	struct ToLoad {BlockPosition min; BlockPosition max; };
 	std::queue<ToLoad> to_load;
 	std::queue<Area*> loaded;
+	std::queue<Area*> to_save;
+	std::queue<Area*> saved;
 	SDL_mutex* queue_mutex;
 	
 	SDL_Thread* harddisk;
