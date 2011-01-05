@@ -25,6 +25,8 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	visualRange			= c["visualRange"].as<float>();
 	maxareas			= c["visualRange"].as<float>()*c["visualRange"].as<float>();
 	enableFog			= c["enableFog"].as<bool>();
+	
+	textureFilterMethod = c["textureFilterMethod"].as<int>();
 
 	string textureDirectory = c["workingDirectory"].as<string>() + "/tex";
 	Texture_Files[1]	= textureDirectory + "/" + c["texture01"].as<string>();
@@ -54,7 +56,6 @@ void Renderer::init()
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);					// Really Nice Perspective Calculations
 	glHint(GL_LINE_SMOOTH, GL_NICEST);
 	glEnable(GL_LINE_SMOOTH);
-
 	
 	//LIGHT
 
@@ -121,8 +122,18 @@ void Renderer::init()
 			glBindTexture( GL_TEXTURE_2D, texture[i] );
 
 			// Set the texture's stretching properties
-			//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			if(textureFilterMethod == 3){
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			}
+			else if(textureFilterMethod == 2){
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			}
+			else{
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+			}
 
 
 			gluBuild2DMipmaps(GL_TEXTURE_2D, 3, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);

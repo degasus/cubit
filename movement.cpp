@@ -787,7 +787,57 @@ void Movement::calcBuilding(){
 
 void Movement::buildBlock()
 {
-	if(pointingOnBlock != position.block() && pointingOnBlock != position.block()+DIRECTION_DOWN){
+	PlayerPosition pos[18];
+	pos[0] = position;
+	pos[0].z -= personSize;
+	pos[1] = pos[0];
+	pos[1].x += offset;
+	pos[2] = pos[0];
+	pos[2].x -= offset;
+	pos[3] = pos[0];
+	pos[3].y += offset;
+	pos[4] = pos[0];
+	pos[4].y -= offset;
+	pos[5] = pos[0];
+	pos[5].x += offset/2;
+	pos[5].y += offset/2;
+	pos[6] = pos[0];
+	pos[6].x += offset/2;
+	pos[6].y -= offset/2;
+	pos[7] = pos[0];
+	pos[7].x -= offset/2;
+	pos[7].y += offset/2;
+	pos[8] = pos[0];
+	pos[8].x -= offset/2;
+	pos[8].y -= offset/2;
+	
+	pos[9] = position;
+	pos[10] = pos[9];
+	pos[10].x += offset;
+	pos[11] = pos[9];
+	pos[11].x -= offset;
+	pos[12] = pos[9];
+	pos[12].y += offset;
+	pos[13] = pos[9];
+	pos[13].y -= offset;
+	pos[14] = pos[9];
+	pos[14].x += offset/2;
+	pos[14].y += offset/2;
+	pos[15] = pos[9];
+	pos[15].x += offset/2;
+	pos[15].y -= offset/2;
+	pos[16] = pos[9];
+	pos[16].x -= offset/2;
+	pos[16].y += offset/2;
+	pos[17] = pos[9];
+	pos[17].x -= offset/2;
+	pos[17].y -= offset/2;
+	bool noBuild = false;
+	for(int i = 0; i < 18; i++){
+		if(pos[i].block() == pointingOnBlock)
+			noBuild = true;
+	}
+	if(!noBuild){
 		try{
 			c->map.setBlock(pointingOnBlock, selectedMaterial);
 		}

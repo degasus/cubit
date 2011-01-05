@@ -62,6 +62,8 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("noFullX", po::value<int>()->default_value(1024), "set the default x-resolution")
 		("noFullY", po::value<int>()->default_value(768), "set the default y-resolution")
 		("fullscreen", po::value<bool>()->default_value(1), "start in fullscreen")
+		("enableAntiAliasing", po::value<bool>()->default_value(0), "enables Multi-Sampling")
+		("textureFilterMethod", po::value<int>()->default_value(1), "set the texture filter method (1=nearest; 2=linear; 3=triliear)")
 		("bgColorR", po::value<float>()->default_value(0.6), "Background Color Red")
 		("bgColorG", po::value<float>()->default_value(0.7), "Background Color Green")
 		("bgColorB", po::value<float>()->default_value(0.8), "Background Color Blue")

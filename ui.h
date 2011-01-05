@@ -51,6 +51,9 @@ private:
 	int noFullY;
 	//fullscreen on/off
 	bool isFullscreen;
+
+	//multi sampling
+	bool enableAntiAliasing;
 	
 	bool catchMouse;
 	double turningSpeed;

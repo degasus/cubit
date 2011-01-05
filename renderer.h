@@ -56,6 +56,7 @@ private:
 	Controller *c;
 
 	bool highlightWholePlane;
+    int textureFilterMethod;
 };
 
 #endif

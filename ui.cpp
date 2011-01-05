@@ -21,10 +21,15 @@ void UInterface::init()
 		printf("Unable to initialize SDL: %s\n", SDL_GetError());
 	}
 	
+	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+	if(enableAntiAliasing){
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+	}
+	
 	initWindow();
 	
-	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-
+	
 }
 
 void UInterface::config(const boost::program_options::variables_map &c)
@@ -33,6 +38,7 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	
 	noFullY 		= c["noFullY"].as<int>();
 	isFullscreen 	= c["fullscreen"].as<bool>();
+	enableAntiAliasing = c["enableAntiAliasing"].as<bool>();
 
 	k_forward		= c["k_forward"].as<int>();
 	k_backwards		= c["k_backwards"].as<int>();
@@ -50,7 +56,7 @@ void UInterface::config(const boost::program_options::variables_map &c)
 
 
 void UInterface::initWindow()
-{
+{	
 	if (isFullscreen) {
 		const SDL_VideoInfo *vi = SDL_GetVideoInfo();
 		screenX = vi->current_w;
