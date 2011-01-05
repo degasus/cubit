@@ -58,4 +58,10 @@ private:
 	bool highlightWholePlane;
 };
 
+
+struct polygon {
+	BlockPosition pos;
+	DIRECTION d;
+};
+
 #endif

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 #include "controller.h"
 #include "map.h"
@@ -140,6 +141,7 @@ void Renderer::init()
 
 }
 
+
 void Renderer::renderArea(Area* area)
 {
 //	if(area->empty) return;
@@ -149,89 +151,94 @@ void Renderer::renderArea(Area* area)
 
 	if(area->needupdate && (areasRendered <= areasPerFrame)) {
 		areasRendered++;
-	
-		bool found_polygon = 0;
 		
 		area->needupdate = 0;
+		
+		std::vector<polygon> polys[NUMBER_OF_MATERIALS];
 
 		Area* areas[DIRECTION_COUNT];
 		for(int i=0; i<DIRECTION_COUNT; i++)
 			areas[i] = 0;
 
-		for(int i=1; i < NUMBER_OF_MATERIALS; i++){
-			bool texture_used = 0;
+		for(int x=area->pos.x; x<AREASIZE_X+area->pos.x; x++)
+		for(int y=area->pos.y; y<AREASIZE_Y+area->pos.y; y++)
+		for(int z=area->pos.z; z<AREASIZE_Z+area->pos.z; z++)  {
 
-			for(int x=area->pos.x; x<AREASIZE_X+area->pos.x; x++)
-			for(int y=area->pos.y; y<AREASIZE_Y+area->pos.y; y++)
-			for(int z=area->pos.z; z<AREASIZE_Z+area->pos.z; z++)  {
+			BlockPosition pos = BlockPosition::create(x,y,z);
 
-				BlockPosition pos = BlockPosition::create(x,y,z);
+			Material now = area->get(pos);;
+			if(now) {
+				for(int dir=0; dir < DIRECTION_COUNT; dir++) {
+					BlockPosition next = pos+(DIRECTION)dir;
 
-				if(area->get(pos) == i){
-					Material now = area->get(pos);;
-					if(now) {
-						for(int dir=0; dir < DIRECTION_COUNT; dir++) {
-							BlockPosition next = pos+(DIRECTION)dir;
-
-							Material next_m;
-							if((*area) << next)
-								next_m = area->get(next);
-							else if(areas[dir] && (*areas[dir]) << next)
-								next_m = areas[dir]->get(next);
-							else {
-								try {
-									areas[dir] = c->map.getArea(next);
-									next_m = areas[dir]->get(next);
-								} catch(NotLoadedException e) {
-										next_m = 1;
-								}
-							}
-
-							if(!next_m) {
-								if(!found_polygon) {
-									found_polygon = 1;
-									
-									if(!area->gllist_generated) {
-										area->gllist_generated = 1;
-										area->gllist = glGenLists(1);
-									}
-
-									glNewList(area->gllist,GL_COMPILE_AND_EXECUTE);
-								}
-								
-								if(!texture_used) {
-									texture_used = 1;
-									glBindTexture( GL_TEXTURE_2D, texture[i] );
-									glBegin( GL_QUADS );
-								}
-								
-								
-								glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer
-								for(int point=0; point < POINTS_PER_POLYGON; point++) {
-									glTexCoord2f(
-										TEXTUR_POSITION_OF_DIRECTION[dir][point][0],
-										TEXTUR_POSITION_OF_DIRECTION[dir][point][1]
-									);
-									glVertex3f(
-										POINTS_OF_DIRECTION[dir][point][0]+(x-area->pos.x),
-										POINTS_OF_DIRECTION[dir][point][1]+(y-area->pos.y),
-										POINTS_OF_DIRECTION[dir][point][2]+(z-area->pos.z)
-									);
-								}
-							}
+					Material next_m;
+					if((*area) << next)
+						next_m = area->get(next);
+					else if(areas[dir] && (*areas[dir]) << next)
+						next_m = areas[dir]->get(next);
+					else {
+						try {
+							areas[dir] = c->map.getArea(next);
+							next_m = areas[dir]->get(next);
+						} catch(NotLoadedException e) {
+								next_m = 1;
 						}
+					}
+
+					if(!next_m) {
+						polygon p;
+						p.pos = pos;
+						p.d = (DIRECTION)dir;
+						polys[now].push_back(p);
 					}
 				}
 			}
-		if(texture_used)
-			glEnd();
+		}
+		
+		bool found_polygon = 0;
+		for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
+			bool texture_used = 0;
+			for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
+				
+				// create new list
+				if(!found_polygon) {
+					found_polygon = 1;
+					if(!area->gllist_generated) {
+						area->gllist_generated = 1;
+						area->gllist = glGenLists(1);
+					}
+
+					glNewList(area->gllist,GL_COMPILE_AND_EXECUTE);
+				}
+				
+				// switch texture
+				if(!texture_used) {
+					texture_used = 1;
+					glBindTexture( GL_TEXTURE_2D, texture[i] );
+					glBegin( GL_QUADS );
+				}
+				
+				
+				glNormal3f( NORMAL_OF_DIRECTION[it->d][0], NORMAL_OF_DIRECTION[it->d][1], NORMAL_OF_DIRECTION[it->d][2]);                                     // Normal Pointing Towards Viewer
+				for(int point=0; point < POINTS_PER_POLYGON; point++) {
+					glTexCoord2f(
+						TEXTUR_POSITION_OF_DIRECTION[it->d][point][0],
+						TEXTUR_POSITION_OF_DIRECTION[it->d][point][1]
+					);
+					glVertex3f(
+						POINTS_OF_DIRECTION[it->d][point][0]+(it->pos.x-area->pos.x),
+						POINTS_OF_DIRECTION[it->d][point][1]+(it->pos.y-area->pos.y),
+						POINTS_OF_DIRECTION[it->d][point][2]+(it->pos.z-area->pos.z)
+					);
+				}
+			}
+			if(texture_used)
+				glEnd();
 		}
 		if(found_polygon)
 			glEndList();
-		else if(area->gllist_generated) {
-			area->gllist_generated = 0;
-			glDeleteLists(area->gllist,1);
-		}
+		
+		
 	} else if(area->gllist_generated) {
 		glCallList(area->gllist);
 	} else {
