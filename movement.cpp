@@ -3,6 +3,7 @@
 #include <fstream>
 #include <boost/archive/text_oarchive.hpp>
 #include <cstdio>
+#include <SDL/SDL_mixer.h>
 
 #include "controller.h"
 
@@ -68,7 +69,7 @@ void Movement::config(const boost::program_options::variables_map& c){
 
 void Movement::init()
 {
-	
+	//step = Mix_LoadMUS((workingDirectory + "/sound/fx/Footstep-stereo.ogg").c_str());
 }
 
 void Movement::savePosition() {
@@ -699,8 +700,6 @@ void Movement::calcPointingOn(){
 	try{
 		while(c->map->getBlock(pointingOnBlock) == 0 && distanceQ <= pointingDistance*pointingDistance && counter <= pointingDistance*3+2){
 			counter++;
-			//std::cout << "lastPos = " << lastPos.to_string() << std::endl;
-			//std::cout << "pointingOnBlock = " << pointingOnBlock.to_string() << std::endl;
 			lastPointingOnBlock = pointingOnBlock;
 			
 			pointingOnPlane = calcPointingOnInBlock(&lastPos, pointingOnBlock);
@@ -711,13 +710,11 @@ void Movement::calcPointingOn(){
 			double dz = lastPos.z - position.z;
 
 			distanceQ = dx*dx + dy*dy + dz*dz;
-			//std::cout << "pointingOnPlane = " << pointingOnPlane << std::endl << std::endl;
 
 		}
 
-		//std::cout <<  std::endl << std::endl;
-
 		if(c->map->getBlock(pointingOnBlock) == 0)
+
 			isPointingOn = false;
 		else
 			isPointingOn = true;
@@ -728,7 +725,7 @@ void Movement::calcPointingOn(){
 	}
 }
 
-//Berechnet die Fläche, auf die von der Startposition aus (Parameter) mit der aktuellen Blickrichtung
+//Berechnet die Fläche, auf die von der Startposition aus (Parameter) mit der aktuellen Blickrichtung gezeigt wird
 //@return: ID der Fläche, auf die man zeigt
 //Am Ende sind die Parameter auf den Schnittpunkt gesetzt
 DIRECTION Movement::calcPointingOnInBlock(PlayerPosition* posIn, BlockPosition blockIn){

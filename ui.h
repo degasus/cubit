@@ -45,6 +45,7 @@ private:
 	void handleMouseEvents(SDL_MouseMotionEvent e);
 	void drawHUD();
 
+	std::string workingDirectory;
 
 	//default frame size on no fullscreen
 	int noFullX;
@@ -76,11 +77,16 @@ private:
 	int k_fly;
 	int k_quit;
 	int k_catchMouse;
+	int k_music;
 
 	//HUD
 	double cubeTurn[NUMBER_OF_MATERIALS];
 	int fadingProgress;
 	int lastMaterial;
+	
+	//Music
+	Mix_Music *ingameMusic;
+	bool musicPlaying;
 };
 
 
