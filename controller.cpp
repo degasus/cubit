@@ -57,10 +57,10 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("texture05", po::value<string>()->default_value("marble.bmp"), "Black marble with white")
 		("texture06", po::value<string>()->default_value("hopscotch.bmp"), "Hopscotch")
 		("texture07", po::value<string>()->default_value("bee.bmp"), "Black/Yellow")
-		("visualRange", po::value<float>()->default_value(25), "maximal distance for rendering")
+		("visualRange", po::value<float>()->default_value(5), "maximal distance for rendering")
 		("enableFog", po::value<bool>()->default_value(1), "enable Fog")
-		("areasPerFrameRendering", po::value<int>()->default_value(5), "set the maximal rendered areas per frame")
-		("areasPerFrameLoading", po::value<int>()->default_value(10), "set the maximal from hard disk loaded areas per frame")
+		("areasPerFrameRendering", po::value<int>()->default_value(1), "set the maximal rendered areas per frame")
+		("areasPerFrameLoading", po::value<int>()->default_value(5), "set the maximal from hard disk loaded areas per frame")
 		
 		("destroyAreaFaktor", po::value<double>()->default_value(2), "distance for destroying areas")
 
