@@ -69,7 +69,8 @@ void Movement::config(const boost::program_options::variables_map& c){
 
 void Movement::init()
 {
-	//step = Mix_LoadMUS((workingDirectory + "/sound/fx/Footstep-stereo.ogg").c_str());
+	step = Mix_LoadWAV((workingDirectory + "/sound/fx/Footstep-stereo.ogg").c_str());
+	putBlock = Mix_LoadWAV((workingDirectory + "/sound/fx/nutfall.wav").c_str());
 }
 
 void Movement::savePosition() {
@@ -105,7 +106,7 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::RELEASE_FORWARD:
 			forwardPressed = false;
 			//Steps
-			stepProgress = 0;
+			stepProgress = 11;
 			if(!duckPressed)
 				personSize = personSizeNormal;
 			else
@@ -118,7 +119,7 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::RELEASE_BACKWARDS:
 			backwardsPressed = false;
 			//Steps
-			stepProgress = 0;
+			stepProgress = 11;
 			if(!duckPressed)
 				personSize = personSizeNormal;
 			else
@@ -131,7 +132,7 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::RELEASE_LEFT:
 			leftPressed = false;
 			//Steps
-			stepProgress = 0;
+			stepProgress = 11;
 			if(!duckPressed)
 				personSize = personSizeNormal;
 			else
@@ -144,7 +145,7 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::RELEASE_RIGHT:
 			rightPressed = false;
 			//Steps
-			stepProgress = 0;
+			stepProgress = 11;
 			if(!duckPressed)
 				personSize = personSizeNormal;
 			else
@@ -504,6 +505,7 @@ void Movement::calcCollisionAndMove(){
 		stepProgress++;
 		if(stepProgress > 10){
 			stepProgress = 1;
+			Mix_PlayChannel(-1, step, 0);
 		}
 		double stepChange = fabs(sin((M_PI/10)*stepProgress)*0.04);
 		double oldSize = personSize;
@@ -837,6 +839,7 @@ void Movement::buildBlock()
 	if(!noBuild){
 		try{
 			c->map->setBlock(pointingOnBlock, selectedMaterial);
+			Mix_PlayChannel(-1, putBlock, 0);
 		}
 		catch(NotLoadedException e){
 			std::cout << "NotLoadedException buildBlock" << std::endl;
