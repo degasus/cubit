@@ -389,6 +389,7 @@ void Movement::calcCollisionAndMove(){
 	int offsetBlock;
 	int feetBlock;
 	int offsetFeetBlock;
+	PlayerPosition feetPos;
 	
 	//Z-Movement Up/Down
 	if(!enableFly)
@@ -492,11 +493,11 @@ void Movement::calcCollisionAndMove(){
 		std::cout << "belowFeetBlock NotLoadedException" << std::endl;
 		belowFeetBlock = 1;
 	}
-/*
+
 	std::cout << "speedUp = " << speedUp << std::endl;
 	std::cout << "personSize = " << personSize << std::endl;
 	std::cout << "pos = " << position.to_string() << std::endl;
-*/
+
 	//Steps
 	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && belowFeetBlock != 0 && !duckPressed){
 		stepProgress++;
@@ -508,13 +509,36 @@ void Movement::calcCollisionAndMove(){
 		personSize = personSizeNormal+stepChange;
 		double sizeChange = personSize-oldSize;
 		position.z += sizeChange;
-//		std::cout << "sizeChange = " << sizeChange << std::endl;
+		std::cout << "sizeChange = " << sizeChange << std::endl;
 	}
-/*
+
 	std::cout << "speedUp = " << speedUp << std::endl;
 	std::cout << "personSize = " << personSize << std::endl;
 	std::cout << "pos = " << position.to_string() << std::endl;
-	*/
+	
+	//"Elevator"
+	feetPos = position;
+	feetPos.z -= personSize;
+	try{
+		posBlock = c->map.getBlock(position.block());
+		feetBlock = c->map.getBlock(feetPos.block());
+	}
+	catch(NotLoadedException e){
+		std::cout << "Elevator NotLoadedException" << std::endl;
+		posBlock = 0;
+		feetBlock = 0;
+	}
+	if(feetBlock != 0 && speedUp <= 0){
+		speedUp = 0.0;
+		std::cout << "do the elevator (feetBlock = " << feetBlock << std::endl;
+		position.z = floor(position.z-personSize)+1.0+personSize;
+	}
+	else if(posBlock != 0 && speedUp <= 0){
+		speedUp = 0.0;
+		std::cout << "do the elevator (posBlock = " << posBlock << std::endl;
+		position.z = floor(position.z-personSize)+1.0+personSize;
+	}
+	
 	//Jumping
 	if(belowFeetBlock != 0 && jumpPressed){
 		speedUp = jumpSpeed*(movementSpeed/normalMovementSpeed);
@@ -540,7 +564,7 @@ void Movement::calcCollisionAndMove(){
 	feetBlock = 0;
 	offsetBlock = 0;
 	offsetFeetBlock = 0;
-	PlayerPosition feetPos = position;
+	feetPos = position;
 	feetPos.z -= personSize;
 	PlayerPosition offsetPos = position;
 	PlayerPosition offsetFeetPos1 = feetPos;
@@ -581,8 +605,16 @@ void Movement::calcCollisionAndMove(){
 			offsetFeetBlock = 1;
 		}
 		int moveNot = posBlock + offsetBlock + feetBlock + offsetFeetBlock;
-		if(moveNot != 0)
-			position.x = oldPos.x;
+		if(moveNot != 0){
+			//x moving forward
+			if(position.x > oldPos.x){
+				position.x = std::floor(oldPos.x)+1.0-offset-0.01;
+			}
+			//x moving backwards
+			else if(position.x < oldPos.x){
+				position.x = std::floor(oldPos.x)+offset+0.01;
+			}
+		}
 	}
 
 	//Y Movement
@@ -642,34 +674,19 @@ void Movement::calcCollisionAndMove(){
 			offsetFeetBlock = 1;
 		}
 		int moveNot = posBlock + offsetBlock + feetBlock + offsetFeetBlock;
-		if(moveNot != 0)
-			position.y = oldPos.y;
-	}
-
-	//"Elevator"
-	feetPos = position;
-	feetPos.z -= personSize;
-	try{
-		posBlock = c->map.getBlock(position.block());
-		feetBlock = c->map.getBlock(feetPos.block());
-	}
-	catch(NotLoadedException e){
-		std::cout << "Elevator NotLoadedException" << std::endl;
-		posBlock = 0;
-		feetBlock = 0;
-	}
-	if(feetBlock != 0 && speedUp <= 0){
-		speedUp = 0.0;
-		std::cout << "do the elevator (feetBlock = " << feetBlock << std::endl;
-		position.z = floor(position.z-personSize)+1.0+personSize;
-	}
-	else if(posBlock != 0 && speedUp <= 0){
-		speedUp = 0.0;
-		std::cout << "do the elevator (posBlock = " << posBlock << std::endl;
-		position.z = floor(position.z-personSize)+1.0+personSize;
+		if(moveNot != 0){
+			//y moving forward
+			if(position.y > oldPos.y){
+				position.y = std::floor(oldPos.y)+1.0-offset-0.01;
+			}
+			//y moving backwards
+			else if(position.y < oldPos.y){
+				position.y = std::floor(oldPos.y)+offset+0.01;
+			}
+		}
 	}
 	
-//	std::cout << std::endl;
+	std::cout << std::endl;
 }
 
 void Movement::calcPointingOn(){
