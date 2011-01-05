@@ -3,6 +3,9 @@
 
 #include "controller.h"
 #include "map.h"
+
+#include "matrix.h"
+
 using namespace std;
 
 
@@ -237,40 +240,58 @@ void Renderer::renderArea(Area* area)
 	glPopMatrix();
 }
 
-
 bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
-	bool left = 0;
-	bool right = 0;
+		
+	Matrix<double,1,3> pos;
+	pos.data[0][0] = apos.x - ppos.x + AREASIZE_X/2;
+	pos.data[0][1] = apos.y - ppos.y + AREASIZE_Y/2;
+	pos.data[0][2] = apos.z - ppos.z + AREASIZE_Z/2;
 	
-	for(int i=0; i<8; i++) {
-		double diffx = apos.x - ppos.x + AREASIZE_X*(i&1);
-		double diffy = apos.y - ppos.y + AREASIZE_Y*(i&2);
-		double diffz = apos.z - ppos.z + AREASIZE_Z*(i&4);
-		
-		if(diffx*diffx + diffy*diffy + diffz*diffz > visualRange*visualRange*16*16)
-			continue;
-		
-		double horizontal = (std::atan2(diffy,diffx)*180/M_PI+360) - ppos.orientationHorizontal;
-		
-		if(horizontal>=360) horizontal-=360;
-		if(horizontal<0) horizontal+=360;
-		if(horizontal>=360) horizontal-=360;
-		if(horizontal<0) horizontal+=360;
-		
-		if(horizontal <= 45 || horizontal >= 360-45 )
-			return 1;
-		
-		if(horizontal <= 90)
-			right = 1;
-		if(horizontal >= 360-90)
-			left = 1;
-	}
-	if(left && right)
-		return 1;
-
-	return 0;
+	//pos.to_str();
+	
+	double a = ppos.orientationHorizontal/180*M_PI;
+	
+	Matrix<double,3,3> drehz;
+	drehz.data[0][0] = cos(a);
+	drehz.data[0][1] = -sin(a);
+	drehz.data[0][2] = 0;
+	drehz.data[1][0] = sin(a);
+	drehz.data[1][1] = cos(a);
+	drehz.data[1][2] = 0;
+	drehz.data[2][0] = 0;
+	drehz.data[2][1] = 0;
+	drehz.data[2][2] = 1;
+	
+	//drehz.to_str();
+	
+	
+	a = (ppos.orientationVertical)/180*M_PI;
+	
+	Matrix<double,3,3> drehy;
+	drehy.data[0][0] = cos(a);
+	drehy.data[0][1] = 0;
+	drehy.data[0][2] = -sin(a);
+	drehy.data[1][0] = 0;
+	drehy.data[1][1] = 1;
+	drehy.data[1][2] = 0;
+	drehy.data[2][0] = sin(a);
+	drehy.data[2][1] = 0;
+	drehy.data[2][2] = cos(a);
+	
+	//drehy.to_str();
+	
+	Matrix<double,1,3> erg = (drehy*drehz)*pos;
+/*	erg.to_str();
+	
+	std::cout << apos.z << " " << ppos.z << std::endl;
+	std::cout << std::endl;
+	*/
+	return (erg.data[0][0] > - AREASIZE_X/2) 				// nicht hinter einem
+	    && (erg.data[0][0] < AREASIZE_X*visualRange)	// sichtweite
+		 && (abs(erg.data[0][1])/(abs(erg.data[0][0])+2*AREASIZE_X) < 0.5 )	// seitlich ausm sichtbereich
+		 && (abs(erg.data[0][2])/(abs(erg.data[0][0])+2*AREASIZE_X) < 0.5 )	// seitlich ausm sichtbereich
+		 ;
 }
-
 void Renderer::render(PlayerPosition pos)
 {
 	// Clear the screen before drawing
@@ -310,6 +331,7 @@ void Renderer::render(PlayerPosition pos)
 	for(int z = areapos.z-3*AREASIZE_Z; z < areapos.z+3*AREASIZE_Z; z+= AREASIZE_Z) {
 		if(z == 0) continue;
 		try {
+			if(!areaInViewport(BlockPosition::create(x,y,z), pos)) continue;
 			Area *area = c->map.getArea(BlockPosition::create(x,y,z));
 			renderArea(area);
 		} 	catch (NotLoadedException e) {}
