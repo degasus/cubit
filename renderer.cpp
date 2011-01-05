@@ -337,14 +337,16 @@ void Renderer::render(PlayerPosition pos)
 	
 //	int i=0;
 	
-	for(int x = areapos.x-visualRange*AREASIZE_X; x < areapos.x+visualRange*AREASIZE_X; x+= AREASIZE_X)
-	for(int y = areapos.y-visualRange*AREASIZE_Y; y < areapos.y+visualRange*AREASIZE_Y; y+= AREASIZE_Y)
-	for(int z = areapos.z-visualRange*AREASIZE_Z; z < areapos.z+visualRange*AREASIZE_Z; z+= AREASIZE_Z) {
+//	for(int x = areapos.x-visualRange*AREASIZE_X; x < areapos.x+visualRange*AREASIZE_X; x+= AREASIZE_X)
+//	for(int y = areapos.y-visualRange*AREASIZE_Y; y < areapos.y+visualRange*AREASIZE_Y; y+= AREASIZE_Y)
+//	for(int z = areapos.z-visualRange*AREASIZE_Z; z < areapos.z+visualRange*AREASIZE_Z; z+= AREASIZE_Z) 
+	for(std::map<BlockPosition, Area*>::iterator it = c->map->areas.begin(); it != c->map->areas.end(); it++)	{
 //		if(z == 0) continue;
 		try {
-			if(!areaInViewport(BlockPosition::create(x,y,z), pos)) continue;
-			Area *area = c->map->getArea(BlockPosition::create(x,y,z));
-			renderArea(area);
+			if(areaInViewport(it->first, pos)) {
+				if(it->second->state == Area::STATE_READY)
+					renderArea(it->second);
+			}
 		} 	catch (NotLoadedException e) {}
 			catch (AreaEmptyException e) {}
 	}
