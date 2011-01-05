@@ -11,34 +11,45 @@ namespace po = boost::program_options;
 using namespace std;
 
 Controller::Controller(int argc, char *argv[])
-: ui(this), renderer(this), movement(this), map(this)
 {
 	srand ( time(NULL) );
 	
 	database = 0;
+	sql_mutex = 0;
 
 	parse_command_line(argc, argv);
+	
+	ui = new UInterface(this);
+	renderer = new Renderer(this);
+	movement = new Movement(this);
+	map = new Map(this);
 }
 
 Controller::~Controller() {
+	delete ui;
+	delete renderer;
+	delete movement;
+	delete map;
+	
 	if(database) sqlite3_close(database);
+	if(sql_mutex) SDL_DestroyMutex(sql_mutex);
 }
 
 void Controller::run() {
 	if(vm["help"].empty()) {
 		
-		ui.config(vm);
-		renderer.config(vm);
-		movement.config(vm);
-		map.config(vm);
+		ui->config(vm);
+		renderer->config(vm);
+		movement->config(vm);
+		map->config(vm);
 
 		init();
-		ui.init();
-		renderer.init();
-		movement.init();
-		map.init();
+		ui->init();
+		renderer->init();
+		movement->init();
+		map->init();
 
-		ui.run();
+		ui->run();
 	}
 }
 
@@ -49,7 +60,7 @@ void Controller::init() {
       cout << "Fehler beim Öffnen: " << sqlite3_errmsg(database) << endl;
 	
 	sqlite3_exec(database, "PRAGMA synchronous = 0;", 0, 0, 0);
-
+	sql_mutex = SDL_CreateMutex();
 	
 }
 
@@ -77,7 +88,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("texture05", po::value<string>()->default_value("marble.bmp"), "Black marble with white")
 		("texture06", po::value<string>()->default_value("hopscotch.bmp"), "Hopscotch")
 		("texture07", po::value<string>()->default_value("bee.bmp"), "Black/Yellow")
-		("visualRange", po::value<float>()->default_value(5), "maximal distance for rendering")
+		("visualRange", po::value<int>()->default_value(5), "maximal distance for rendering")
 		("enableFog", po::value<bool>()->default_value(1), "enable Fog")
 		("areasPerFrameRendering", po::value<int>()->default_value(1), "set the maximal rendered areas per frame")
 		("areasPerFrameLoading", po::value<int>()->default_value(50), "set the maximal from hard disk loaded areas per frame")

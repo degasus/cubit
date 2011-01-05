@@ -339,15 +339,15 @@ void Movement::calcNewSpeed()
 	offset8.x -= offset/2;
 	offset8.y -= offset/2;
 	try{
-		belowFeetBlock = c->map.getBlock(belowFeetPos.block());
-		belowFeetBlock += c->map.getBlock(offset1.block());
-		belowFeetBlock += c->map.getBlock(offset2.block());
-		belowFeetBlock += c->map.getBlock(offset3.block());
-		belowFeetBlock += c->map.getBlock(offset4.block());
-		belowFeetBlock += c->map.getBlock(offset5.block());
-		belowFeetBlock += c->map.getBlock(offset6.block());
-		belowFeetBlock += c->map.getBlock(offset7.block());
-		belowFeetBlock += c->map.getBlock(offset8.block());
+		belowFeetBlock = c->map->getBlock(belowFeetPos.block());
+		belowFeetBlock += c->map->getBlock(offset1.block());
+		belowFeetBlock += c->map->getBlock(offset2.block());
+		belowFeetBlock += c->map->getBlock(offset3.block());
+		belowFeetBlock += c->map->getBlock(offset4.block());
+		belowFeetBlock += c->map->getBlock(offset5.block());
+		belowFeetBlock += c->map->getBlock(offset6.block());
+		belowFeetBlock += c->map->getBlock(offset7.block());
+		belowFeetBlock += c->map->getBlock(offset8.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "feetBlock NotLoadedException" << std::endl;
@@ -427,15 +427,15 @@ void Movement::calcCollisionAndMove(){
 		offset8.x -= offset/2;
 		offset8.y -= offset/2;
 		try{
-			aboveHeadBlock = c->map.getBlock(aboveHeadPos.block());
-			aboveHeadBlock += c->map.getBlock(offset1.block());
-			aboveHeadBlock += c->map.getBlock(offset2.block());
-			aboveHeadBlock += c->map.getBlock(offset3.block());
-			aboveHeadBlock += c->map.getBlock(offset4.block());
-			aboveHeadBlock += c->map.getBlock(offset5.block());
-			aboveHeadBlock += c->map.getBlock(offset6.block());
-			aboveHeadBlock += c->map.getBlock(offset7.block());
-			aboveHeadBlock += c->map.getBlock(offset8.block());
+			aboveHeadBlock = c->map->getBlock(aboveHeadPos.block());
+			aboveHeadBlock += c->map->getBlock(offset1.block());
+			aboveHeadBlock += c->map->getBlock(offset2.block());
+			aboveHeadBlock += c->map->getBlock(offset3.block());
+			aboveHeadBlock += c->map->getBlock(offset4.block());
+			aboveHeadBlock += c->map->getBlock(offset5.block());
+			aboveHeadBlock += c->map->getBlock(offset6.block());
+			aboveHeadBlock += c->map->getBlock(offset7.block());
+			aboveHeadBlock += c->map->getBlock(offset8.block());
 		}
 		catch(NotLoadedException e){
 			std::cout << "aboveHeadBlock NotLoadedException" << std::endl;
@@ -448,7 +448,7 @@ void Movement::calcCollisionAndMove(){
 	}
 	
 	try{
-		posBlock = c->map.getBlock(position.block());
+		posBlock = c->map->getBlock(position.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "posBlock NotLoadedException" << std::endl;
@@ -479,15 +479,15 @@ void Movement::calcCollisionAndMove(){
 	offset8.x -= offset/2;
 	offset8.y -= offset/2;
 	try{
-		belowFeetBlock = c->map.getBlock(belowFeetPos.block());
-		belowFeetBlock += c->map.getBlock(offset1.block());
-		belowFeetBlock += c->map.getBlock(offset2.block());
-		belowFeetBlock += c->map.getBlock(offset3.block());
-		belowFeetBlock += c->map.getBlock(offset4.block());
-		belowFeetBlock += c->map.getBlock(offset5.block());
-		belowFeetBlock += c->map.getBlock(offset6.block());
-		belowFeetBlock += c->map.getBlock(offset7.block());
-		belowFeetBlock += c->map.getBlock(offset8.block());
+		belowFeetBlock = c->map->getBlock(belowFeetPos.block());
+		belowFeetBlock += c->map->getBlock(offset1.block());
+		belowFeetBlock += c->map->getBlock(offset2.block());
+		belowFeetBlock += c->map->getBlock(offset3.block());
+		belowFeetBlock += c->map->getBlock(offset4.block());
+		belowFeetBlock += c->map->getBlock(offset5.block());
+		belowFeetBlock += c->map->getBlock(offset6.block());
+		belowFeetBlock += c->map->getBlock(offset7.block());
+		belowFeetBlock += c->map->getBlock(offset8.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "belowFeetBlock NotLoadedException" << std::endl;
@@ -520,8 +520,8 @@ void Movement::calcCollisionAndMove(){
 	feetPos = position;
 	feetPos.z -= personSize;
 	try{
-		posBlock = c->map.getBlock(position.block());
-		feetBlock = c->map.getBlock(feetPos.block());
+		posBlock = c->map->getBlock(position.block());
+		feetBlock = c->map->getBlock(feetPos.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "Elevator NotLoadedException" << std::endl;
@@ -590,12 +590,12 @@ void Movement::calcCollisionAndMove(){
 	}
 	if(position.x != oldPos.x){
 		try{
-			posBlock = c->map.getBlock(position.block());
-			offsetBlock = c->map.getBlock(offsetPos.block());
-			feetBlock = c->map.getBlock(feetPos.block());
-			offsetFeetBlock = c->map.getBlock(offsetFeetPos1.block());
-			offsetFeetBlock += c->map.getBlock(offsetFeetPos2.block());
-			offsetFeetBlock += c->map.getBlock(offsetFeetPos3.block());
+			posBlock = c->map->getBlock(position.block());
+			offsetBlock = c->map->getBlock(offsetPos.block());
+			feetBlock = c->map->getBlock(feetPos.block());
+			offsetFeetBlock = c->map->getBlock(offsetFeetPos1.block());
+			offsetFeetBlock += c->map->getBlock(offsetFeetPos2.block());
+			offsetFeetBlock += c->map->getBlock(offsetFeetPos3.block());
 		}
 		catch(NotLoadedException e){
 			std::cout << "X-collision detection NotLoadedException" << std::endl;
@@ -659,12 +659,12 @@ void Movement::calcCollisionAndMove(){
 	}
 	if(position.y != oldPos.y){
 		try{
-			posBlock = c->map.getBlock(position.block());
-			offsetBlock = c->map.getBlock(offsetPos.block());
-			feetBlock = c->map.getBlock(feetPos.block());
-			offsetFeetBlock = c->map.getBlock(offsetFeetPos1.block());
-			offsetFeetBlock += c->map.getBlock(offsetFeetPos2.block());
-			offsetFeetBlock += c->map.getBlock(offsetFeetPos3.block());
+			posBlock = c->map->getBlock(position.block());
+			offsetBlock = c->map->getBlock(offsetPos.block());
+			feetBlock = c->map->getBlock(feetPos.block());
+			offsetFeetBlock = c->map->getBlock(offsetFeetPos1.block());
+			offsetFeetBlock += c->map->getBlock(offsetFeetPos2.block());
+			offsetFeetBlock += c->map->getBlock(offsetFeetPos3.block());
 		}
 		catch(NotLoadedException e){
 			std::cout << "Y-collision detection NotLoadedException" << std::endl;
@@ -697,7 +697,7 @@ void Movement::calcPointingOn(){
 	double distanceQ = 0;
 	int counter = 0;
 	try{
-		while(c->map.getBlock(pointingOnBlock) == 0 && distanceQ <= pointingDistance*pointingDistance && counter <= pointingDistance*3+2){
+		while(c->map->getBlock(pointingOnBlock) == 0 && distanceQ <= pointingDistance*pointingDistance && counter <= pointingDistance*3+2){
 			counter++;
 			//std::cout << "lastPos = " << lastPos.to_string() << std::endl;
 			//std::cout << "pointingOnBlock = " << pointingOnBlock.to_string() << std::endl;
@@ -717,7 +717,7 @@ void Movement::calcPointingOn(){
 
 		//std::cout <<  std::endl << std::endl;
 
-		if(c->map.getBlock(pointingOnBlock) == 0)
+		if(c->map->getBlock(pointingOnBlock) == 0)
 			isPointingOn = false;
 		else
 			isPointingOn = true;
@@ -839,7 +839,7 @@ void Movement::buildBlock()
 	}
 	if(!noBuild){
 		try{
-			c->map.setBlock(pointingOnBlock, selectedMaterial);
+			c->map->setBlock(pointingOnBlock, selectedMaterial);
 		}
 		catch(NotLoadedException e){
 			std::cout << "NotLoadedException buildBlock" << std::endl;
@@ -850,7 +850,7 @@ void Movement::buildBlock()
 void Movement::removeBlock()
 {
 	try{
-		c->map.setBlock(pointingOnBlock+pointingOnPlane, 0);
+		c->map->setBlock(pointingOnBlock+pointingOnPlane, 0);
 	}
 	catch(NotLoadedException e){
 		std::cout << "NotLoadedException removeBlock" << std::endl;

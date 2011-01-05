@@ -23,11 +23,9 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	bgColor[3] 			= c["bgColorA"].as<float>();
 	fogDense			= c["fogDense"].as<float>();
 	fogStartFactor		= c["fogStartFactor"].as<float>();
-	visualRange			= c["visualRange"].as<float>();
-	maxareas			= c["visualRange"].as<float>()*c["visualRange"].as<float>();
+	visualRange			= c["visualRange"].as<int>();
+	maxareas			= c["visualRange"].as<int>()*c["visualRange"].as<int>();
 	enableFog			= c["enableFog"].as<bool>();
-	
-	textureFilterMethod = c["textureFilterMethod"].as<int>();
 
 	string textureDirectory = c["workingDirectory"].as<string>() + "/tex";
 	Texture_Files[1]	= textureDirectory + "/" + c["texture01"].as<string>();
@@ -57,6 +55,7 @@ void Renderer::init()
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);					// Really Nice Perspective Calculations
 	glHint(GL_LINE_SMOOTH, GL_NICEST);
 	glEnable(GL_LINE_SMOOTH);
+
 	
 	//LIGHT
 
@@ -123,18 +122,8 @@ void Renderer::init()
 			glBindTexture( GL_TEXTURE_2D, texture[i] );
 
 			// Set the texture's stretching properties
-			if(textureFilterMethod == 3){
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-			}
-			else if(textureFilterMethod == 2){
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-			}
-			else{
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-			}
+			//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
 
 			gluBuild2DMipmaps(GL_TEXTURE_2D, 3, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
@@ -189,7 +178,7 @@ void Renderer::renderArea(Area* area)
 						next_m = areas[dir]->get(next);
 					else {
 						try {
-							areas[dir] = c->map.getArea(next);
+							areas[dir] = c->map->getArea(next);
 							next_m = areas[dir]->get(next);
 						} catch(NotLoadedException e) {
 								next_m = 1;
@@ -248,7 +237,6 @@ void Renderer::renderArea(Area* area)
 		}
 		if(found_polygon)
 			glEndList();
-		
 		
 	} else if(area->gllist_generated) {
 		glCallList(area->gllist);
@@ -310,7 +298,7 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 	*/
 	return (erg.data[0][0] > - AREASIZE_X/1.7321) 				// nicht hinter einem
 	    && (erg.data[0][0] < AREASIZE_X*visualRange)	// sichtweite
-		 && (abs(erg.data[0][1])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < (double(c->ui.screenX) / c->ui.screenY)/2 )	// seitlich ausm sichtbereich
+		 && (abs(erg.data[0][1])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < (double(c->ui->screenX) / c->ui->screenY)/2 )	// seitlich ausm sichtbereich
 		 && (abs(erg.data[0][2])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < 0.5 )	// seitlich ausm sichtbereich
 		 ;
 }
@@ -355,7 +343,7 @@ void Renderer::render(PlayerPosition pos)
 //		if(z == 0) continue;
 		try {
 			if(!areaInViewport(BlockPosition::create(x,y,z), pos)) continue;
-			Area *area = c->map.getArea(BlockPosition::create(x,y,z));
+			Area *area = c->map->getArea(BlockPosition::create(x,y,z));
 			renderArea(area);
 		} 	catch (NotLoadedException e) {}
 			catch (AreaEmptyException e) {}
@@ -364,7 +352,7 @@ void Renderer::render(PlayerPosition pos)
 	// zentrales gebiet unter sich selber
 	areapos.z = 0;
 	try {
-		Area *area = c->map.getArea(areapos);
+		Area *area = c->map->getArea(areapos);
 		renderArea(area);
 		i++;
 	} catch (NotLoadedException e) {}
@@ -394,7 +382,7 @@ void Renderer::render(PlayerPosition pos)
 		if(!areaInViewport(BlockPosition::create(x,y,z), pos)) continue;
 		
 		try {
-			Area *area = c->map.getArea(BlockPosition::create(x,y,z));
+			Area *area = c->map->getArea(BlockPosition::create(x,y,z));
 			if(i < maxareas)
 				renderArea(area);
 

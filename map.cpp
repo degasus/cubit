@@ -19,11 +19,24 @@ Map::Map(Controller *controller) {
 	
 	saveArea = 0;
 	loadArea = 0;
+	loadAreas = 0;
+	
+	harddisk = 0;
+	queue_mutex = 0;
+	inital_loaded = 0;
 	
 }
 
 Map::~Map()
 {
+	thread_stop = 1;
+	int thread_return = 0;
+	if(harddisk)
+		SDL_WaitThread (harddisk, &thread_return);
+	
+	if(queue_mutex)
+		SDL_DestroyMutex(queue_mutex);
+	
 	std::map< BlockPosition, Area* >::iterator it;
 	
 	for(it = areas.begin(); it != areas.end(); it++) {
@@ -34,20 +47,69 @@ Map::~Map()
 	
 	if(saveArea) sqlite3_finalize(saveArea);
 	if(loadArea) sqlite3_finalize(loadArea);
+	if(loadAreas) sqlite3_finalize(loadAreas);
 }
 
 
 void Map::config(const boost::program_options::variables_map& c)
 {
-	destroyArea = c["visualRange"].as<float>()*c["destroyAreaFaktor"].as<double>()*2*AREASIZE_X;
-	mapDirectory = (c["workingDirectory"].as<std::string>() + "/maps/").c_str();
+	destroyArea = c["visualRange"].as<int>()*c["destroyAreaFaktor"].as<double>()*2*AREASIZE_X;
 	storeMaps = c["storeMaps"].as<bool>();
 	areasPerFrameLoading = c["areasPerFrameLoading"].as<int>();
+	visualRange = c["visualRange"].as<int>();
+}
+
+int threaded_read_from_harddisk(void* param) {
+	Map* map = (Map*)param;
+	
+	map->read_from_harddisk();
+	
+	return 0;
+}
+
+void Map::read_from_harddisk() {
+	while(!thread_stop) {
+		ToLoad toload;
+		bool empty = 0;
+		SDL_LockMutex(queue_mutex);
+		empty = to_load.empty();
+		if(!empty) {
+			toload = to_load.front();
+			to_load.pop();
+		}
+		SDL_UnlockMutex(queue_mutex);
+		
+		if(!empty) {
+			SDL_LockMutex(c->sql_mutex);
+			sqlite3_bind_int(loadAreas, 1, toload.min.x);
+			sqlite3_bind_int(loadAreas, 2, toload.max.x);
+			sqlite3_bind_int(loadAreas, 3, toload.min.y);
+			sqlite3_bind_int(loadAreas, 4, toload.max.y);
+			sqlite3_bind_int(loadAreas, 5, toload.min.z);
+			sqlite3_bind_int(loadAreas, 6, toload.max.z);
+			
+			while (sqlite3_step(loadAreas) == SQLITE_ROW) {
+				Area* a = new Area(BlockPosition::create(sqlite3_column_int(loadAreas,0),
+																		sqlite3_column_int(loadAreas,1),
+																		sqlite3_column_int(loadAreas,2)));
+				memcpy(a->m,sqlite3_column_blob(loadAreas, 3),AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material));
+				a->state = Area::STATE_READY;
+				
+				SDL_LockMutex(queue_mutex);
+				loaded.push(a);
+				SDL_UnlockMutex(queue_mutex);
+			}
+			sqlite3_reset(loadAreas);
+			SDL_UnlockMutex(c->sql_mutex);
+		}
+		
+		SDL_Delay (10);
+	}
 }
 
 void Map::init()
 {
-	
+	SDL_LockMutex(c->sql_mutex);
 	if (sqlite3_prepare_v2(
 		c->database,            /* Database handle */
 		"INSERT OR REPLACE INTO area (posx, posy, posz, data) VALUES (?,?,?,?);",       /* SQL statement, UTF-8 encoded */
@@ -65,6 +127,25 @@ void Map::init()
 		0     /* OUT: Pointer to unused portion of zSql */
 	) != SQLITE_OK)
 		std::cout << "prepare(loadArea) hat nicht geklappt: " << sqlite3_errmsg(c->database) << std::endl;
+
+	if (sqlite3_prepare_v2(
+		c->database,            /* Database handle */
+		"SELECT posx, posy, posz, data from area where posx >= ? and posx <= ? and posy >= ? and posy <= ? and posz >= ? and posz <= ?;",       /* SQL statement, UTF-8 encoded */
+		-1,              /* Maximum length of zSql in bytes. */
+		&loadAreas,  /* OUT: Statement handle */
+		0     /* OUT: Pointer to unused portion of zSql */
+	) != SQLITE_OK)
+		std::cout << "prepare(loadAreas) hat nicht geklappt: " << sqlite3_errmsg(c->database) << std::endl;
+		
+	SDL_UnlockMutex(c->sql_mutex);
+	
+	
+	
+	thread_stop = 0;
+	queue_mutex = SDL_CreateMutex ();
+	harddisk = SDL_CreateThread (threaded_read_from_harddisk,this);
+	
+	
 }
 
 
@@ -90,14 +171,15 @@ void randomArea(int schieben, Area* a) {
 
 	}
 	a->needstore = 1;
+	a->state = Area::STATE_READY;
 }
 
 Area* Map::getArea(BlockPosition pos)
 {
 	if(areas.find(pos.area()) != areas.end()) {
-		assert(areas[pos.area()]);
 		return areas[pos.area()];
 	} else {
+		throw NotLoadedException(); /*
 		if(areasPerFrameLoadingFree>0) {
 			areasPerFrameLoadingFree--;
 			
@@ -117,30 +199,90 @@ Area* Map::getArea(BlockPosition pos)
 
 			if(!storeMaps || !load(a))
 				randomArea(pos.area().z, a);
+			
+			if(a->state != Area::STATE_READY)
+				throw NotLoadedException();
+			
 			return a;
 		}
 		else {
 			throw NotLoadedException();
-		}
+		} */
 	}
 }
 
 void Map::setPosition(PlayerPosition pos)
 {
-	areasPerFrameLoadingFree = areasPerFrameLoading;
-	std::map< BlockPosition, Area* >::iterator it, it_save;
+	BlockPosition p = pos.block().area();
 	
-	for(it = areas.begin(); it != areas.end(); it++) {
-		if(shouldDelArea(it->second->pos,pos)) {
-			it_save = it++;
-			if(storeMaps)
-				store(it_save->second);
-			delete it_save->second;
-			areas.erase(it_save);
-			if(it == areas.end())
-				break;
-		} 
+	if(!inital_loaded) {
+		inital_loaded = 1;
+		
+		ToLoad l;
+		l.min.x = p.x-AREASIZE_X*visualRange;
+		l.min.y = p.y-AREASIZE_Y*visualRange;
+		l.min.z = p.z-AREASIZE_Z*visualRange;
+		l.max.x = p.x+AREASIZE_X*visualRange;
+		l.max.y = p.y+AREASIZE_Y*visualRange;
+		l.max.z = p.z+AREASIZE_Z*visualRange;
+		
+		SDL_LockMutex(queue_mutex);
+		to_load.push(l);
+		SDL_UnlockMutex(queue_mutex);
 	}
+	
+	ToLoad l;
+	l.min.x = p.x;
+	l.min.y = p.y;
+	l.min.z = p.z;
+	l.max.x = p.x;
+	l.max.y = p.y;
+	l.max.z = p.z;
+	bool changed = 1;
+	
+	if(p.x > lastpos.x) {
+		ToLoad l;
+		l.min.x = p.x+AREASIZE_X*visualRange;
+		l.max.x = p.x+AREASIZE_X*visualRange;
+		lastpos.x = p.x;
+	} else if(p.x < lastpos.x) {
+		ToLoad l;
+		l.min.x = p.x-AREASIZE_X*visualRange;
+		l.max.x = p.x-AREASIZE_X*visualRange;
+		lastpos.x = p.x;
+	} else if(p.y > lastpos.y) {
+		ToLoad l;
+		l.min.y = p.y+AREASIZE_Y*visualRange;
+		l.max.y = p.y+AREASIZE_Y*visualRange;
+		lastpos.y = p.y;
+	} else if(p.y < lastpos.y) {
+		ToLoad l;
+		l.min.y = p.y-AREASIZE_Y*visualRange;
+		l.max.y = p.y-AREASIZE_Y*visualRange;
+		lastpos.y = p.y;
+	} else if(p.z > lastpos.z) {
+		ToLoad l;
+		l.min.z = p.z+AREASIZE_Z*visualRange;
+		l.max.z = p.z+AREASIZE_Z*visualRange;
+		lastpos.z = p.z;
+	} else if(p.z < lastpos.z) {
+		ToLoad l;
+		l.min.z = p.z-AREASIZE_Z*visualRange;
+		l.max.z = p.z-AREASIZE_Z*visualRange;
+		lastpos.z = p.z;
+	} else changed = 0;
+	
+	SDL_LockMutex(queue_mutex);
+	if(changed)
+		to_load.push(l);
+	
+	while(!loaded.empty()) {
+		Area* a = loaded.front();
+		loaded.pop();
+		
+		areas[a->pos] = a;
+	}
+	SDL_UnlockMutex(queue_mutex);
 }
 
 bool Map::shouldDelArea(BlockPosition posa, PlayerPosition posp)
@@ -176,13 +318,14 @@ void Map::store(Area *a) {
 	
 	of.close();
 	*/
+	SDL_LockMutex(c->sql_mutex);
 	sqlite3_bind_int(saveArea, 1, a->pos.x);
 	sqlite3_bind_int(saveArea, 2, a->pos.y);
 	sqlite3_bind_int(saveArea, 3, a->pos.z);
 	sqlite3_bind_blob(saveArea, 4, (const void*) a->m, AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material), SQLITE_STATIC);
 	sqlite3_step(saveArea);
 	sqlite3_reset(saveArea);
-	
+	SDL_UnlockMutex(c->sql_mutex);
 }
 
 bool Map::load(Area *a) {
@@ -196,17 +339,22 @@ bool Map::load(Area *a) {
 	i.close();
 	return success;
 	*/
+	/*
+	SDL_LockMutex(c->sql_mutex);
 	sqlite3_bind_int(loadArea, 1, a->pos.x);
 	sqlite3_bind_int(loadArea, 2, a->pos.y);
 	sqlite3_bind_int(loadArea, 3, a->pos.z);
 	if (sqlite3_step(loadArea) == SQLITE_ROW) {
 		memcpy(a->m,sqlite3_column_blob(loadArea, 0),AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material));
 		sqlite3_reset(loadArea);
+		a->state = Area::STATE_READY;
 		return 1;
 	} else {
 		sqlite3_reset(loadArea);
 		return 0;
 	}
+	SDL_UnlockMutex(c->sql_mutex);
+	*/
 }
 
 Area::Area(BlockPosition p)
@@ -215,6 +363,8 @@ Area::Area(BlockPosition p)
 	gllist_generated = 0;
 	needupdate = 1;
 	needstore = 0;
+	
+	state = STATE_NEW;
 }
 
 Area::~Area()

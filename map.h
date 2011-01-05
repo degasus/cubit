@@ -1,14 +1,16 @@
-#ifndef _MAP_H_
-#define _MAP_H_
-
 #include <boost/program_options.hpp>
 #include <map>
 #include <cmath>
+#include <queue>
+#include <cstdio>
 
 #include <boost/program_options.hpp>
 #include <SDL/SDL_opengl.h>
+#include <SDL/SDL_thread.h>
 
-#include <cstdio>
+#ifndef _MAP_H_
+#define _MAP_H_
+
 #include "movement.h"
 
 
@@ -171,6 +173,11 @@ public:
 	
 	bool needstore;
 	
+	enum AreaState {
+		STATE_NEW,
+		STATE_READY
+	} state;
+	
 	/**
 	 * calculate if the position is in this area
 	 * @returns true, if the position is in this area
@@ -224,7 +231,11 @@ public:
 		if(areas.find(pos.area()) == areas.end())
 			throw NotLoadedException();
 		
-		return areas[pos.area()]->get(pos);
+		Area* a = areas[pos.area()];
+		if(a->state != Area::STATE_READY)
+			throw NotLoadedException();
+		
+		return a->get(pos);
 	}
 
 	/**
@@ -235,7 +246,12 @@ public:
 		if(areas.find(pos.area()) == areas.end())
 			throw NotLoadedException();
 		
-		areas[pos.area()]->set(pos,m);
+		Area* a = areas[pos.area()];
+		
+		if(a->state != Area::STATE_READY)
+			throw NotLoadedException();
+		
+		a->set(pos,m);
 		
 		for(int i=0; i<DIRECTION_COUNT; i++) {
 			if(areas.find((pos+(DIRECTION)i).area()) != areas.end())
@@ -271,11 +287,16 @@ public:
 	 * only callable from net
 	 */
 	void blockChangedEvent(BlockPosition pos, Material m);
+	
+	
+
+	
+	void read_from_harddisk();
     
 private:
 	bool shouldDelArea(BlockPosition posa, PlayerPosition posp);
-    void store(Area *a);
-    bool load(Area *a);
+	void store(Area *a);
+	bool load(Area *a);
 	
 	
 	Controller *c;
@@ -284,7 +305,6 @@ private:
 	std::map<BlockPosition, Area*> areas;
 	
 	double destroyArea;
-    std::string mapDirectory;
 	bool storeMaps;
 	int areasPerFrameLoading;
 	int areasPerFrameLoadingFree;
@@ -292,6 +312,21 @@ private:
 	// prepared statements
 	sqlite3_stmt *saveArea;
 	sqlite3_stmt *loadArea;
+	sqlite3_stmt *loadAreas;
+	
+	// queue for loading from harddisk
+	struct ToLoad {BlockPosition min; BlockPosition max; };
+	std::queue<ToLoad> to_load;
+	std::queue<Area*> loaded;
+	SDL_mutex* queue_mutex;
+	
+	SDL_Thread* harddisk;
+	bool thread_stop;
+	
+	int visualRange;
+	BlockPosition lastpos;
+	bool inital_loaded;
+	
 };
 
 

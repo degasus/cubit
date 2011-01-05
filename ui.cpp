@@ -179,7 +179,7 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	}
 	
 	if(ae.name != ActionEvent::NONE)
-		c->movement.performAction(ae);
+		c->movement->performAction(ae);
 }
 
 void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
@@ -213,22 +213,22 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	}
 	
 	if(ae.name != ActionEvent::NONE)
-		c->movement.performAction(ae);
+		c->movement->performAction(ae);
 }
 
 void UInterface::handleUserEvents(SDL_UserEvent e)
 {
-	c->movement.triggerNextFrame();
+	c->movement->triggerNextFrame();
 	
 	SDL_Event next;	
 	//if(SDL_PeepEvents(&next, 1, SDL_PEEKEVENT, SDL_USEREVENT) == 0) {
-		PlayerPosition pos = c->movement.getPosition();
-		c->map.setPosition(pos);
-		c->renderer.render(pos);
+		PlayerPosition pos = c->movement->getPosition();
+		c->map->setPosition(pos);
+		c->renderer->render(pos);
 		BlockPosition block;
 		DIRECTION direct;
-		if(c->movement.getPointingOn(&block, &direct))
-			c->renderer.highlightBlockDirection(block, direct);
+		if(c->movement->getPointingOn(&block, &direct))
+			c->renderer->highlightBlockDirection(block, direct);
 		
 		drawHUD();
 		
@@ -252,7 +252,7 @@ void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
 		}
 
 		if(ae.name != ActionEvent::NONE)
-			c->movement.performAction(ae);
+			c->movement->performAction(ae);
 	}
 }
 
@@ -272,7 +272,7 @@ void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 				break;
 			case SDL_BUTTON_WHEELUP:
 				ae.name = ActionEvent::SELECT_MATERIAL;
-				nextMat = c->movement.getSelectedMaterial();
+				nextMat = c->movement->getSelectedMaterial();
 				if(nextMat >= NUMBER_OF_MATERIALS-1)
 					nextMat = 1;
 				else
@@ -281,7 +281,7 @@ void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 				break;
 			case SDL_BUTTON_WHEELDOWN:
 				ae.name = ActionEvent::SELECT_MATERIAL;
-				nextMat = c->movement.getSelectedMaterial();
+				nextMat = c->movement->getSelectedMaterial();
 				if(nextMat <= 1)
 					nextMat = NUMBER_OF_MATERIALS-1;
 				else
@@ -291,7 +291,7 @@ void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 		}
 		
 		if(ae.name != ActionEvent::NONE)
-			c->movement.performAction(ae);
+			c->movement->performAction(ae);
 	}
 }
 
@@ -304,11 +304,11 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 		ActionEvent ae;
 		ae.name = ActionEvent::ROTATE_HORIZONTAL;
 		ae.value = x*turningSpeed;
-		c->movement.performAction(ae);
+		c->movement->performAction(ae);
 
 		ae.name = ActionEvent::ROTATE_VERTICAL;
 		ae.value = -y*turningSpeed;
-		c->movement.performAction(ae);
+		c->movement->performAction(ae);
 		
 		SDL_WarpMouse(screenX/2, screenY/2);
 	}
@@ -350,15 +350,15 @@ void UInterface::drawHUD() {
 	glDisable(GL_BLEND);
 
 	//glTranslatef(6.0f,-7.2f,-3.7f);
-	cubeTurn[c->movement.getSelectedMaterial()] += 2;
-	if(cubeTurn[c->movement.getSelectedMaterial()] > 360)
-		cubeTurn[c->movement.getSelectedMaterial()] -= 360;
+	cubeTurn[c->movement->getSelectedMaterial()] += 2;
+	if(cubeTurn[c->movement->getSelectedMaterial()] > 360)
+		cubeTurn[c->movement->getSelectedMaterial()] -= 360;
 	/*glRotatef(cubeTurn, 0.0, 0.0, 1.0);
 	glRotatef(35.2644, 0.0, 1.0, 0.0);
 	glRotatef(45, 1.0, 0.0, 0.0);
 	glTranslatef(-0.5, -0.5, -0.5);*/
 
-	int selectedMaterial = c->movement.getSelectedMaterial();
+	int selectedMaterial = c->movement->getSelectedMaterial();
 	
 	if(fadingProgress>0)
 		fadingProgress -= 10;
@@ -413,8 +413,8 @@ void UInterface::drawHUD() {
 		glRotatef(45, 1.0, 0.0, 0.0);
 		glTranslatef(-0.5, -0.5, -0.5);
 		
-		glBindTexture( GL_TEXTURE_2D, c->renderer.texture[mat] );
-		if(c->movement.getSelectedMaterial() == mat){
+		glBindTexture( GL_TEXTURE_2D, c->renderer->texture[mat] );
+		if(c->movement->getSelectedMaterial() == mat){
 			//glDisable(GL_BLEND);
 			glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
 			glEnable(GL_LIGHTING);

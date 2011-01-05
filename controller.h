@@ -31,13 +31,14 @@ public:
 	void run();
 	
 	
-	UInterface ui;
-	Renderer renderer;
-	Movement movement;
-	Map map;
+	UInterface *ui;
+	Renderer *renderer;
+	Movement *movement;
+	Map *map;
 	
 	
 	sqlite3* database;
+	SDL_mutex* sql_mutex;
 	
 private:
 	
