@@ -2,6 +2,7 @@
 #define _CONTROLLER_H_
 
 #include <boost/program_options.hpp>
+#include <sqlite3.h>
 
 class Controller;
 
@@ -23,9 +24,10 @@ public:
 	 * Startet das Spiel und initialisiert alles
 	 */
 	Controller(int argc, char** argv);
+	~Controller();
 
 	void quit();
-
+	void init();
 	void run();
 	
 	
@@ -34,11 +36,15 @@ public:
 	Movement movement;
 	Map map;
 	
+	
+	sqlite3* database;
+	
 private:
 	
 	void parse_command_line(int argc, char *argv[]);
 	
 	boost::program_options::variables_map vm;
+	
 
 };
 

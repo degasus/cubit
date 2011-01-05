@@ -14,18 +14,25 @@ Controller::Controller(int argc, char *argv[])
 : ui(this), renderer(this), movement(this), map(this)
 {
 	srand ( time(NULL) );
+	
+	database = 0;
 
 	parse_command_line(argc, argv);
 }
 
+Controller::~Controller() {
+	if(database) sqlite3_close(database);
+}
+
 void Controller::run() {
 	if(vm["help"].empty()) {
-	
+		
 		ui.config(vm);
 		renderer.config(vm);
 		movement.config(vm);
 		map.config(vm);
 
+		init();
 		ui.init();
 		renderer.init();
 		movement.init();
@@ -33,6 +40,17 @@ void Controller::run() {
 
 		ui.run();
 	}
+}
+
+void Controller::init() {
+	// init SQL
+	if(sqlite3_open((vm["workingDirectory"].as<std::string>() + "/cubit.db").c_str(), &database) != SQLITE_OK)
+      // Es ist ein Fehler aufgetreten!
+      cout << "Fehler beim Öffnen: " << sqlite3_errmsg(database) << endl;
+	
+	sqlite3_exec(database, "PRAGMA synchronous = 0;", 0, 0, 0);
+
+	
 }
 
 
@@ -60,7 +78,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("visualRange", po::value<float>()->default_value(5), "maximal distance for rendering")
 		("enableFog", po::value<bool>()->default_value(1), "enable Fog")
 		("areasPerFrameRendering", po::value<int>()->default_value(1), "set the maximal rendered areas per frame")
-		("areasPerFrameLoading", po::value<int>()->default_value(5), "set the maximal from hard disk loaded areas per frame")
+		("areasPerFrameLoading", po::value<int>()->default_value(50), "set the maximal from hard disk loaded areas per frame")
 		
 		("destroyAreaFaktor", po::value<double>()->default_value(2), "distance for destroying areas")
 

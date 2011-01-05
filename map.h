@@ -169,6 +169,8 @@ public:
 	bool gllist_generated;
 	bool needupdate;
 	
+	bool needstore;
+	
 	/**
 	 * calculate if the position is in this area
 	 * @returns true, if the position is in this area
@@ -188,9 +190,9 @@ public:
 		return m[position.x-pos.x][position.y-pos.y][position.z-pos.z];
 	}
 	inline void set(BlockPosition position, Material mat) {
-        void filename();
 		m[position.x-pos.x][position.y-pos.y][position.z-pos.z] = mat;
 		needupdate = 1;
+		needstore = 1;
 	}
 	inline std::string filename(std::string dir) {
 		std::ostringstream os(std::ostringstream::out);
@@ -286,6 +288,10 @@ private:
 	bool storeMaps;
 	int areasPerFrameLoading;
 	int areasPerFrameLoadingFree;
+	
+	// prepared statements
+	sqlite3_stmt *saveArea;
+	sqlite3_stmt *loadArea;
 };
 
 
