@@ -28,9 +28,9 @@ struct PlayerPosition{
 
 	inline BlockPosition block(){
 		BlockPosition b;
-		b.x=std::floor(x);
-		b.y=std::floor(y);
-		b.z=std::floor(z);
+		b.x=std::floor(x+0.00001);
+		b.y=std::floor(y+0.00001);
+		b.z=std::floor(z+0.00001);
 
 		return b;
 	}

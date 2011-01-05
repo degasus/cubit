@@ -78,7 +78,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("fastSpeedMultiplier", po::value<double>()->default_value(5.72341), "speed multiplier when moving fast")
 		("maxFallingSpeed", po::value<double>()->default_value(-0.99), "fastest reachable speed on falling")
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning")
-		("jumpSpeed", po::value<double>()->default_value(0.187), "initial speed when jumping")
+		("jumpSpeed", po::value<double>()->default_value(0.215), "initial speed when jumping")
 		
 		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for saving areas")
 		
