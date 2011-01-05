@@ -380,28 +380,6 @@ void Movement::calcNewSpeed()
 				speedUp = 0.0;
 		}
 	}
-
-	std::cout << "speedUp = " << speedUp << std::endl;
-	std::cout << "personSize = " << personSize << std::endl;
-	std::cout << "pos = " << position.to_string() << std::endl;
-
-	//Steps
-	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && belowFeetBlock != 0 && !duckPressed){
-		stepProgress++;
-		if(stepProgress > 10){
-			stepProgress = 1;
-		}
-		double stepChange = fabs(sin((M_PI/10)*stepProgress)*0.04);
-		double oldSize = personSize;
-		personSize = personSizeNormal+stepChange;
-		double sizeChange = personSize-oldSize;
-		position.z += sizeChange;
-		std::cout << "sizeChange = " << sizeChange << std::endl;
-	}
-
-	std::cout << "speedUp = " << speedUp << std::endl;
-	std::cout << "personSize = " << personSize << std::endl;
-	std::cout << "pos = " << position.to_string() << std::endl;
 }
 
 void Movement::calcCollisionAndMove(){
@@ -514,7 +492,28 @@ void Movement::calcCollisionAndMove(){
 		std::cout << "belowFeetBlock NotLoadedException" << std::endl;
 		belowFeetBlock = 1;
 	}
-	
+
+	std::cout << "speedUp = " << speedUp << std::endl;
+	std::cout << "personSize = " << personSize << std::endl;
+	std::cout << "pos = " << position.to_string() << std::endl;
+
+	//Steps
+	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && belowFeetBlock != 0 && !duckPressed){
+		stepProgress++;
+		if(stepProgress > 10){
+			stepProgress = 1;
+		}
+		double stepChange = fabs(sin((M_PI/10)*stepProgress)*0.04);
+		double oldSize = personSize;
+		personSize = personSizeNormal+stepChange;
+		double sizeChange = personSize-oldSize;
+		position.z += sizeChange;
+		std::cout << "sizeChange = " << sizeChange << std::endl;
+	}
+
+	std::cout << "speedUp = " << speedUp << std::endl;
+	std::cout << "personSize = " << personSize << std::endl;
+	std::cout << "pos = " << position.to_string() << std::endl;
 	//Jumping
 	if(belowFeetBlock != 0 && jumpPressed){
 		speedUp = jumpSpeed*(movementSpeed/normalMovementSpeed);
@@ -649,24 +648,23 @@ void Movement::calcCollisionAndMove(){
 	//"Elevator"
 	feetPos = position;
 	feetPos.z -= personSize;
-	feetBlock = 0;
-	posBlock = 0;
 	try{
 		posBlock = c->map.getBlock(position.block());
 		feetBlock = c->map.getBlock(feetPos.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "Elevator NotLoadedException" << std::endl;
+		posBlock = 0;
 		feetBlock = 0;
 	}
 	if(feetBlock != 0 && speedUp <= 0){
 		speedUp = 0.0;
-		std::cout << "do the elevator (feetBlock)" << std::endl;
+		std::cout << "do the elevator (feetBlock = " << feetBlock << std::endl;
 		position.z = floor(position.z-personSize)+1.0+personSize;
 	}
 	else if(posBlock != 0 && speedUp <= 0){
 		speedUp = 0.0;
-		std::cout << "do the elevator (posBlock)" << std::endl;
+		std::cout << "do the elevator (posBlock = " << posBlock << std::endl;
 		position.z = floor(position.z-personSize)+1.0+personSize;
 	}
 	
