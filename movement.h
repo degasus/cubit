@@ -199,6 +199,7 @@ private:
 	DIRECTION calcPointingOnInBlock(PlayerPosition*, BlockPosition);
 	
 	//Sounds
-	
+	Mix_Chunk *step;
+	Mix_Chunk *putBlock;
 };
 #endif
