@@ -505,7 +505,7 @@ void Movement::calcCollisionAndMove(){
 		stepProgress++;
 		if(stepProgress > 10){
 			stepProgress = 1;
-			Mix_PlayChannel(-1, step, 0);
+			//Mix_PlayChannel(-1, step, 0);
 		}
 		double stepChange = fabs(sin((M_PI/10)*stepProgress)*0.04);
 		double oldSize = personSize;
