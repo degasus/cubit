@@ -28,6 +28,11 @@ public:
 	void config(const boost::program_options::variables_map &c);
 	
 	void run();
+	
+	//Frame conditions
+	//current frame size
+	int screenX;
+	int screenY;
 
 private:
 	void initWindow();
@@ -38,13 +43,9 @@ private:
 	void handleMouseDownEvents(SDL_MouseButtonEvent e);
 	void handleMouseUPEvents(SDL_MouseButtonEvent e);
 	void handleMouseEvents(SDL_MouseMotionEvent e);
-    void drawHUD();
-	
+	void drawHUD();
 
-	//Frame conditions
-	//current frame size
-	int screenX;
-	int screenY;
+
 	//default frame size on no fullscreen
 	int noFullX;
 	int noFullY;

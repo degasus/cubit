@@ -240,16 +240,8 @@ void Renderer::renderArea(Area* area)
 	glPopMatrix();
 }
 
-bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
-		
-	Matrix<double,1,3> pos;
-	pos.data[0][0] = apos.x - ppos.x + AREASIZE_X/2;
-	pos.data[0][1] = apos.y - ppos.y + AREASIZE_Y/2;
-	pos.data[0][2] = apos.z - ppos.z + AREASIZE_Z/2;
-	
-	//pos.to_str();
-	
-	double a = ppos.orientationHorizontal/180*M_PI;
+void Renderer::generateViewPort(PlayerPosition pos) {
+	double a = pos.orientationHorizontal/180*M_PI;
 	
 	Matrix<double,3,3> drehz;
 	drehz.data[0][0] = cos(a);
@@ -265,7 +257,7 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 	//drehz.to_str();
 	
 	
-	a = (ppos.orientationVertical)/180*M_PI;
+	a = (pos.orientationVertical)/180*M_PI;
 	
 	Matrix<double,3,3> drehy;
 	drehy.data[0][0] = cos(a);
@@ -278,9 +270,21 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 	drehy.data[2][1] = 0;
 	drehy.data[2][2] = cos(a);
 	
+	viewPort = drehy*drehz;
+}
+
+bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
+		
+	Matrix<double,1,3> pos;
+	pos.data[0][0] = apos.x - ppos.x + AREASIZE_X/2;
+	pos.data[0][1] = apos.y - ppos.y + AREASIZE_Y/2;
+	pos.data[0][2] = apos.z - ppos.z + AREASIZE_Z/2;
+	
+	//pos.to_str();
+	
 	//drehy.to_str();
 	
-	Matrix<double,1,3> erg = (drehy*drehz)*pos;
+	Matrix<double,1,3> erg = viewPort*pos;
 /*	erg.to_str();
 	
 	std::cout << apos.z << " " << ppos.z << std::endl;
@@ -323,13 +327,14 @@ void Renderer::render(PlayerPosition pos)
 
 	// eigenes gebiet
 	BlockPosition areapos = pos.block().area();
+	generateViewPort(pos);
 	
-	int i=0;
+//	int i=0;
 	
-	for(int x = areapos.x-3*AREASIZE_X; x < areapos.x+3*AREASIZE_X; x+= AREASIZE_X)
-	for(int y = areapos.y-3*AREASIZE_Y; y < areapos.y+3*AREASIZE_Y; y+= AREASIZE_Y)
-	for(int z = areapos.z-3*AREASIZE_Z; z < areapos.z+3*AREASIZE_Z; z+= AREASIZE_Z) {
-		if(z == 0) continue;
+	for(int x = areapos.x-visualRange*AREASIZE_X; x < areapos.x+visualRange*AREASIZE_X; x+= AREASIZE_X)
+	for(int y = areapos.y-visualRange*AREASIZE_Y; y < areapos.y+visualRange*AREASIZE_Y; y+= AREASIZE_Y)
+	for(int z = areapos.z-visualRange*AREASIZE_Z; z < areapos.z+visualRange*AREASIZE_Z; z+= AREASIZE_Z) {
+//		if(z == 0) continue;
 		try {
 			if(!areaInViewport(BlockPosition::create(x,y,z), pos)) continue;
 			Area *area = c->map.getArea(BlockPosition::create(x,y,z));
@@ -337,7 +342,7 @@ void Renderer::render(PlayerPosition pos)
 		} 	catch (NotLoadedException e) {}
 			catch (AreaEmptyException e) {}
 	}
-	
+/*	
 	// zentrales gebiet unter sich selber
 	areapos.z = 0;
 	try {
@@ -377,7 +382,8 @@ void Renderer::render(PlayerPosition pos)
 
 			i++;
 		} catch (NotLoadedException e) {}
-	}	
+	}
+	*/
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){

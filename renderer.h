@@ -35,6 +35,10 @@ private:
 	
 	void renderArea(Area* area);
 	bool areaInViewport(BlockPosition apos, PlayerPosition ppos);
+	void generateViewPort(PlayerPosition pos);
+
+	Matrix<double,3,3> viewPort;
+	
 	
 	int areasPerFrame;
 	int areasRendered;

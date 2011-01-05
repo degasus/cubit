@@ -31,7 +31,7 @@ Map::~Map()
 
 void Map::config(const boost::program_options::variables_map& c)
 {
-	destroyArea = c["visualRange"].as<float>()*c["destroyAreaFaktor"].as<double>()*2*16;
+	destroyArea = c["visualRange"].as<float>()*c["destroyAreaFaktor"].as<double>()*2*AREASIZE_X;
 	mapDirectory = (c["workingDirectory"].as<std::string>() + "/maps/").c_str();
 	storeMaps = c["storeMaps"].as<bool>();
 	areasPerFrameLoading = c["areasPerFrameLoading"].as<int>();
