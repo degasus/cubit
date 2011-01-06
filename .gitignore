@@ -10,5 +10,6 @@ cmake_install.cmake
 gmon.out
 cubit
 *.swp
+*.kdev4
 .kdev4/
 CMakeFiles/
