@@ -24,7 +24,6 @@ Map::Map(Controller *controller) {
 	harddisk = 0;
 	queue_mutex = 0;
 	inital_loaded = 0;
-	
 }
 
 Map::~Map()
@@ -368,8 +367,10 @@ void Map::setPosition(PlayerPosition pos)
 		saved.pop();
 		
 		iterator it = areas.find(a->pos);
-		if(it->second->state == Area::STATE_TOSAVE)
+		if(it->second->state == Area::STATE_TOSAVE) {
 			areas.erase(it);
+			delete a;
+		}
 	}
 	
 	SDL_UnlockMutex(queue_mutex);

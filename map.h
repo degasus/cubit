@@ -1,12 +1,11 @@
-#include <boost/program_options.hpp>
 #include <map>
 #include <cmath>
 #include <queue>
 #include <cstdio>
 
 #include <boost/program_options.hpp>
-#include <SDL/SDL_opengl.h>
-#include <SDL/SDL_thread.h>
+#include <SDL_opengl.h>
+#include <SDL_thread.h>
 
 #ifndef _MAP_H_
 #define _MAP_H_

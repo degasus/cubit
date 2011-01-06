@@ -2,7 +2,7 @@
 #define _MOVEMENT_H_
 
 #include <boost/program_options.hpp>
-#include <SDL/SDL_mixer.h>
+#include <SDL_mixer.h>
 
 
 class Movement;

@@ -1,9 +1,8 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
-#include <boost/archive/text_oarchive.hpp>
 #include <cstdio>
-#include <SDL/SDL_mixer.h>
+#include <SDL_mixer.h>
 
 #include "controller.h"
 
