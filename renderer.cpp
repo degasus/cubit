@@ -1,5 +1,6 @@
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include <iostream>
-#include <cmath>
 #include <vector>
 
 #include "controller.h"
