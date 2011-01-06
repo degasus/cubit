@@ -258,7 +258,8 @@ void Renderer::renderArea(Area* area, bool show)
 			area->gllist_generated = 0;	
 		}
 		
-	} else if(area->gllist_generated) {
+	}
+	if(area->gllist_generated) {
 		if(show)
 			glCallList(area->gllist);
 	} else {
