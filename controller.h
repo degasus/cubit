@@ -13,7 +13,7 @@ class Controller;
 
 
 /**
- * Controllerklasse des Spieles Openminecraft
+ * Controllerklasse des Spieles Cubit
  * Aufgaben:
  *  - Initialisierung aller Module
  *  -

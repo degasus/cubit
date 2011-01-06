@@ -59,6 +59,19 @@ void Controller::init() {
       // Es ist ein Fehler aufgetreten!
       cout << "Fehler beim Öffnen: " << sqlite3_errmsg(database) << endl;
 	
+	// create tables
+	sqlite3_exec(database,
+					 "CREATE TABLE IF NOT EXISTS area ( "
+							"posx INT NOT NULL, "
+							"posy INT NOT NULL, "
+							"posz INT NOT NULL, "
+							"empty BOOL NOT NULL DEFAULT 0, "
+							"revision INT DEFAULT 0, "
+							
+							"data BLOB(4096), "
+							"PRIMARY KEY (posx, posy, posz) "
+						");"
+					 , 0, 0, 0);
 	sqlite3_exec(database, "PRAGMA synchronous = 0;", 0, 0, 0);
 	sql_mutex = SDL_CreateMutex();
 	

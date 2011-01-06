@@ -504,15 +504,3 @@ Area::~Area()
 	gllist_generated = 0;
 }
 
-/*
-CREATE TABLE area (
-	posx INT NOT NULL, 
-	posy INT NOT NULL, 
-	posz INT NOT NULL, 
-	empty BOOL NOT NULL DEFAULT 0,
-	revision INT DEFAULT 0,
-	
-	data BLOB(4096),
-	PRIMARY KEY (posx, posy, posz)
-);
-*/
