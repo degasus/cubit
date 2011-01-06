@@ -223,10 +223,7 @@ void Renderer::renderArea(Area* area, bool show)
 						area->gllist_generated = 1;
 						area->gllist = glGenLists(1);
 					}
-					if(show)
-						glNewList(area->gllist,GL_COMPILE_AND_EXECUTE);
-					else
-						glNewList(area->gllist,GL_COMPILE);
+					glNewList(area->gllist,GL_COMPILE);
 				}
 				
 				// switch texture
