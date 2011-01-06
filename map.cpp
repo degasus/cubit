@@ -274,8 +274,13 @@ void Map::setPosition(PlayerPosition pos)
 			BlockPosition pos = BlockPosition::create(lastpos.x-AREASIZE_X*visualRange,y,z);
 			iterator it = areas.find(pos);
 			if(it == areas.end()) continue;
-			to_save.push(it->second);
-			it->second->state = Area::STATE_TOSAVE;
+			if(it->second->needstore) {
+				to_save.push(it->second);
+				it->second->state = Area::STATE_TOSAVE;
+			} else {
+				delete it->second;
+				areas.erase(it);
+			}
 		}
 		lastpos.x = p.x;
 	} else if(p.x < lastpos.x) {
@@ -288,8 +293,13 @@ void Map::setPosition(PlayerPosition pos)
 			BlockPosition pos = BlockPosition::create(lastpos.x+AREASIZE_X*visualRange,y,z);
 			iterator it = areas.find(pos);
 			if(it == areas.end()) continue;
-			to_save.push(it->second);
-			it->second->state = Area::STATE_TOSAVE;
+			if(it->second->needstore) {
+				to_save.push(it->second);
+				it->second->state = Area::STATE_TOSAVE;
+			} else {
+				delete it->second;
+				areas.erase(it);
+			}
 		}
 		lastpos.x = p.x;
 	} else if(p.y > lastpos.y) {
@@ -302,8 +312,13 @@ void Map::setPosition(PlayerPosition pos)
 			BlockPosition pos = BlockPosition::create(x,lastpos.y-AREASIZE_Y*visualRange,z);
 			iterator it = areas.find(pos);
 			if(it == areas.end()) continue;
-			to_save.push(it->second);
-			it->second->state = Area::STATE_TOSAVE;
+			if(it->second->needstore) {
+				to_save.push(it->second);
+				it->second->state = Area::STATE_TOSAVE;
+			} else {
+				delete it->second;
+				areas.erase(it);
+			}
 		}
 		lastpos.y = p.y;
 	} else if(p.y < lastpos.y) {
@@ -316,8 +331,13 @@ void Map::setPosition(PlayerPosition pos)
 			BlockPosition pos = BlockPosition::create(x,lastpos.y+AREASIZE_Y*visualRange,z);
 			iterator it = areas.find(pos);
 			if(it == areas.end()) continue;
-			to_save.push(it->second);
-			it->second->state = Area::STATE_TOSAVE;
+			if(it->second->needstore) {
+				to_save.push(it->second);
+				it->second->state = Area::STATE_TOSAVE;
+			} else {
+				delete it->second;
+				areas.erase(it);
+			}
 		}
 		lastpos.y = p.y;
 	} else if(p.z > lastpos.z) {
@@ -330,8 +350,13 @@ void Map::setPosition(PlayerPosition pos)
 			BlockPosition pos = BlockPosition::create(x,y,lastpos.z-AREASIZE_Z*visualRange);
 			iterator it = areas.find(pos);
 			if(it == areas.end()) continue;
-			to_save.push(it->second);
-			it->second->state = Area::STATE_TOSAVE;
+			if(it->second->needstore) {
+				to_save.push(it->second);
+				it->second->state = Area::STATE_TOSAVE;
+			} else {
+				delete it->second;
+				areas.erase(it);
+			}
 		}
 		lastpos.z = p.z;
 	} else if(p.z < lastpos.z) {
@@ -344,8 +369,13 @@ void Map::setPosition(PlayerPosition pos)
 			BlockPosition pos = BlockPosition::create(x,y,lastpos.z+AREASIZE_Z*visualRange);
 			iterator it = areas.find(pos);
 			if(it == areas.end()) continue;
-			to_save.push(it->second);
-			it->second->state = Area::STATE_TOSAVE;
+			if(it->second->needstore) {
+				to_save.push(it->second);
+				it->second->state = Area::STATE_TOSAVE;
+			} else {
+				delete it->second;
+				areas.erase(it);
+			}
 		}
 		lastpos.z = p.z;
 	} else changed = 0;
