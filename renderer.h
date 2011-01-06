@@ -33,7 +33,7 @@ public:
 
 private:
 	
-	void renderArea(Area* area);
+	void renderArea(Area* area, bool show);
 	bool areaInViewport(BlockPosition apos, PlayerPosition ppos);
 	void generateViewPort(PlayerPosition pos);
 

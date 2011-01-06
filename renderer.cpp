@@ -142,12 +142,13 @@ void Renderer::init()
 }
 
 
-void Renderer::renderArea(Area* area)
+void Renderer::renderArea(Area* area, bool show)
 {
 //	if(area->empty) return;
-	glPushMatrix();
-	glTranslatef(area->pos.x,area->pos.y,area->pos.z);
-		
+	if(show) {
+		glPushMatrix();
+		glTranslatef(area->pos.x,area->pos.y,area->pos.z);
+	}
 
 	if(area->needupdate && (areasRendered <= areasPerFrame)) {
 		areasRendered++;
@@ -207,8 +208,10 @@ void Renderer::renderArea(Area* area)
 						area->gllist_generated = 1;
 						area->gllist = glGenLists(1);
 					}
-
-					glNewList(area->gllist,GL_COMPILE_AND_EXECUTE);
+					if(show)
+						glNewList(area->gllist,GL_COMPILE_AND_EXECUTE);
+					else
+						glNewList(area->gllist,GL_COMPILE);
 				}
 				
 				// switch texture
@@ -239,11 +242,13 @@ void Renderer::renderArea(Area* area)
 			glEndList();
 		
 	} else if(area->gllist_generated) {
-		glCallList(area->gllist);
+		if(show)
+			glCallList(area->gllist);
 	} else {
 		// do nothing
 	}
-	glPopMatrix();
+	if(show)
+		glPopMatrix();
 }
 
 void Renderer::generateViewPort(PlayerPosition pos) {
@@ -315,7 +320,8 @@ void Renderer::render(PlayerPosition pos)
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
 	
-	areasRendered = 0;
+	if(areasRendered<0) areasRendered = 0;
+	areasRendered -= areasPerFrame;
 	
 	//Mausbewegung
 	glRotatef(pos.orientationVertical,0.0f,1.0f,0.0f);
@@ -336,12 +342,17 @@ void Renderer::render(PlayerPosition pos)
 	generateViewPort(pos);
 	
 
-	for(Map::iterator it = c->map->areas.begin(); it != c->map->areas.end(); it++)	{
-		if(areaInViewport(it->first, pos)) {
-			if(it->second->state == Area::STATE_READY)
-				renderArea(it->second);
+	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
+		Area* a = *it;
+		bool inview = areaInViewport(a->pos, pos);
+		if(a->state == Area::STATE_READY && (inview || areasRendered < 0)) {
+			renderArea(a, inview);
+			if(!a->needupdate && !a->gllist_generated) {
+				c->map->areas_with_gllist.erase(it);
+			} 
 		}
 	}
+	std::cout << "anzahl areas: " << c->map->areas_with_gllist.size() << std::endl;
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){

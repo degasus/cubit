@@ -198,8 +198,6 @@ public:
 	}
 	inline void set(BlockPosition position, Material mat) {
 		m[position.x-pos.x][position.y-pos.y][position.z-pos.z] = mat;
-		needupdate = 1;
-		needstore = 1;
 	}
 	inline std::string filename(std::string dir) {
 		std::ostringstream os(std::ostringstream::out);
@@ -253,11 +251,15 @@ public:
 			throw NotLoadedException();
 		
 		it->second->set(pos,m);
+		it->second->needupdate = 1;
+		it->second->needstore = 1;
+		areas_with_gllist.insert(it->second);
 		
 		for(int i=0; i<DIRECTION_COUNT; i++) {	
 			iterator it2 = areas.find((pos+(DIRECTION)i).area());
 			if(it2 != areas.end()) {
 				it2->second->needupdate = 1;
+				areas_with_gllist.insert(it2->second);
 			}
 		}
 	}
@@ -298,6 +300,9 @@ public:
 	
 	std::map<BlockPosition, Area*> areas;
 	typedef std::map<BlockPosition, Area*>::iterator iterator;
+	
+	
+	std::set<Area*> areas_with_gllist;
     
 private:
 	bool shouldDelArea(BlockPosition posa, PlayerPosition posp);

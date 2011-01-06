@@ -279,6 +279,7 @@ void Map::setPosition(PlayerPosition pos)
 				it->second->state = Area::STATE_TOSAVE;
 			} else {
 				delete it->second;
+				areas_with_gllist.erase(it->second);
 				areas.erase(it);
 			}
 		}
@@ -298,6 +299,7 @@ void Map::setPosition(PlayerPosition pos)
 				it->second->state = Area::STATE_TOSAVE;
 			} else {
 				delete it->second;
+				areas_with_gllist.erase(it->second);
 				areas.erase(it);
 			}
 		}
@@ -317,6 +319,7 @@ void Map::setPosition(PlayerPosition pos)
 				it->second->state = Area::STATE_TOSAVE;
 			} else {
 				delete it->second;
+				areas_with_gllist.erase(it->second);
 				areas.erase(it);
 			}
 		}
@@ -336,6 +339,7 @@ void Map::setPosition(PlayerPosition pos)
 				it->second->state = Area::STATE_TOSAVE;
 			} else {
 				delete it->second;
+				areas_with_gllist.erase(it->second);
 				areas.erase(it);
 			}
 		}
@@ -355,6 +359,7 @@ void Map::setPosition(PlayerPosition pos)
 				it->second->state = Area::STATE_TOSAVE;
 			} else {
 				delete it->second;
+				areas_with_gllist.erase(it->second);
 				areas.erase(it);
 			}
 		}
@@ -374,6 +379,7 @@ void Map::setPosition(PlayerPosition pos)
 				it->second->state = Area::STATE_TOSAVE;
 			} else {
 				delete it->second;
+				areas_with_gllist.erase(it->second);
 				areas.erase(it);
 			}
 		}
@@ -390,6 +396,7 @@ void Map::setPosition(PlayerPosition pos)
 		loaded.pop();
 		
 		areas[a->pos] = a;
+		areas_with_gllist.insert(a);
 	}
 	
 	while(!saved.empty()) {
@@ -400,6 +407,7 @@ void Map::setPosition(PlayerPosition pos)
 		if(it->second->state == Area::STATE_TOSAVE) {
 			areas.erase(it);
 			delete a;
+			areas_with_gllist.erase(a);
 		}
 	}
 	
