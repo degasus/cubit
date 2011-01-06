@@ -95,8 +95,8 @@ void Renderer::init()
 	glFogfv(GL_FOG_COLOR, bgColor);	// Set Fog Color
 	glFogf(GL_FOG_DENSITY, fogDense);	// How Dense Will The Fog Be
 	glHint(GL_FOG_HINT, GL_DONT_CARE);	// Fog Hint Value
-	glFogf(GL_FOG_START, (visualRange-2)*fogStartFactor*AREASIZE_X);
-	glFogf(GL_FOG_END, (visualRange-2)*AREASIZE_X);
+	glFogf(GL_FOG_START, (visualRange-1)*fogStartFactor*AREASIZE_X);
+	glFogf(GL_FOG_END, (visualRange-1)*AREASIZE_X);
 	if(enableFog)
 		glEnable(GL_FOG);					// Enables GL_FOG
 
