@@ -91,6 +91,8 @@ void Map::read_from_harddisk() {
 				Area* a = new Area(BlockPosition::create(sqlite3_column_int(loadAreas,0),
 																		sqlite3_column_int(loadAreas,1),
 																		sqlite3_column_int(loadAreas,2)));
+				a->empty = sqlite3_column_int(loadAreas, 4);
+				if(!a->empty)
 				memcpy(a->m,sqlite3_column_blob(loadAreas, 3),AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material));
 				a->state = Area::STATE_READY;
 				
@@ -133,7 +135,7 @@ void Map::init()
 	SDL_LockMutex(c->sql_mutex);
 	if (sqlite3_prepare_v2(
 		c->database,            /* Database handle */
-		"INSERT OR REPLACE INTO area (posx, posy, posz, data) VALUES (?,?,?,?);",       /* SQL statement, UTF-8 encoded */
+		"INSERT OR REPLACE INTO area (posx, posy, posz, empty, data) VALUES (?,?,?,?,?);",       /* SQL statement, UTF-8 encoded */
 		-1,              /* Maximum length of zSql in bytes. */
 		&saveArea,  /* OUT: Statement handle */
 		0     /* OUT: Pointer to unused portion of zSql */
@@ -142,7 +144,7 @@ void Map::init()
 		
 	if (sqlite3_prepare_v2(
 		c->database,            /* Database handle */
-		"SELECT data from area where posx = ? and posy = ? and posz = ?;",       /* SQL statement, UTF-8 encoded */
+		"SELECT data, empty from area where posx = ? and posy = ? and posz = ?;",       /* SQL statement, UTF-8 encoded */
 		-1,              /* Maximum length of zSql in bytes. */
 		&loadArea,  /* OUT: Statement handle */
 		0     /* OUT: Pointer to unused portion of zSql */
@@ -151,7 +153,7 @@ void Map::init()
 
 	if (sqlite3_prepare_v2(
 		c->database,            /* Database handle */
-		"SELECT posx, posy, posz, data from area where posx >= ? and posx <= ? and posy >= ? and posy <= ? and posz >= ? and posz <= ?;",       /* SQL statement, UTF-8 encoded */
+		"SELECT posx, posy, posz, data, empty from area where posx >= ? and posx <= ? and posy >= ? and posy <= ? and posz >= ? and posz <= ?;",       /* SQL statement, UTF-8 encoded */
 		-1,              /* Maximum length of zSql in bytes. */
 		&loadAreas,  /* OUT: Statement handle */
 		0     /* OUT: Pointer to unused portion of zSql */
@@ -199,6 +201,8 @@ Area* Map::getArea(BlockPosition pos)
 {
 	iterator it = areas.find(pos.area());
 	if(it != areas.end()) {
+		if(it->second->empty)
+			throw AreaEmptyException();
 		return it->second;
 	} else {
 		throw NotLoadedException(); /*
@@ -442,7 +446,11 @@ void Map::store(Area *a) {
 	sqlite3_bind_int(saveArea, 1, a->pos.x);
 	sqlite3_bind_int(saveArea, 2, a->pos.y);
 	sqlite3_bind_int(saveArea, 3, a->pos.z);
-	sqlite3_bind_blob(saveArea, 4, (const void*) a->m, AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material), SQLITE_STATIC);
+	sqlite3_bind_int(saveArea, 4, a->empty);
+	if(a->empty)
+		sqlite3_bind_null(saveArea, 5);
+	else
+		sqlite3_bind_blob(saveArea, 5, (const void*) a->m, AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material), SQLITE_STATIC);
 	sqlite3_step(saveArea);
 	sqlite3_reset(saveArea);
 	SDL_UnlockMutex(c->sql_mutex);
@@ -483,6 +491,8 @@ Area::Area(BlockPosition p)
 	gllist_generated = 0;
 	needupdate = 1;
 	needstore = 0;
+	
+	empty = 1;
 	
 	state = STATE_NEW;
 }

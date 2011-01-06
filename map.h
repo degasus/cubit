@@ -172,6 +172,8 @@ public:
 	
 	bool needstore;
 	
+	bool empty;
+	
 	enum AreaState {
 		STATE_NEW,
 		STATE_READY,
@@ -194,10 +196,12 @@ public:
 	 * fetch the Material at an absolute position
 	 */
 	inline Material get(BlockPosition position) {
+		if(empty) return 0;
 		return m[position.x-pos.x][position.y-pos.y][position.z-pos.z];
 	}
 	inline void set(BlockPosition position, Material mat) {
 		m[position.x-pos.x][position.y-pos.y][position.z-pos.z] = mat;
+		if(mat) empty = 0;
 	}
 	inline std::string filename(std::string dir) {
 		std::ostringstream os(std::ostringstream::out);

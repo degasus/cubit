@@ -144,7 +144,13 @@ void Renderer::init()
 
 void Renderer::renderArea(Area* area, bool show)
 {
-//	if(area->empty) return;
+	if(area->empty) {
+		area->needupdate = 0;
+		if(area->gllist_generated)
+			glDeleteLists(area->gllist,1);
+		area->gllist_generated = 0;
+		return;
+	}
 	if(show) {
 		glPushMatrix();
 		glTranslatef(area->pos.x,area->pos.y,area->pos.z);
@@ -161,6 +167,8 @@ void Renderer::renderArea(Area* area, bool show)
 		for(int i=0; i<DIRECTION_COUNT; i++)
 			areas[i] = 0;
 
+		bool empty = 1;
+		
 		for(int x=area->pos.x; x<AREASIZE_X+area->pos.x; x++)
 		for(int y=area->pos.y; y<AREASIZE_Y+area->pos.y; y++)
 		for(int z=area->pos.z; z<AREASIZE_Z+area->pos.z; z++)  {
@@ -169,6 +177,7 @@ void Renderer::renderArea(Area* area, bool show)
 
 			Material now = area->get(pos);;
 			if(now) {
+				empty = 0;
 				for(int dir=0; dir < DIRECTION_COUNT; dir++) {
 					BlockPosition next = pos+(DIRECTION)dir;
 
@@ -182,7 +191,9 @@ void Renderer::renderArea(Area* area, bool show)
 							areas[dir] = c->map->getArea(next);
 							next_m = areas[dir]->get(next);
 						} catch(NotLoadedException e) {
-								next_m = 1;
+							next_m = 1;
+						} catch(AreaEmptyException e) {
+							next_m = 0;
 						}
 					}
 
@@ -194,6 +205,10 @@ void Renderer::renderArea(Area* area, bool show)
 					}
 				}
 			}
+		}
+		if(empty) {
+			area->needstore = 1;
+			area->empty = 1;
 		}
 		
 		bool found_polygon = 0;
@@ -240,6 +255,11 @@ void Renderer::renderArea(Area* area, bool show)
 		}
 		if(found_polygon)
 			glEndList();
+		else {
+			if(area->gllist_generated)
+				glDeleteLists(area->gllist,1);
+			area->gllist_generated = 0;	
+		}
 		
 	} else if(area->gllist_generated) {
 		if(show)
