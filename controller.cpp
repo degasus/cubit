@@ -67,7 +67,7 @@ void Controller::init() {
 							"posz INT NOT NULL, "
 							"empty BOOL NOT NULL DEFAULT 0, "
 							"revision INT DEFAULT 0, "
-							
+							"full INT NOT NULL DEFAULT 0, "	
 							"data BLOB(4096), "
 							"PRIMARY KEY (posx, posy, posz) "
 						");"
