@@ -22,6 +22,7 @@ Map::Map(Controller *controller) {
 	loadAreas = 0;
 	
 	harddisk = 0;
+	mapGenerator = 0;
 	queue_mutex = 0;
 	inital_loaded = 0;
 }
@@ -64,6 +65,97 @@ int threaded_read_from_harddisk(void* param) {
 	map->read_from_harddisk();
 	
 	return 0;
+}
+
+int threaded_generate_new_map(void* param) {
+	Map* map = (Map*)param;
+
+	SDL_Delay (5000);
+	map->generate_new_map();
+	
+	return 0;
+}
+
+void Map::generate_new_map()
+{
+	while(!thread_stop) {
+		for(int x = -visualRange; x <= visualRange; x++){
+			for(int y = -visualRange; y <= visualRange; y++){
+				for(int z = -visualRange; z <= visualRange; z++){
+					PlayerPosition curPos = c->movement->getPosition();
+					BlockPosition curBlock = curPos.block();
+					curBlock.x -= curBlock.x % AREASIZE_X + x*AREASIZE_X;
+					curBlock.y -= curBlock.y % AREASIZE_Y + y*AREASIZE_X;
+					curBlock.z -= curBlock.z % AREASIZE_Z + z*AREASIZE_X;
+					std::cout << "curBlock = " << curBlock.to_string() << std::endl;
+					bool loaded = true;
+					try{
+						getArea(curBlock);
+					}
+					catch(NotLoadedException e){
+						std::cout << "generator NotLoadedException" << std::endl;
+						loaded = false;
+					}
+					catch(AreaEmptyException e){
+
+					}
+					if(!loaded){
+						SDL_LockMutex(c->sql_mutex);
+						sqlite3_bind_int(loadArea, 1, curBlock.x);
+						sqlite3_bind_int(loadArea, 2, curBlock.x);
+						sqlite3_bind_int(loadArea, 3, curBlock.x);
+						int res = sqlite3_step(loadArea);
+						sqlite3_reset(loadArea);
+						SDL_UnlockMutex(c->sql_mutex);
+						if (res != SQLITE_ROW) {
+							generateArea(curBlock);
+						}
+					}
+					SDL_Delay (20);
+				}
+			}
+		}
+	}
+}
+
+void Map::generateArea(BlockPosition pos)
+{
+	bool empty = true;
+	if(pos.z <= 0)
+		empty = false;
+	Area* a = new Area(pos);
+	a->empty = empty;
+	if(!a->empty){
+		if(pos.z == 0){
+			for(int x = 0; x < AREASIZE_X; x++){
+				for(int y = 0; y < AREASIZE_Y; y++){
+					for(int z = 0; z < AREASIZE_Z; z++){
+						if(z < sin((M_PI/(x % (int)(AREASIZE_X)))* (y % (int)(AREASIZE_Y)))*AREASIZE_Z)
+							a->m[x][y][z] = 1+rand()%4;
+						else
+							a->m[x][y][z] = 0;
+					}
+				}
+			}
+		}
+		if(pos.z < 0){
+			for(int x = 0; x < AREASIZE_X; x++){
+				for(int y = 0; y < AREASIZE_Y; y++){
+					for(int z = 0; z < AREASIZE_Z; z++){
+						a->m[x][y][z] = 1+rand()%4;
+					}
+				}
+			}
+		}
+	}
+	a->state = Area::STATE_READY;
+	a->needstore = 1;
+	
+	std::cout << "generiere Area " << a->pos.x << "x" << a->pos.y << "x" << a->pos.z << std::endl;
+	
+	SDL_LockMutex(queue_mutex);
+	loaded.push(a);
+	SDL_UnlockMutex(queue_mutex);
 }
 
 void Map::read_from_harddisk() {
@@ -162,13 +254,10 @@ void Map::init()
 		
 	SDL_UnlockMutex(c->sql_mutex);
 	
-	
-	
 	thread_stop = 0;
 	queue_mutex = SDL_CreateMutex ();
 	harddisk = SDL_CreateThread (threaded_read_from_harddisk,this);
-	
-	
+	mapGenerator = SDL_CreateThread (threaded_generate_new_map,this);
 }
 
 

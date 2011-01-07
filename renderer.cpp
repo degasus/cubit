@@ -365,9 +365,11 @@ void Renderer::render(PlayerPosition pos)
 	
 	GLfloat LightPosition[] = { 10000000.0f, 6600000.0f, 25000000.0f, 1.0f };
 	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
+	glEnable(GL_LIGHT1);
 
 	GLfloat LightPosition2[] = { -10000000.0f, -2000000.0f, 25000000.0f, 1.0f };
 	glLightfv(GL_LIGHT2, GL_POSITION, LightPosition2);
+	glEnable(GL_LIGHT2);
 
 	// eigenes gebiet
 	BlockPosition areapos = pos.block().area();

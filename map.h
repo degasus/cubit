@@ -301,6 +301,7 @@ public:
 
 	
 	void read_from_harddisk();
+	void generate_new_map();
 	
 	std::map<BlockPosition, Area*> areas;
 	typedef std::map<BlockPosition, Area*>::iterator iterator;
@@ -312,6 +313,7 @@ private:
 	bool shouldDelArea(BlockPosition posa, PlayerPosition posp);
 	void store(Area *a);
 	bool load(Area *a);
+	void generateArea(BlockPosition arg1);
 	
 	
 	Controller *c;
@@ -337,6 +339,7 @@ private:
 	SDL_mutex* queue_mutex;
 	
 	SDL_Thread* harddisk;
+	SDL_Thread* mapGenerator;
 	bool thread_stop;
 	
 	int visualRange;

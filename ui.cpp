@@ -355,6 +355,7 @@ void UInterface::drawHUD() {
 
 	GLfloat LightPosition[] = { -200.0f, 200.0f, 300.0f, 1.0f };
 	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
+	glDisable(GL_LIGHT2);
 	
 	glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
