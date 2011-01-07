@@ -39,10 +39,10 @@ void UInterface::init()
 	}
 	
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-	if(enableAntiAliasing){
+	//if(enableAntiAliasing){
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-	}
+	//}
 	
 	initWindow();
 	
