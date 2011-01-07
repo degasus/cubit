@@ -131,7 +131,7 @@ void Map::generateArea(BlockPosition pos)
 				for(int y = 0; y < AREASIZE_Y; y++){
 					for(int z = 0; z < AREASIZE_Z; z++){
 						if(z < sin((M_PI/(x % (int)(AREASIZE_X)))* (y % (int)(AREASIZE_Y)))*AREASIZE_Z)
-							a->m[x][y][z] = 1+rand()%4;
+							a->m[x][y][z] = 0;//1+rand()%4;
 						else
 							a->m[x][y][z] = 0;
 					}
