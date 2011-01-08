@@ -117,7 +117,7 @@ void Map::generate_new_map()
 								generateArea(curBlock);
 							}
 						}
-						//SDL_Delay (1);
+						SDL_Delay (1);
 					}
 				}
 			}
