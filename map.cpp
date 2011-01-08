@@ -36,6 +36,9 @@ Map::~Map()
 	if(harddisk)
 		SDL_WaitThread (harddisk, &thread_return);
 	
+	if(mapGenerator)
+		SDL_WaitThread (mapGenerator, &thread_return);
+	
 	if(queue_mutex)
 		SDL_DestroyMutex(queue_mutex);
 	
@@ -90,13 +93,13 @@ void Map::generate_new_map()
 						curBlock.x -= x*AREASIZE_X;
 						curBlock.y -= y*AREASIZE_X;
 						curBlock.z -= z*AREASIZE_X;
-						std::cout << "curBlock = " << curBlock.to_string() << std::endl;
+						//std::cout << "curBlock = " << curBlock.to_string() << std::endl;
 						bool loaded = true;
 						try{
 							getArea(curBlock);
 						}
 						catch(NotLoadedException e){
-							std::cout << "generator NotLoadedException" << std::endl;
+							//std::cout << "generator NotLoadedException" << std::endl;
 							loaded = false;
 						}
 						catch(AreaEmptyException e){
@@ -114,7 +117,7 @@ void Map::generate_new_map()
 								generateArea(curBlock);
 							}
 						}
-						SDL_Delay (10);
+						//SDL_Delay (1);
 					}
 				}
 			}
@@ -130,8 +133,11 @@ void Map::generateArea(BlockPosition pos)
 	for(int x = 0; x < AREASIZE_X; x++){
 		for(int y = 0; y < AREASIZE_Y; y++){
 			for(int z = 0; z < AREASIZE_Z; z++){
-				hight = (sin( ((2*M_PI)/180) * ((pos.x+x) % 180 )) * 16)
-				if((pos.z+z) <  hight){
+				int height = cos( ((2*M_PI)/180) * ((int)((pos.x+x)/0.7) % 180 )) * 8;
+				height += sin( ((2*M_PI)/180) * ((int)((pos.y+y)) % 180 )) * 8;
+				height += -sin( ((2*M_PI)/180) * ((int)((pos.x+x)/2.5) % 180 )) * 25;
+				height += -cos( ((2*M_PI)/180) * ((int)((pos.y+y)/5) % 180 )) * 50;
+				if(pos.z+z <  height){
 					a->m[x][y][z] = 1 + (z/3) % 3;
 					empty = false;
 				}
@@ -142,7 +148,7 @@ void Map::generateArea(BlockPosition pos)
 	}
 	a->empty = empty;
 	a->state = Area::STATE_READY;
-	//a->needstore = 1;
+	a->needstore = 1;
 	
 	std::cout << "generiere Area " << a->pos.x << "x" << a->pos.y << "x" << a->pos.z << std::endl;
 	
