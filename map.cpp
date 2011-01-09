@@ -33,11 +33,12 @@ Map::~Map()
 {
 	thread_stop = 1;
 	int thread_return = 0;
-	if(harddisk)
-		SDL_WaitThread (harddisk, &thread_return);
-	
+
 	if(mapGenerator)
 		SDL_WaitThread (mapGenerator, &thread_return);
+	
+	if(harddisk)
+		SDL_WaitThread (harddisk, &thread_return);
 	
 	if(queue_mutex)
 		SDL_DestroyMutex(queue_mutex);
@@ -84,43 +85,82 @@ int threaded_generate_new_map(void* param) {
 void Map::generate_new_map()
 {
 	while(!thread_stop) {
-		for(int max = 1; max <= visualRange; max++){
-			for(int x = -max; x <= max; x++){
-				for(int y = -max; y <= max; y++){
-					for(int z = -max; z <= max; z++){
-						PlayerPosition curPos = c->movement->getPosition();
-						BlockPosition curBlock = curPos.block().area();
-						curBlock.x -= x*AREASIZE_X;
-						curBlock.y -= y*AREASIZE_X;
-						curBlock.z -= z*AREASIZE_X;
-						//std::cout << "curBlock = " << curBlock.to_string() << std::endl;
-						bool loaded = true;
-						try{
-							getArea(curBlock);
+		for(int x = -visualRange; x <= visualRange; x++){
+			if(!thread_stop)
+				for(int x = -2; x <= 2; x++){
+					if(!thread_stop)
+						for(int y = -2; y <= 2; y++){
+							if(!thread_stop)
+								for(int z = -2; z <= 2; z++){
+									PlayerPosition curPos = c->movement->getPosition();
+									BlockPosition curBlock = curPos.block().area();
+									curBlock.x -= x*AREASIZE_X;
+									curBlock.y -= y*AREASIZE_X;
+									curBlock.z -= z*AREASIZE_X;
+									//std::cout << "curBlock = " << curBlock.to_string() << std::endl;
+									bool loaded = true;
+									try{
+										getArea(curBlock);
+									}
+									catch(NotLoadedException e){
+										//std::cout << "generator NotLoadedException" << std::endl;
+										loaded = false;
+									}
+									catch(AreaEmptyException e){
+										
+									}
+									if(!loaded){
+										SDL_LockMutex(c->sql_mutex);
+										sqlite3_bind_int(loadArea, 1, curBlock.x);
+										sqlite3_bind_int(loadArea, 2, curBlock.x);
+										sqlite3_bind_int(loadArea, 3, curBlock.x);
+										int res = sqlite3_step(loadArea);
+										sqlite3_reset(loadArea);
+										SDL_UnlockMutex(c->sql_mutex);
+										if (res != SQLITE_ROW) {
+											generateArea(curBlock);
+										}
+									}
+									SDL_Delay (1);
+								}
 						}
-						catch(NotLoadedException e){
-							//std::cout << "generator NotLoadedException" << std::endl;
-							loaded = false;
-						}
-						catch(AreaEmptyException e){
-
-						}
-						if(!loaded){
-							SDL_LockMutex(c->sql_mutex);
-							sqlite3_bind_int(loadArea, 1, curBlock.x);
-							sqlite3_bind_int(loadArea, 2, curBlock.x);
-							sqlite3_bind_int(loadArea, 3, curBlock.x);
-							int res = sqlite3_step(loadArea);
-							sqlite3_reset(loadArea);
-							SDL_UnlockMutex(c->sql_mutex);
-							if (res != SQLITE_ROW) {
-								generateArea(curBlock);
-							}
-						}
-						SDL_Delay (1);
-					}
 				}
-			}
+				if(!thread_stop)
+					for(int y = -visualRange; y <= visualRange; y++){
+						if(!thread_stop)
+							for(int z = -visualRange; z <= visualRange; z++){
+								PlayerPosition curPos = c->movement->getPosition();
+								BlockPosition curBlock = curPos.block().area();
+								curBlock.x -= x*AREASIZE_X;
+								curBlock.y -= y*AREASIZE_X;
+								curBlock.z -= z*AREASIZE_X;
+								//std::cout << "curBlock = " << curBlock.to_string() << std::endl;
+								bool loaded = true;
+								try{
+									getArea(curBlock);
+								}
+								catch(NotLoadedException e){
+									//std::cout << "generator NotLoadedException" << std::endl;
+									loaded = false;
+								}
+								catch(AreaEmptyException e){
+									
+								}
+								if(!loaded){
+									SDL_LockMutex(c->sql_mutex);
+									sqlite3_bind_int(loadArea, 1, curBlock.x);
+									sqlite3_bind_int(loadArea, 2, curBlock.x);
+									sqlite3_bind_int(loadArea, 3, curBlock.x);
+									int res = sqlite3_step(loadArea);
+									sqlite3_reset(loadArea);
+									SDL_UnlockMutex(c->sql_mutex);
+									if (res != SQLITE_ROW) {
+										generateArea(curBlock);
+									}
+								}
+								SDL_Delay (1);
+							}
+					}
 		}
 	}
 }
