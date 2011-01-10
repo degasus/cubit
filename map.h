@@ -339,11 +339,7 @@ public:
 	 */
 	void blockChangedEvent(BlockPosition pos, Material m);
 	
-	
-
-	
 	void read_from_harddisk();
-	void generate_new_map();
 	
 	std::map<BlockPosition, Area*> areas;
 	typedef std::map<BlockPosition, Area*>::iterator iterator;
@@ -355,15 +351,13 @@ private:
 	void store(Area* a);
 	void load(Area* a);
 	void recalc(Area* a);
-	void generateArea(BlockPosition pos);
+	void randomArea(Area* a);
 	Area* getOrCreate(BlockPosition pos);
 	
 	Controller *c;
-	Area *lastarea;
 	
 	bool storeMaps;
 	int areasPerFrameLoading;
-	int areasPerFrameLoadingFree;
 	
 	// prepared statements
 	sqlite3_stmt *saveArea;
