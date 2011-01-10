@@ -14,6 +14,7 @@ using namespace std;
 Renderer::Renderer(Controller* controller)
 {
 	c = controller;
+	areasRendered = 0;
 }
 
 void Renderer::config(const boost::program_options::variables_map& c)
@@ -172,7 +173,7 @@ void Renderer::renderArea(Area* area, bool show)
 		glPushMatrix();
 		glTranslatef(area->pos.x,area->pos.y,area->pos.z);
 	}
-
+	
 	if(area->needupdate && (areasRendered <= areasPerFrame)) {
 		areasRendered++;
 		

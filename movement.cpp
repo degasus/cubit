@@ -73,7 +73,7 @@ void Movement::config(const boost::program_options::variables_map& c){
 void Movement::init()
 {
 //	step = Mix_LoadWAV((workingDirectory + "/sound/fx/Footstep-stereo.ogg").c_str());
-	putBlock = Mix_LoadWAV((workingDirectory + "/sound/fx/nutfall.wav").c_str());
+	//putBlock = Mix_LoadWAV((workingDirectory + "/sound/fx/nutfall.wav").c_str());
 	
 	
 	std::string filename("/sound/fx/nutfall.wav");
