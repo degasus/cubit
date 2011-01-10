@@ -23,7 +23,7 @@ class BlockPosition;
 const int NUMBER_OF_MATERIALS = 81;
 
 // must be a pow of two 
-const int AREASIZE_X = 16;
+const int AREASIZE_X = 32;
 const int AREASIZE_Y = AREASIZE_X;
 const int AREASIZE_Z = AREASIZE_X;
 

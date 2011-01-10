@@ -88,7 +88,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("noFullY", po::value<int>()->default_value(768), "set the default y-resolution")
 		("fullscreen", po::value<bool>()->default_value(0), "start in fullscreen")
 		("enableAntiAliasing", po::value<bool>()->default_value(0), "enables Multi-Sampling")
-		("textureFilterMethod", po::value<int>()->default_value(1), "set the texture filter method (1=nearest; 2=linear; 3=triliear)")
+		("textureFilterMethod", po::value<int>()->default_value(3), "set the texture filter method (1=nearest; 2=linear; 3=triliear)")
 		("bgColorR", po::value<float>()->default_value(0.6), "Background Color Red")
 		("bgColorG", po::value<float>()->default_value(0.7), "Background Color Green")
 		("bgColorB", po::value<float>()->default_value(0.8), "Background Color Blue")
@@ -102,10 +102,10 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("texture05", po::value<string>()->default_value("marble.bmp"), "Black marble with white")
 		("texture06", po::value<string>()->default_value("hopscotch.bmp"), "Hopscotch")
 		("texture07", po::value<string>()->default_value("bee.bmp"), "Black/Yellow")
-		("visualRange", po::value<int>()->default_value(5), "maximal distance for rendering")
+		("visualRange", po::value<int>()->default_value(3), "maximal distance for rendering")
 		("enableFog", po::value<bool>()->default_value(1), "enable Fog")
 		("areasPerFrameRendering", po::value<int>()->default_value(1), "set the maximal rendered areas per frame")
-		("areasPerFrameLoading", po::value<int>()->default_value(50), "set the maximal from hard disk loaded areas per frame")
+		("areasPerFrameLoading", po::value<int>()->default_value(10), "set the maximal from hard disk loaded areas per frame")
 		
 		("destroyAreaFaktor", po::value<double>()->default_value(2), "distance for destroying areas")
 

@@ -49,14 +49,14 @@ void Renderer::init()
 {
 	// Set the OpenGL state
 	glEnable(GL_TEXTURE_2D);											// Enable Texture Mapping
-	glShadeModel(GL_SMOOTH);											// Enable Smooth Shading
+	//glShadeModel(GL_SMOOTH);											// Enable Smooth Shading
 	glClearColor(bgColor[0],bgColor[1], bgColor[2], bgColor[3]);	// Black Background
 	glClearDepth(1.0f);													// Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);											// Enables Depth Testing
 	glDepthFunc(GL_LEQUAL);												// The Type Of Depth Testing To Do
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);					// Really Nice Perspective Calculations
-	glHint(GL_LINE_SMOOTH, GL_NICEST);
-	glEnable(GL_LINE_SMOOTH);
+	//glHint(GL_LINE_SMOOTH, GL_NICEST);
+	//glEnable(GL_LINE_SMOOTH);
 
 	
 	//LIGHT
@@ -139,8 +139,12 @@ void Renderer::init()
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 			}
 
-
-			gluBuild2DMipmaps(GL_TEXTURE_2D, 3, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
+			if(textureFilterMethod == 3){
+				gluBuild2DMipmaps(GL_TEXTURE_2D, 3, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
+			} else {
+				glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->w, surface->h, 0, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
+			}
+				
 		}
 		else {
 			printf("SDL could not load %s: %s\n", Texture_Files[i].c_str(), SDL_GetError());
@@ -177,10 +181,6 @@ void Renderer::renderArea(Area* area, bool show)
 		
 		std::vector<polygon> polys[NUMBER_OF_MATERIALS];
 
-		Area* areas[DIRECTION_COUNT];
-		for(int i=0; i<DIRECTION_COUNT; i++)
-			areas[i] = 0;
-
 		bool empty = 1;
 		
 		for(int x=area->pos.x; x<AREASIZE_X+area->pos.x; x++)
@@ -198,18 +198,11 @@ void Renderer::renderArea(Area* area, bool show)
 					Material next_m;
 					if((*area) << next)
 						next_m = area->get(next);
-					else if(areas[dir] && (*areas[dir]) << next)
-						next_m = areas[dir]->get(next);
-					else {
-						try {
-							areas[dir] = c->map->getArea(next);
-							next_m = areas[dir]->get(next);
-						} catch(NotLoadedException e) {
-							next_m = 1;
-						} catch(AreaEmptyException e) {
-							next_m = 0;
-						}
-					}
+					else if(area->next[dir] && area->next[dir]->state == Area::STATE_READY)
+						next_m = area->next[dir]->get(next);
+					else 
+						next_m = 1;
+					
 
 					if(!next_m) {
 						polygon p;
