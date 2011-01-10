@@ -325,7 +325,7 @@ void Map::setPosition(PlayerPosition pos)
 		a->dijsktra_distance = 0;
 	}
 	
-	for(int k=0; k<areasPerFrameLoading && !dijsktra_queue.empty(); k++) {
+	for(int k=std::max(to_load.size(), to_save.size()); k<areasPerFrameLoading && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
 		if(a->state == Area::STATE_READY) {
 			dijsktra_queue.pop();
