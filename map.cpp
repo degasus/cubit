@@ -35,9 +35,6 @@ Map::~Map()
 	thread_stop = 1;
 	int thread_return = 0;
 
-	if(mapGenerator)
-		SDL_WaitThread (mapGenerator, &thread_return);
-	
 	if(harddisk)
 		SDL_WaitThread (harddisk, &thread_return);
 	

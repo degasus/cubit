@@ -45,7 +45,10 @@ private:
 	int maxareas;
 	bool enableFog;
 	
-	std::string Texture_Files[NUMBER_OF_MATERIALS];
+	std::string workingDirectory;
+	std::string dataDirectory;
+	std::string localDirectory;
+	
 	
 	//fog
 	GLfloat bgColor[4];		// Fog Color

@@ -7,7 +7,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
 find_package( SDL )
 find_package( SDL_mixer )
 find_package( OpenGL )
-find_package( Boost COMPONENTS program_options )
+find_package( Boost COMPONENTS program_options filesystem system)
 find_package( Sqlite3 )
 
 

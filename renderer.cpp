@@ -28,16 +28,9 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	maxareas			= c["visualRange"].as<int>()*c["visualRange"].as<int>();
 	enableFog			= c["enableFog"].as<bool>();
 
-	string textureDirectory = c["workingDirectory"].as<string>() + "/tex";
-	Texture_Files[1]	= textureDirectory + "/" + c["texture01"].as<string>();
-	Texture_Files[2]	= textureDirectory + "/" + c["texture02"].as<string>();
-	Texture_Files[3]	= textureDirectory + "/" + c["texture03"].as<string>();
-	Texture_Files[4]	= textureDirectory + "/" + c["texture04"].as<string>();
-	Texture_Files[5]	= textureDirectory + "/" + c["texture05"].as<string>();
-	Texture_Files[6]	= textureDirectory + "/" + c["texture06"].as<string>();
-	Texture_Files[7]	= textureDirectory + "/" + c["texture07"].as<string>();
-	for(int i = 1; i <= 73; i++)
-		Texture_Files[i+7]	= textureDirectory + "/tex-" + boost::lexical_cast<std::string>(i) + ".bmp";
+	workingDirectory = c["workingDirectory"].as<string>();
+	dataDirectory 	= c["dataDirectory"].as<string>();
+	localDirectory 	= ".";//c["dataDirectory"].as<string>();
 
 	areasPerFrame		= c["areasPerFrameRendering"].as<int>();
 	highlightWholePlane	= c["highlightWholePlane"].as<bool>();
@@ -107,17 +100,22 @@ void Renderer::init()
 	glGenTextures( NUMBER_OF_MATERIALS, texture );
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
 		SDL_Surface *surface; // Gives us the information to make the texture
-
-		if ( (surface = SDL_LoadBMP(Texture_Files[i].c_str())) ) {
+		
+		std::string filename = std::string("/tex/tex-") + boost::lexical_cast<std::string>(i) + ".bmp";
+		
+		if ( 	(surface = SDL_LoadBMP((dataDirectory + filename).c_str())) ||
+				(surface = SDL_LoadBMP((workingDirectory + filename).c_str())) ||
+				(surface = SDL_LoadBMP((localDirectory + filename).c_str()))
+		) {
 
 			// Check that the image's width is a power of 2
 			if ( (surface->w & (surface->w - 1)) != 0 ) {
-				printf("warning: %s's width is not a power of 2\n", Texture_Files[i].c_str());
+				printf("warning: %s's width is not a power of 2\n", filename.c_str());
 			}
 
 			// Also check if the height is a power of 2
 			if ( (surface->h & (surface->h - 1)) != 0 ) {
-				printf("warning: %s's height is not a power of 2\n", Texture_Files[i].c_str());
+				printf("warning: %s's height is not a power of 2\n", filename.c_str());
 			}
 
 			// Bind the texture object
@@ -147,7 +145,7 @@ void Renderer::init()
 				
 		}
 		else {
-			printf("SDL could not load %s: %s\n", Texture_Files[i].c_str(), SDL_GetError());
+			printf("SDL could not load %s: %s\n", filename.c_str(), SDL_GetError());
 			SDL_Quit();
 		}
 

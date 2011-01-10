@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include <fstream>
+#include "boost/filesystem.hpp"
 
 #include "controller.h"
 
@@ -54,6 +55,9 @@ void Controller::run() {
 }
 
 void Controller::init() {
+	//creating working directory
+	boost::filesystem::create_directory( vm["workingDirectory"].as<std::string>() );
+	
 	// init SQL
 	if(sqlite3_open((vm["workingDirectory"].as<std::string>() + "/cubit.db").c_str(), &database) != SQLITE_OK)
       // Es ist ein Fehler aufgetreten!
@@ -95,13 +99,6 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("bgColorA", po::value<float>()->default_value(1.0), "Background Color Aplha")
 		("fogDense", po::value<float>()->default_value(0.6), "Densitivity of Fog")
 		("fogStartFactor", po::value<float>()->default_value(0.8), "Percental distance to fog start")
-		("texture01", po::value<string>()->default_value("grass.bmp"), "Grass")
-		("texture02", po::value<string>()->default_value("wood.bmp"), "Wood")
-		("texture03", po::value<string>()->default_value("bricks.bmp"), "Bricks")
-		("texture04", po::value<string>()->default_value("alu.bmp"), "Aluminium")
-		("texture05", po::value<string>()->default_value("marble.bmp"), "Black marble with white")
-		("texture06", po::value<string>()->default_value("hopscotch.bmp"), "Hopscotch")
-		("texture07", po::value<string>()->default_value("bee.bmp"), "Black/Yellow")
 		("visualRange", po::value<int>()->default_value(3), "maximal distance for rendering")
 		("enableFog", po::value<bool>()->default_value(1), "enable Fog")
 		("areasPerFrameRendering", po::value<int>()->default_value(1), "set the maximal rendered areas per frame")
@@ -125,9 +122,11 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning")
 		("jumpSpeed", po::value<double>()->default_value(0.215), "initial speed when jumping")
 #ifdef _WIN32
-		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("APPDATA")) + "/.cubit"), "Folder for saving areas")
+		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("APPDATA")) + "/Cubit"), "Folder for saving areas")
+		("dataDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for music and images")
 #else
 		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for saving areas")
+		("dataDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for music and images")
 #endif
 		
 		//UI
@@ -150,13 +149,13 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 
 	//config file
-/*	std::ifstream i;
+	std::ifstream i;
 	i.open((vm["workingDirectory"].as<std::string>() + "/cubit.conf").c_str());
 	if (i.is_open()) {
 		po::store(po::parse_config_file(i, desc), vm);
 	}
 	i.close();
-	*/
+	
 	po::notify(vm);
 	
 	if (vm.count("help")) {
