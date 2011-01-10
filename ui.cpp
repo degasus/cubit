@@ -27,7 +27,7 @@ void UInterface::init()
 	
 	/* We're going to be requesting certain things from our audio
 	device, so we set them up beforehand */
-	int audio_rate = 48000;
+	int audio_rate = 44100;
 	Uint16 audio_format = AUDIO_S16; /* 16-bit stereo */
 	int audio_channels = 2;
 	int audio_buffers = 4096;
@@ -56,7 +56,7 @@ void UInterface::init()
 	) {
 		Mix_PlayMusic(ingameMusic, -1);
 	} else {
-		std::cout << "Could not find the music file " << filename <<  std::endl;
+		std::cout << "Could not find the music file " << filename << " Error: " << Mix_GetError() <<  std::endl;
 	}
 }
 
