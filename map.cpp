@@ -320,7 +320,7 @@ void Map::init()
 	
 	thread_stop = 0;
 	queue_mutex = SDL_CreateMutex ();
-	//harddisk = SDL_CreateThread (threaded_read_from_harddisk,this);
+	harddisk = SDL_CreateThread (threaded_read_from_harddisk,this);
 	mapGenerator = SDL_CreateThread (threaded_generate_new_map,this);
 }
 
