@@ -341,13 +341,22 @@ void Map::setPosition(PlayerPosition pos)
 						b->dijsktra_distance = a->dijsktra_distance+1;
 						b->dijsktra = dijsktra_wert;
 						dijsktra_queue.push(b);
+						if(b->state == Area::STATE_NEW && b->dijsktra_distance < loadRange) {
+							b->state == Area::STATE_LOAD;
+							to_load.push(b);	
+						}
 					}
 				}
 			}
+			//if(a->needstore) {
+			//	store(a);
+			//}
 			break;
 			case Area::STATE_NEW:
-				if(a->dijsktra_distance < loadRange)
+				if(a->state == Area::STATE_NEW && a->dijsktra_distance < loadRange) {
+					a->state == Area::STATE_LOAD;
 					to_load.push(a);
+				}
 			break;
 		}
 		
