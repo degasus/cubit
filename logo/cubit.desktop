@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=0.0.1
+Type=Application
+Name=cubit
+GenericName=Game
+Comment=first person role game in a world of cubes
+Icon=cubit
+TryExec=cubit
+Exec=cubit
+Categories=Game;

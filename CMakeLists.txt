@@ -38,4 +38,6 @@ INSTALL( FILES ${soundfx} DESTINATION share/games/cubit/sound/fx)
 FILE(GLOB soundmusic "${CMAKE_CURRENT_SOURCE_DIR}/sound/music/*.ogg" )
 INSTALL( FILES ${soundmusic} DESTINATION share/games/cubit/sound/music)
 
+INSTALL( FILES logo/cubit.png DESTINATION share/icons/hicolor/128x128/apps)
+INSTALL( FILES logo/cubit.desktop DESTINATION share/applications)
 
