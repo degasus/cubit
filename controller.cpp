@@ -69,7 +69,7 @@ void Controller::init() {
 							"revision INT DEFAULT 0, "
 							"full INT NOT NULL DEFAULT 0, "	
 							"blocks INT NOT NULL DEFAULT -1, "
-							"data BLOB(4096), "
+							"data BLOB(32768), "
 							"PRIMARY KEY (posx, posy, posz) "
 						");"
 					 , 0, 0, 0);
