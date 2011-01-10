@@ -332,29 +332,30 @@ void Map::setPosition(PlayerPosition pos)
 			if(!a->full) {
 				for(int i=0; i<DIRECTION_COUNT; i++) {
 					Area* b = a->next[i];
-					if(!b) b = getOrCreate(a->pos*DIRECTION(i));
-					if(b->dijsktra != dijsktra_wert) {
+					if(!b && a->dijsktra_distance < loadRange) b = getOrCreate(a->pos*DIRECTION(i));
+					if(b && b->dijsktra != dijsktra_wert) {
 						b->dijsktra_distance = a->dijsktra_distance+1;
 						b->dijsktra = dijsktra_wert;
 						dijsktra_queue.push(b);
-						if(b->state == Area::STATE_NEW && b->dijsktra_distance < loadRange) {
+						if(b->state == Area::STATE_NEW) {
 							b->state == Area::STATE_LOAD;
 							to_load.push(b);	
 						}
 					}
 				}
 			}	
+		} else k = areasPerFrameLoading;
 		
-		
-			if(a->dijsktra_distance > deleteRange) {
-				a->deconfigure();
-				areas_with_gllist.erase(a);
-				areas.erase(a->pos);
-				a->state == Area::STATE_DELETE;
-				to_save.push(a);
-				std::cout << "blub" << std::endl;
-			}
-		} else break;
+		if(a->dijsktra_distance > deleteRange && a->state == Area::STATE_READY) {
+			a->deconfigure();
+			areas_with_gllist.erase(a);
+			areas.erase(a->pos);
+			a->state == Area::STATE_DELETE;
+			to_save.push(a);
+		} else if(a->needstore && a->state == Area::STATE_READY) {
+			a->needstore = 0;
+			to_save.push(a);
+		}
 	} 
 	
 	while(!loaded.empty()) {
