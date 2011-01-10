@@ -111,6 +111,17 @@ struct BlockPosition {
 			z+DIRECTION_NEXT_BOX[dir][2]
  		);
 	}
+	
+	/**
+	 * @returns the next Area in this direction
+	 */
+	BlockPosition operator*(DIRECTION dir) {
+		return create(
+			x+DIRECTION_NEXT_BOX[dir][0]*AREASIZE_X,
+			y+DIRECTION_NEXT_BOX[dir][1]*AREASIZE_Y,
+			z+DIRECTION_NEXT_BOX[dir][2]*AREASIZE_Z
+ 		);
+	}
 
 	inline bool operator== (const BlockPosition &position) {
 		return (position.x == x && position.y == y && position.z == z);
@@ -150,6 +161,13 @@ inline bool operator<(const BlockPosition &posa, const BlockPosition &posb) {
 }
 
 /**
+ * return the opposite Direction
+ */
+inline DIRECTION operator!(const DIRECTION &dir) {
+	return DIRECTION(int(dir) ^ 1);
+}
+
+/**
  * kleines Gebiet auf der Karte.
  * Dies ist ein einzelner Abschnitt beim Rendern
  * und beim Laden übers Netz.
@@ -172,12 +190,23 @@ public:
 	
 	bool needstore;
 	
+	Area* next[DIRECTION_COUNT];
+	int dijsktra;
+	int dijsktra_distance;
+	
 	bool empty;
+	bool full;
+	bool dir_full[DIRECTION_COUNT];
+	
+	int blocks;
 	
 	enum AreaState {
 		STATE_NEW,
+		STATE_LOAD,
+		STATE_LOADED,
+		STATE_LOADED_BUT_NOT_FOUND,
 		STATE_READY,
-		STATE_TOSAVE
+		STATE_DELETE
 	} state;
 	
 	/**
@@ -207,6 +236,19 @@ public:
 		std::ostringstream os(std::ostringstream::out);
 		os << dir << "/" << pos.x << "x" << pos.y << "x" << pos.z << ".map";
 		return os.str();
+	}
+	
+	inline void deconfigure() {
+		if(gllist_generated)
+			glDeleteLists(gllist,1);
+		gllist_generated = 0;
+		
+		for(int i=0; i<DIRECTION_COUNT; i++) {
+			if(next[i]) {
+				next[i]->next[!DIRECTION(i)] = 0;
+				next[i] = 0;
+			}
+		}
 	}
 };
 
@@ -310,17 +352,15 @@ public:
 	std::set<Area*> areas_with_gllist;
     
 private:
-	bool shouldDelArea(BlockPosition posa, PlayerPosition posp);
-	void store(Area *a);
-	bool load(Area *a);
-	void generateArea(BlockPosition arg1);
-	
+	void store(Area* a);
+	void load(Area* a);
+	void recalc(Area* a);
+	void generateArea(BlockPosition pos);
+	Area* getOrCreate(BlockPosition pos);
 	
 	Controller *c;
 	Area *lastarea;
 	
-	
-	double destroyArea;
 	bool storeMaps;
 	int areasPerFrameLoading;
 	int areasPerFrameLoadingFree;
@@ -328,23 +368,27 @@ private:
 	// prepared statements
 	sqlite3_stmt *saveArea;
 	sqlite3_stmt *loadArea;
-	sqlite3_stmt *loadAreas;
 	
 	// queue for loading from harddisk
-	struct ToLoad {BlockPosition min; BlockPosition max; };
-	std::queue<ToLoad> to_load;
+	std::queue<Area*> to_load;
 	std::queue<Area*> loaded;
 	std::queue<Area*> to_save;
-	std::queue<Area*> saved;
+//	std::queue<Area*> saved;
 	SDL_mutex* queue_mutex;
 	
 	SDL_Thread* harddisk;
 	SDL_Thread* mapGenerator;
 	bool thread_stop;
 	
-	int visualRange;
+	int loadRange;
+	int deleteRange;
+	
 	BlockPosition lastpos;
 	bool inital_loaded;
+	
+	
+	int dijsktra_wert;
+	std::queue<Area*> dijsktra_queue;
 	
 };
 
