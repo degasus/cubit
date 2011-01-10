@@ -53,7 +53,9 @@ void Movement::config(const boost::program_options::variables_map& c){
 	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<double>();
 	maxFallingSpeed		= c["maxFallingSpeed"].as<double>();
 	jumpSpeed			= c["jumpSpeed"].as<double>();
-	workingDirectory	= c["workingDirectory"].as<std::string>();
+	workingDirectory = c["workingDirectory"].as<std::string>();
+	dataDirectory = c["dataDirectory"].as<std::string>();
+	localDirectory = c["localDirectory"].as<std::string>();
 
 	accelVertical	= normalAccelVertical;
 	movementSpeed 	= normalMovementSpeed;
@@ -70,8 +72,20 @@ void Movement::config(const boost::program_options::variables_map& c){
 
 void Movement::init()
 {
-	step = Mix_LoadWAV((workingDirectory + "/sound/fx/Footstep-stereo.ogg").c_str());
+//	step = Mix_LoadWAV((workingDirectory + "/sound/fx/Footstep-stereo.ogg").c_str());
 	putBlock = Mix_LoadWAV((workingDirectory + "/sound/fx/nutfall.wav").c_str());
+	
+	
+	std::string filename("/sound/fx/nutfall.wav");
+	//load and start music
+	if((putBlock = Mix_LoadWAV((dataDirectory + filename).c_str()))||
+		(putBlock = Mix_LoadWAV((workingDirectory + filename).c_str())) ||
+		(putBlock = Mix_LoadWAV((localDirectory + filename).c_str())) ||
+		(putBlock = Mix_LoadWAV((std::string(".") + filename).c_str())) 
+	) {
+	} else {
+		std::cout << "Could not find the sound file " << filename <<  std::endl;
+	}
 }
 
 void Movement::savePosition() {

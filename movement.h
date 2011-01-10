@@ -177,7 +177,9 @@ private:
 	double jumpSpeed;
 	bool enableFly;
 	std::string workingDirectory;
-
+	std::string dataDirectory;
+	std::string localDirectory;
+	
 	//Steps
 	int stepProgress;
 	
