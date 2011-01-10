@@ -1,8 +1,9 @@
-?package(cubit):needs="X11" section="Games"\
-  title="cubit"
-  longtitle="first person role game in a world of cubes" \
-  icon="/usr/share/pixmaps/cubit-16x16.xpm" \
-  icon16x16="/usr/share/pixmaps/cubit-16x16.xpm" \
-  icon32x32="/usr/share/pixmaps/cubit-32x32.xpm" \
-  command="/usr/games/cubit"
+?package(cubit):needs="X11"\
+ section="Games"\
+ title="cubit"\
+ longtitle="first person role game in a world of cubes"\
+ icon="/usr/share/pixmaps/cubit-16x16.xpm"\
+ icon16x16="/usr/share/pixmaps/cubit-16x16.xpm"\
+ icon32x32="/usr/share/pixmaps/cubit-32x32.xpm"\
+ command="/usr/games/cubit"
 
