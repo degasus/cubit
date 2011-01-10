@@ -384,7 +384,7 @@ void Renderer::render(PlayerPosition pos)
 			} 
 		}
 	}
-	//std::cout << "anzahl areas: " << c->map->areas_with_gllist.size() << std::endl;
+	std::cout << "anzahl areas: " << c->map->areas_with_gllist.size() << std::endl;
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){

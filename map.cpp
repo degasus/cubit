@@ -288,7 +288,7 @@ Area* Map::getArea(BlockPosition pos)
 
 Area* Map::getOrCreate(BlockPosition pos) {
 	Area** a = &areas[pos];
-	if(!a) {
+	if(!(*a)) {
 		*a = new Area(pos);
 		for(int i=0; i<DIRECTION_COUNT; i++) {
 			iterator it = areas.find(pos*DIRECTION(i));
@@ -308,8 +308,12 @@ void Map::setPosition(PlayerPosition pos)
 	BlockPosition p = pos.block().area();
 	
 	if(!inital_loaded || (p != lastpos)) {
+		inital_loaded = 1;
+		lastpos = p;
 		while(!dijsktra_queue.empty())
 			dijsktra_queue.pop();
+		Area* a = getOrCreate(p);
+		dijsktra_queue.push(a);
 	}
 	
 	if(dijsktra_queue.empty()) {
@@ -321,9 +325,10 @@ void Map::setPosition(PlayerPosition pos)
 		}
 	}
 	
-	if(!dijsktra_queue.empty()) {
+	for(int k=0; k<areasPerFrameLoading && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
 		dijsktra_queue.pop();
+		
 			
 		switch(a->state) {
 			// search in all adjacent areas
@@ -332,9 +337,9 @@ void Map::setPosition(PlayerPosition pos)
 				for(int i=0; i<DIRECTION_COUNT; i++) {
 					Area* b = a->next[i];
 					if(!b) b = getOrCreate(a->pos*DIRECTION(i));
-					
-					if(b->revision != dijsktra_wert) {
+					if(b->dijsktra != dijsktra_wert) {
 						b->dijsktra_distance = a->dijsktra_distance+1;
+						b->dijsktra = dijsktra_wert;
 						dijsktra_queue.push(b);
 					}
 				}
@@ -354,13 +359,18 @@ void Map::setPosition(PlayerPosition pos)
 			to_save.push(a);
 		}
 		
-	}
+	} 
 	
 	while(!loaded.empty()) {
 		Area* a = loaded.front();
 		loaded.pop();
 		
 		areas[a->pos] = a;
+		a->state = Area::STATE_READY;
+		
+		for(int i=0; i<DIRECTION_COUNT; i++)
+			if(a->next[i])
+				a->next[i]->needupdate = 1;
 		
 		if(!a->empty)
 			areas_with_gllist.insert(a);
