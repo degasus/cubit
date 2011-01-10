@@ -179,7 +179,7 @@ void randomArea(Area* a) {
 			a->m[x][y][z] = 0;
 	}
 }
-
+/*
 void Map::generateArea(BlockPosition pos)
 {
 	Area* a = new Area(pos);
@@ -197,7 +197,7 @@ void Map::generateArea(BlockPosition pos)
 	loaded.push(a);
 	SDL_UnlockMutex(queue_mutex);
 }
-
+*/
 void Map::read_from_harddisk() {
 	while(!thread_stop) {
 		Area* toload;
@@ -307,32 +307,28 @@ void Map::setPosition(PlayerPosition pos)
 	
 	BlockPosition p = pos.block().area();
 	
-	if(!inital_loaded || (p != lastpos)) {
+	if(!inital_loaded) {
 		inital_loaded = 1;
 		lastpos = p;
 		while(!dijsktra_queue.empty())
 			dijsktra_queue.pop();
-		Area* a = getOrCreate(p);
-		dijsktra_queue.push(a);
 	}
 	
 	if(dijsktra_queue.empty()) {
-		dijsktra_wert++;		
-		iterator it = areas.find(p);
-		if(it != areas.end()) {
-			dijsktra_queue.push(it->second);
-			it->second->dijsktra_distance = 0;
+		dijsktra_wert++;
+		Area* a = getOrCreate(p);
+		if(a->state == Area::STATE_NEW) {
+			a->state == Area::STATE_LOAD;
+			to_load.push(a);
 		}
+		dijsktra_queue.push(a);
+		a->dijsktra_distance = 0;
 	}
 	
 	for(int k=0; k<areasPerFrameLoading && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
-		dijsktra_queue.pop();
-		
-			
-		switch(a->state) {
-			// search in all adjacent areas
-			case Area::STATE_READY:
+		if(a->state == Area::STATE_READY) {
+			dijsktra_queue.pop();
 			if(!a->full) {
 				for(int i=0; i<DIRECTION_COUNT; i++) {
 					Area* b = a->next[i];
@@ -347,27 +343,18 @@ void Map::setPosition(PlayerPosition pos)
 						}
 					}
 				}
+			}	
+		
+		
+			if(a->dijsktra_distance > deleteRange) {
+				a->deconfigure();
+				areas_with_gllist.erase(a);
+				areas.erase(a->pos);
+				a->state == Area::STATE_DELETE;
+				to_save.push(a);
+				std::cout << "blub" << std::endl;
 			}
-			//if(a->needstore) {
-			//	store(a);
-			//}
-			break;
-			case Area::STATE_NEW:
-				if(a->state == Area::STATE_NEW && a->dijsktra_distance < loadRange) {
-					a->state == Area::STATE_LOAD;
-					to_load.push(a);
-				}
-			break;
-		}
-		
-		if(a->dijsktra_distance > deleteRange) {
-			a->deconfigure();
-			areas_with_gllist.erase(a);
-			areas.erase(a->pos);
-			a->state == Area::STATE_DELETE;
-			to_save.push(a);
-		}
-		
+		} else break;
 	} 
 	
 	while(!loaded.empty()) {
@@ -448,7 +435,7 @@ void Map::load(Area *a) {
 		int full = sqlite3_column_int(loadArea, 2);
 		for(int i=0; i<DIRECTION_COUNT; i++) {
 			a->dir_full[i] = full & 1;
-			full >> 1;
+			full = full >> 1;
 		}
 		a->full = full;
 		a->blocks = sqlite3_column_int(loadArea, 3);
