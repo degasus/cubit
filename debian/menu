@@ -1,5 +1,5 @@
 ?package(cubit):needs="X11"\
- section="Games"\
+ section="Games/Action"\
  title="cubit"\
  longtitle="first person role game in a world of cubes"\
  icon="/usr/share/pixmaps/cubit-16x16.xpm"\
