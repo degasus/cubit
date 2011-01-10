@@ -126,7 +126,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("dataDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for music and images")
 #else
 		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for saving areas")
-		("dataDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for music and images")
+		("dataDirectory", po::value<string>()->default_value(std::string(CMAKE_INSTALL_PREFIX) + "/share/games/cubit"), "Folder for music and images")
 #endif
 		
 		//UI

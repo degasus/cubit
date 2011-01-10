@@ -17,6 +17,7 @@ IF (NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release)
 ENDIF (NOT CMAKE_BUILD_TYPE)
 
+ADD_DEFINITIONS(-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" )
 
 
 add_executable(cubit main.cpp controller.cpp map.cpp movement.cpp net.cpp ui.cpp renderer.cpp)
