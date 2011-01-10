@@ -128,6 +128,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for saving areas")
 		("dataDirectory", po::value<string>()->default_value(std::string(CMAKE_INSTALL_PREFIX) + "/share/games/cubit"), "Folder for music and images")
 #endif
+		("localDirectory", po::value<string>()->default_value(boost::filesystem::path(argv[0]).remove_filename().string()), "Folder for music and images")
 		
 		//UI
 		("highlightWholePlane", po::value<bool>()->default_value(1), "highlight the pointing on plane without depth test")

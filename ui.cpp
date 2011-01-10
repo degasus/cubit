@@ -27,7 +27,7 @@ void UInterface::init()
 	
 	/* We're going to be requesting certain things from our audio
 	device, so we set them up beforehand */
-	int audio_rate = 22050;
+	int audio_rate = 48000;
 	Uint16 audio_format = AUDIO_S16; /* 16-bit stereo */
 	int audio_channels = 2;
 	int audio_buffers = 4096;
@@ -46,9 +46,18 @@ void UInterface::init()
 	
 	initWindow();
 	
+	std::string filename("/sound/music/forest.ogg");
+	
 	//load and start music
-	ingameMusic = Mix_LoadMUS((workingDirectory + "/sound/music/forest.ogg").c_str());
-	Mix_PlayMusic(ingameMusic, -1);
+	if((ingameMusic = Mix_LoadMUS((dataDirectory + filename).c_str()))||
+		(ingameMusic = Mix_LoadMUS((workingDirectory + filename).c_str())) ||
+		(ingameMusic = Mix_LoadMUS((localDirectory + filename).c_str())) ||
+		(ingameMusic = Mix_LoadMUS((std::string(".") + filename).c_str())) 
+	) {
+		Mix_PlayMusic(ingameMusic, -1);
+	} else {
+		std::cout << "Could not find the music file " << filename <<  std::endl;
+	}
 }
 
 void UInterface::config(const boost::program_options::variables_map &c)
@@ -59,7 +68,9 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	isFullscreen 	= c["fullscreen"].as<bool>();
 	enableAntiAliasing = c["enableAntiAliasing"].as<bool>();
 	
-	workingDirectory	= c["workingDirectory"].as<std::string>();
+	workingDirectory = c["workingDirectory"].as<std::string>();
+	dataDirectory = c["dataDirectory"].as<std::string>();
+	localDirectory = c["localDirectory"].as<std::string>();
 
 	k_forward		= c["k_forward"].as<int>();
 	k_backwards		= c["k_backwards"].as<int>();

@@ -29,8 +29,8 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	enableFog			= c["enableFog"].as<bool>();
 
 	workingDirectory = c["workingDirectory"].as<string>();
-	dataDirectory 	= c["dataDirectory"].as<string>();
-	localDirectory 	= ".";
+	dataDirectory = c["dataDirectory"].as<string>();
+	localDirectory = c["localDirectory"].as<string>();
 
 	areasPerFrame		= c["areasPerFrameRendering"].as<int>();
 	highlightWholePlane	= c["highlightWholePlane"].as<bool>();
@@ -105,7 +105,8 @@ void Renderer::init()
 		
 		if ( 	(surface = SDL_LoadBMP((dataDirectory + filename).c_str())) ||
 				(surface = SDL_LoadBMP((workingDirectory + filename).c_str())) ||
-				(surface = SDL_LoadBMP((localDirectory + filename).c_str()))
+				(surface = SDL_LoadBMP((localDirectory + filename).c_str())) ||
+				(surface = SDL_LoadBMP((string(".") + filename).c_str()))
 		) {
 
 			// Check that the image's width is a power of 2

@@ -46,6 +46,8 @@ private:
 	void drawHUD();
 
 	std::string workingDirectory;
+	std::string dataDirectory;
+	std::string localDirectory;
 
 	//default frame size on no fullscreen
 	int noFullX;
