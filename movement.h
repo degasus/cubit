@@ -128,6 +128,8 @@ public:
 	bool getPointingOn(BlockPosition* block, DIRECTION* plane);
 
 private:
+	bool movDebug;
+
 	//player stats
 	PlayerPosition position;
 	Material selectedMaterial;

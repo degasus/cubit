@@ -76,7 +76,7 @@ int threaded_read_from_harddisk(void* param) {
 int threaded_generate_new_map(void* param) {
 	Map* map = (Map*)param;
 
-	SDL_Delay (2000);
+	SDL_Delay (10000);
 	map->generate_new_map();
 	
 	return 0;
@@ -320,7 +320,7 @@ void Map::init()
 	
 	thread_stop = 0;
 	queue_mutex = SDL_CreateMutex ();
-	harddisk = SDL_CreateThread (threaded_read_from_harddisk,this);
+	//harddisk = SDL_CreateThread (threaded_read_from_harddisk,this);
 	mapGenerator = SDL_CreateThread (threaded_generate_new_map,this);
 }
 
@@ -610,6 +610,7 @@ bool Map::load(Area *a) {
 	}
 	SDL_UnlockMutex(c->sql_mutex);
 	*/
+	return 0;
 }
 
 Area::Area(BlockPosition p)

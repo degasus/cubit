@@ -86,7 +86,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("help", "produce help message")
 		("noFullX", po::value<int>()->default_value(1024), "set the default x-resolution")
 		("noFullY", po::value<int>()->default_value(768), "set the default y-resolution")
-		("fullscreen", po::value<bool>()->default_value(1), "start in fullscreen")
+		("fullscreen", po::value<bool>()->default_value(0), "start in fullscreen")
 		("enableAntiAliasing", po::value<bool>()->default_value(0), "enables Multi-Sampling")
 		("textureFilterMethod", po::value<int>()->default_value(1), "set the texture filter method (1=nearest; 2=linear; 3=triliear)")
 		("bgColorR", po::value<float>()->default_value(0.6), "Background Color Red")
@@ -124,8 +124,11 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("maxFallingSpeed", po::value<double>()->default_value(-0.99), "fastest reachable speed on falling")
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning")
 		("jumpSpeed", po::value<double>()->default_value(0.215), "initial speed when jumping")
-		
+#ifdef _WIN32
+		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("APPDATA")) + "/.cubit"), "Folder for saving areas")
+#else
 		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for saving areas")
+#endif
 		
 		//UI
 		("highlightWholePlane", po::value<bool>()->default_value(1), "highlight the pointing on plane without depth test")
@@ -147,15 +150,15 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 
 	//config file
-	std::ifstream i;
+/*	std::ifstream i;
 	i.open((vm["workingDirectory"].as<std::string>() + "/cubit.conf").c_str());
 	if (i.is_open()) {
 		po::store(po::parse_config_file(i, desc), vm);
 	}
 	i.close();
-	
+	*/
 	po::notify(vm);
-
+	
 	if (vm.count("help")) {
 		std::cout << desc << "\n";
 	}
