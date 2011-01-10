@@ -76,7 +76,7 @@ int threaded_read_from_harddisk(void* param) {
 int threaded_generate_new_map(void* param) {
 	Map* map = (Map*)param;
 
-	SDL_Delay (2000);
+	SDL_Delay (10000);
 	map->generate_new_map();
 	
 	return 0;
@@ -448,7 +448,6 @@ void Map::load(Area *a) {
 		randomArea(a);
 		recalc(a);
 	}
-	
 }
 
 void Map::recalc(Area* a) {
