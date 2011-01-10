@@ -123,7 +123,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("jumpSpeed", po::value<double>()->default_value(0.215), "initial speed when jumping")
 #ifdef _WIN32
 		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("APPDATA")) + "/Cubit"), "Folder for saving areas")
-		("dataDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for music and images")
+		("dataDirectory", po::value<string>()->default_value(boost::filesystem::path(argv[0]).remove_filename().string()), "Folder for music and images")
 #else
 		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for saving areas")
 		("dataDirectory", po::value<string>()->default_value(std::string(CMAKE_INSTALL_PREFIX) + "/share/games/cubit"), "Folder for music and images")
@@ -157,6 +157,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 	i.close();
 	
 	po::notify(vm);
+	
 	
 	if (vm.count("help")) {
 		std::cout << desc << "\n";

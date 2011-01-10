@@ -30,7 +30,7 @@ void Renderer::config(const boost::program_options::variables_map& c)
 
 	workingDirectory = c["workingDirectory"].as<string>();
 	dataDirectory 	= c["dataDirectory"].as<string>();
-	localDirectory 	= ".";//c["dataDirectory"].as<string>();
+	localDirectory 	= ".";
 
 	areasPerFrame		= c["areasPerFrameRendering"].as<int>();
 	highlightWholePlane	= c["highlightWholePlane"].as<bool>();
