@@ -1,0 +1,29 @@
+This work was packaged for Debian by:
+
+    Markus Wick <markus@selfnet.de> on Mon, 10 Jan 2011 11:41:00 +0100
+
+It was downloaded from:
+
+    http://cubit-project.com/
+
+Upstream Author(s):
+
+    Arne Schauf
+    Markus Wick
+
+Copyright:
+
+    Copyright (C) 2010 Arne Schauf
+    Copyright (C) 2010 Markus Wick
+
+License:
+
+   GPL 
+
+The Debian packaging is:
+
+    Copyright (C) 2011 Markus Wick <markus@selfnet.de>
+
+and is licensed under the GPL version 3,
+see "/usr/share/common-licenses/GPL-3".
+
