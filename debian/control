@@ -1,0 +1,26 @@
+Source: cubit
+Section: universe/games
+Priority: extra
+Maintainer: Markus Wick <markus@selfnet.de>
+Build-Depends: debhelper, cmake, libsdl1.2-dev, libsdl-mixer1.2-dev, libboost-program-options1.42-dev, libsqlite3-dev
+Standards-Version: 3.9.1.0
+Homepage: http://cubit-project.com/
+#Vcs-Git: git://git.debian.org/collab-maint/cubit.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/cubit.git;a=summary
+
+Package: cubit
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, cubit-data
+Description: first person role game in a world of cubes
+ Cubit is a game in which you walk around in a world that
+ consists only out of cubes. You can build and destroy cubes
+ in order to build cool objects and just have fun.
+
+Package: cubit-data
+Architecture: all
+Depends: 
+Description: first person role game in a world of cubes - data files
+ Cubit is a game in which you walk around in a world that
+ consists only out of cubes. You can build and destroy cubes
+ in order to build cool objects and just have fun.
+
