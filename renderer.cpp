@@ -1,4 +1,4 @@
-#define _USE_MATH_DEFINES
+﻿#define _USE_MATH_DEFINES
 #include <math.h>
 #include <iostream>
 #include <vector>
@@ -384,7 +384,7 @@ void Renderer::render(PlayerPosition pos)
 			} 
 		}
 	}
-	std::cout << "anzahl areas: " << c->map->areas_with_gllist.size() << std::endl;
+	//std::cout << "anzahl areas: " << c->map->areas_with_gllist.size() << std::endl;
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){

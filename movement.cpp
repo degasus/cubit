@@ -33,6 +33,7 @@ Movement::Movement(Controller* controller)
 	lastBuild = 20;
 	stepProgress = 0;
 	selectedMaterial = 1;
+	movDebug = 0;
 }
 
 Movement::~Movement(){
@@ -352,7 +353,8 @@ void Movement::calcNewSpeed()
 		belowFeetBlock += c->map->getBlock(offset8.block());
 	}
 	catch(NotLoadedException e){
-		std::cout << "feetBlock NotLoadedException" << std::endl;
+		if(movDebug)
+			std::cout << "feetBlock NotLoadedException" << std::endl;
 		belowFeetBlock = 1;
 	}
 	
@@ -440,7 +442,8 @@ void Movement::calcCollisionAndMove(){
 			aboveHeadBlock += c->map->getBlock(offset8.block());
 		}
 		catch(NotLoadedException e){
-			std::cout << "aboveHeadBlock NotLoadedException" << std::endl;
+			if(movDebug)
+				std::cout << "aboveHeadBlock NotLoadedException" << std::endl;
 			aboveHeadBlock = 1;
 		}
 		if(aboveHeadBlock != 0){
@@ -453,7 +456,8 @@ void Movement::calcCollisionAndMove(){
 		posBlock = c->map->getBlock(position.block());
 	}
 	catch(NotLoadedException e){
-		std::cout << "posBlock NotLoadedException" << std::endl;
+		if(movDebug)
+			std::cout << "posBlock NotLoadedException" << std::endl;
 		posBlock = 0;
 	}
 	
@@ -492,7 +496,8 @@ void Movement::calcCollisionAndMove(){
 		belowFeetBlock += c->map->getBlock(offset8.block());
 	}
 	catch(NotLoadedException e){
-		std::cout << "belowFeetBlock NotLoadedException" << std::endl;
+		if(movDebug)
+			std::cout << "belowFeetBlock NotLoadedException" << std::endl;
 		belowFeetBlock = 1;
 	}
 /*
@@ -527,18 +532,21 @@ void Movement::calcCollisionAndMove(){
 		feetBlock = c->map->getBlock(feetPos.block());
 	}
 	catch(NotLoadedException e){
-		std::cout << "Elevator NotLoadedException" << std::endl;
+		if(movDebug)
+			std::cout << "Elevator NotLoadedException" << std::endl;
 		posBlock = 0;
 		feetBlock = 0;
 	}
 	if(feetBlock != 0 && speedUp <= 0){
 		speedUp = 0.0;
-		std::cout << "do the elevator (feetBlock = " << feetBlock << std::endl;
+		if(movDebug)
+			std::cout << "do the elevator (feetBlock = " << feetBlock << std::endl;
 		position.z = floor(position.z-personSize)+1.0+personSize;
 	}
 	else if(posBlock != 0 && speedUp <= 0){
 		speedUp = 0.0;
-		std::cout << "do the elevator (posBlock = " << posBlock << std::endl;
+		if(movDebug)
+			std::cout << "do the elevator (posBlock = " << posBlock << std::endl;
 		position.z = floor(position.z-personSize)+1.0+personSize;
 	}
 	
@@ -601,7 +609,8 @@ void Movement::calcCollisionAndMove(){
 			offsetFeetBlock += c->map->getBlock(offsetFeetPos3.block());
 		}
 		catch(NotLoadedException e){
-			std::cout << "X-collision detection NotLoadedException" << std::endl;
+			if(movDebug)
+				std::cout << "X-collision detection NotLoadedException" << std::endl;
 			posBlock = 1;
 			feetBlock = 1;
 			offsetBlock = 1;
@@ -670,7 +679,8 @@ void Movement::calcCollisionAndMove(){
 			offsetFeetBlock += c->map->getBlock(offsetFeetPos3.block());
 		}
 		catch(NotLoadedException e){
-			std::cout << "Y-collision detection NotLoadedException" << std::endl;
+			if(movDebug)
+				std::cout << "Y-collision detection NotLoadedException" << std::endl;
 			posBlock = 1;
 			feetBlock = 1;
 			offsetBlock = 1;
@@ -842,7 +852,8 @@ void Movement::buildBlock()
 			Mix_PlayChannel(-1, putBlock, 0);
 		}
 		catch(NotLoadedException e){
-			std::cout << "NotLoadedException buildBlock" << std::endl;
+			if(movDebug)
+				std::cout << "NotLoadedException buildBlock" << std::endl;
 		}
 	}
 }
@@ -853,7 +864,8 @@ void Movement::removeBlock()
 		c->map->setBlock(pointingOnBlock+pointingOnPlane, 0);
 	}
 	catch(NotLoadedException e){
-		std::cout << "NotLoadedException removeBlock" << std::endl;
+		if(movDebug)
+			std::cout << "NotLoadedException removeBlock" << std::endl;
 	}
 }
 
