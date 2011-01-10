@@ -351,6 +351,7 @@ void Renderer::render(PlayerPosition pos)
 	glScalef(-1,1,1);
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 	
 	if(areasRendered<0) areasRendered = 0;
 	areasRendered -= areasPerFrame;
@@ -388,14 +389,15 @@ void Renderer::render(PlayerPosition pos)
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
-		glDisable(GL_LIGHT1);
 		glDisable(GL_LIGHTING);
+		glDisable(GL_LIGHT1);
+		glDisable(GL_LIGHT2);
 
 		if(highlightWholePlane)
 			glDisable(GL_DEPTH_TEST);
 		else
 			glEnable(GL_DEPTH_TEST);
-		glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
+		glColor4f(0.0f, 0.0f, 0.0f, 0.1f);
 		glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 		glEnable(GL_BLEND);
 		glBegin(GL_QUADS);		
@@ -410,10 +412,9 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 		glEnd();
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
-		
-		glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 
 		glEnable(GL_LIGHT1);
+		glEnable(GL_LIGHT2);
 		glEnable(GL_LIGHTING);
 }
 

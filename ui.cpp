@@ -359,7 +359,7 @@ void UInterface::drawHUD() {
 
 	glDisable(GL_LIGHT2);
 	
-	glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 	glEnable(GL_BLEND);
 
