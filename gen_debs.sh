@@ -4,12 +4,22 @@ export CUBITVERSION=0.0.1
 
 
 mkdir -p debs
+
 cd debs
-rm -rf cubit-* cubit_*
+
+rm -rf cubit-* cubit*diff.gz cubit*dsc cubit*build cubit*changes
+
 git clone .. cubit-$CUBITVERSION
+
 rm -rf cubit-$CUBITVERSION/.git
-tar -zcf cubit_$CUBITVERSION.orig.tar.gz cubit-$CUBITVERSION
+
+if [ ! -e cubit_$CUBITVERSION.orig.tar.gz ]
+then echo tar -zcf cubit_$CUBITVERSION.orig.tar.gz cubit-$CUBITVERSION
+fi
+
 cd cubit-$CUBITVERSION
+
 debuild -S
+
 cd ..
-rm -rf cubit-$CUBITVERSION
+
