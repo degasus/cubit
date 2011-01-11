@@ -245,6 +245,7 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	if(code == k_duck){
 		ae.name = ActionEvent::RELEASE_DUCK;
 	}
+#ifndef _WIN32
 	if(code == k_music){
 		if(!musicPlaying) {
 			Mix_PlayMusic(ingameMusic, -1);
@@ -255,6 +256,7 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 			musicPlaying = false;
 		}
 	}	
+#endif
 	if(ae.name != ActionEvent::NONE)
 		c->movement->performAction(ae);
 }
