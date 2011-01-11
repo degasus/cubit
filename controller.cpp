@@ -1,7 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include <fstream>
-#include "boost/filesystem.hpp"
+#include <boost/filesystem.hpp>
 
 #include "controller.h"
 
@@ -24,6 +24,8 @@ Controller::Controller(int argc, char *argv[])
 	renderer = new Renderer(this);
 	movement = new Movement(this);
 	map = new Map(this);
+	
+	
 }
 
 Controller::~Controller() {

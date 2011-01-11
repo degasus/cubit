@@ -1,8 +1,10 @@
-﻿#define _USE_MATH_DEFINES
-#include <math.h>
-#include <iostream>
+﻿#include <iostream>
 #include <vector>
 #include <stack>
+#include <SDL/SDL_image.h> 
+
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #include "controller.h"
 #include "map.h"
@@ -100,12 +102,12 @@ void Renderer::init()
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
 		SDL_Surface *surface; // Gives us the information to make the texture
 		
-		std::string filename = std::string("/tex/tex-") + boost::lexical_cast<std::string>(i) + ".bmp";
+		std::string filename = std::string("/tex/tex-") + boost::lexical_cast<std::string>(i) + ".jpg";
 		
-		if ( 	(surface = SDL_LoadBMP((dataDirectory + filename).c_str())) ||
-				(surface = SDL_LoadBMP((workingDirectory + filename).c_str())) ||
-				(surface = SDL_LoadBMP((localDirectory + filename).c_str())) ||
-				(surface = SDL_LoadBMP((string(".") + filename).c_str()))
+		if ( 	(surface = IMG_Load((dataDirectory + filename).c_str())) ||
+				(surface = IMG_Load((workingDirectory + filename).c_str())) ||
+				(surface = IMG_Load((localDirectory + filename).c_str())) ||
+				(surface = IMG_Load((string(".") + filename).c_str()))
 		) {
 
 			// Check that the image's width is a power of 2
@@ -136,9 +138,9 @@ void Renderer::init()
 			}
 
 			if(textureFilterMethod == 3){
-				gluBuild2DMipmaps(GL_TEXTURE_2D, 3, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
+				gluBuild2DMipmaps(GL_TEXTURE_2D, 3, surface->w, surface->h, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
 			} else {
-				glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->w, surface->h, 0, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
+				glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
 			}
 				
 		}
