@@ -41,7 +41,6 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	textureFilterMethod = c["textureFilterMethod"].as<int>();
 }
 
-
 void Renderer::init()
 {
 	// Set the OpenGL state
@@ -145,7 +144,7 @@ void Renderer::init()
 				
 		}
 		else {
-			printf("SDL could not load %s: %s\n", filename.c_str(), SDL_GetError());
+			printf("SDL could not load %s: %s\n", filename.c_str(), IMG_GetError());
 			SDL_Quit();
 		}
 
