@@ -13,3 +13,5 @@ cubit
 *.kdev4
 .kdev4/
 CMakeFiles/
+.directory
+debs

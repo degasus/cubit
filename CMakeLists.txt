@@ -30,7 +30,7 @@ target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRA
 
 INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit DESTINATION games)
 
-FILE(GLOB tex "${CMAKE_CURRENT_SOURCE_DIR}/tex/*.bmp" )
+FILE(GLOB tex "${CMAKE_CURRENT_SOURCE_DIR}/tex/*.jpg" )
 INSTALL( FILES ${tex} DESTINATION share/games/cubit/tex)
 
 FILE(GLOB soundfx "${CMAKE_CURRENT_SOURCE_DIR}/sound/fx/*.ogg" )
