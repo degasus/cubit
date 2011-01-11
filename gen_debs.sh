@@ -10,6 +10,6 @@ git clone .. cubit-$CUBITVERSION
 rm -rf cubit-$CUBITVERSION/.git
 tar -zcf cubit_$CUBITVERSION.orig.tar.gz cubit-$CUBITVERSION
 cd cubit-$CUBITVERSION
-debuild
+debuild -S
 cd ..
 rm -rf cubit-$CUBITVERSION
