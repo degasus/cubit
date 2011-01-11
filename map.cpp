@@ -16,7 +16,6 @@
 
 Map::Map(Controller *controller) {
 	c = controller;
-	areasPerFrameLoadingFree = 0;
 	
 	saveArea = 0;
 	loadArea = 0;
