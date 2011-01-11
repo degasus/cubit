@@ -69,6 +69,8 @@ int threaded_read_from_harddisk(void* param) {
 }
 
 void Map::randomArea(Area* a) {
+	if(a->pos.z > 92) return;
+	
 	a->allocm();
 	a->empty = 0;
 	for(int x = a->pos.x; x < AREASIZE_X+a->pos.x; x++)
