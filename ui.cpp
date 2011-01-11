@@ -77,6 +77,10 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	
 	noFullY 		= c["noFullY"].as<int>();
 	isFullscreen 	= c["fullscreen"].as<bool>();
+	if(!isFullscreen) {
+		screenX = noFullX;
+		screenY = noFullY;
+	}
 	enableAntiAliasing = c["enableAntiAliasing"].as<bool>();
 	
 	workingDirectory = c["workingDirectory"].as<std::string>();
@@ -107,8 +111,8 @@ void UInterface::initWindow()
 		screenY = vi->current_h;
 		screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_FULLSCREEN);
 	} else {
-		screenX = noFullX;
-		screenY = noFullY;
+		noFullX = screenX;
+		noFullY = screenY;
 		screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE);
 	}
 
@@ -170,6 +174,7 @@ void UInterface::run()
 			case SDL_QUIT: 				done = true;  							break;
 
 			case SDL_VIDEORESIZE:
+				std::cout << "video-resize-event" << std::endl;
 				screenX = event.resize.w;
 				screenY = event.resize.h;
 				initWindow();
@@ -276,7 +281,8 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 	c->movement->triggerNextFrame();
 	
 	SDL_Event next;	
-	//if(SDL_PeepEvents(&next, 1, SDL_PEEKEVENT, SDL_USEREVENT) == 0) {
+	SDL_PumpEvents();
+	if(!SDL_PeepEvents(&next, 1, SDL_PEEKEVENT, ~SDL_USEREVENT)) {
 		PlayerPosition pos = c->movement->getPosition();
 		c->map->setPosition(pos);
 		c->renderer->render(pos);
@@ -288,7 +294,7 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 		drawHUD();
 		
 		SDL_GL_SwapBuffers();
-	//}
+	}
 }
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)

@@ -341,10 +341,7 @@ void Renderer::render(PlayerPosition pos)
 	glScalef(-1,1,1);
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
-	
-	if(areasRendered<0) areasRendered = 0;
-	areasRendered -= areasPerFrame;
-	
+		
 	//Mausbewegung
 	glRotatef(pos.orientationVertical,0.0f,1.0f,0.0f);
 	glRotatef(-pos.orientationHorizontal,0.0f,0.0f,1.0f);
@@ -364,6 +361,9 @@ void Renderer::render(PlayerPosition pos)
 	generateViewPort(pos);
 	
 	std::stack<Area*> todelete;
+	
+	if(areasRendered<0) areasRendered = 0;
+	areasRendered -= areasPerFrame;
 	
 
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
