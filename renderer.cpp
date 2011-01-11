@@ -2,6 +2,7 @@
 #include <math.h>
 #include <iostream>
 #include <vector>
+#include <stack>
 
 #include "controller.h"
 #include "map.h"
@@ -43,14 +44,11 @@ void Renderer::init()
 {
 	// Set the OpenGL state
 	glEnable(GL_TEXTURE_2D);											// Enable Texture Mapping
-	//glShadeModel(GL_SMOOTH);											// Enable Smooth Shading
 	glClearColor(bgColor[0],bgColor[1], bgColor[2], bgColor[3]);	// Black Background
 	glClearDepth(1.0f);													// Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);											// Enables Depth Testing
 	glDepthFunc(GL_LEQUAL);												// The Type Of Depth Testing To Do
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);					// Really Nice Perspective Calculations
-	//glHint(GL_LINE_SMOOTH, GL_NICEST);
-	//glEnable(GL_LINE_SMOOTH);
 
 	
 	//LIGHT
@@ -124,8 +122,6 @@ void Renderer::init()
 			glBindTexture( GL_TEXTURE_2D, texture[i] );
 
 			// Set the texture's stretching properties
-			//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
-			//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 			if(textureFilterMethod == 3){
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
@@ -366,6 +362,8 @@ void Renderer::render(PlayerPosition pos)
 	BlockPosition areapos = pos.block().area();
 	generateViewPort(pos);
 	
+	std::stack<Area*> todelete;
+	
 
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
@@ -373,10 +371,15 @@ void Renderer::render(PlayerPosition pos)
 		if(a->state == Area::STATE_READY && (inview || areasRendered < 0)) {
 			renderArea(a, inview);
 			if(!a->needupdate && !a->gllist_generated) {
-			//	c->map->areas_with_gllist.erase(it);
+				todelete.push(a);
 			} 
 		}
 	}
+	while(!todelete.empty()) {
+		c->map->areas_with_gllist.erase(todelete.top());
+		todelete.pop();
+	}
+	
 	std::cout << "anzahl areas: " << c->map->areas_with_gllist.size() << " " <<  c->map->areas.size() <<std::endl;
 }
 
