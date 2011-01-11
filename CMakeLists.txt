@@ -30,13 +30,13 @@ target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRA
 
 INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit DESTINATION games)
 
-FILE(GLOB tex "${CMAKE_CURRENT_SOURCE_DIR}/tex/*.jpg" )
+FILE(GLOB tex "${CMAKE_CURRENT_SOURCE_DIR}/tex/*" )
 INSTALL( FILES ${tex} DESTINATION share/games/cubit/tex)
 
-FILE(GLOB soundfx "${CMAKE_CURRENT_SOURCE_DIR}/sound/fx/*.ogg" )
+FILE(GLOB soundfx "${CMAKE_CURRENT_SOURCE_DIR}/sound/fx/*" )
 INSTALL( FILES ${soundfx} DESTINATION share/games/cubit/sound/fx)
 
-FILE(GLOB soundmusic "${CMAKE_CURRENT_SOURCE_DIR}/sound/music/*.ogg" )
+FILE(GLOB soundmusic "${CMAKE_CURRENT_SOURCE_DIR}/sound/music/*" )
 INSTALL( FILES ${soundmusic} DESTINATION share/games/cubit/sound/music)
 
 INSTALL( FILES logo/cubit.png DESTINATION share/icons/hicolor/128x128/apps)
