@@ -373,7 +373,7 @@ void Renderer::render(PlayerPosition pos)
 		if(a->state == Area::STATE_READY && (inview || areasRendered < 0)) {
 			renderArea(a, inview);
 			if(!a->needupdate && !a->gllist_generated) {
-				c->map->areas_with_gllist.erase(it);
+			//	c->map->areas_with_gllist.erase(it);
 			} 
 		}
 	}

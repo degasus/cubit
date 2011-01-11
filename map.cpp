@@ -477,6 +477,8 @@ void Map::recalc(Area* a) {
 	a->empty = (a->blocks == 0);
 	a->full = (a->blocks == AREASIZE_X*AREASIZE_Y*AREASIZE_Z);
 }
+	
+
 
 Area::Area(BlockPosition p)
 {
@@ -504,6 +506,8 @@ Area::Area(BlockPosition p)
 		m[x][y][z] = 0;
 	
 	state = STATE_NEW;
+
+	gllist = 0;
 }
 
 Area::~Area()

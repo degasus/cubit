@@ -45,7 +45,7 @@ void UInterface::init()
 	}
 	
 	initWindow();
-	
+#ifndef _WIN32	
 	std::string filename("/sound/music/forest.ogg");
 	
 	//load and start music
@@ -58,6 +58,7 @@ void UInterface::init()
 	} else {
 		std::cout << "Could not find the music file " << filename << " Error: " << Mix_GetError() <<  std::endl;
 	}
+#endif
 }
 
 void UInterface::config(const boost::program_options::variables_map &c)
