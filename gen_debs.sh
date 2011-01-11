@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export CUBITVERSION=0.0.1
+export CUBITVERSION=0.0.1ubuntu1
 
 
 mkdir -p debs
@@ -20,6 +20,7 @@ fi
 cd cubit-$CUBITVERSION
 
 debuild -S
+debuild
 
 cd ..
 
