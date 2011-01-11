@@ -178,7 +178,7 @@ public:
 	~Area();
 	
 	BlockPosition pos;
-	Material m[AREASIZE_X][AREASIZE_Y][AREASIZE_Z];
+	Material* m;
 	
 	// compairable with the server
 	int revision;
@@ -209,6 +209,18 @@ public:
 		STATE_DELETE
 	} state;
 	
+	inline void allocm() {
+		m = new Material[AREASIZE_X*AREASIZE_Y*AREASIZE_Z];
+		for(int i=0; i<AREASIZE_X*AREASIZE_Y*AREASIZE_Z; i++)
+			m[i] = 0;
+	}
+	
+	inline int getPos(BlockPosition position) {
+		int p = (position.x-pos.x)*AREASIZE_Y*AREASIZE_Z + (position.y-pos.y)*AREASIZE_Z + (position.z-pos.z);
+		assert(p >= 0 && p < AREASIZE_X*AREASIZE_Y*AREASIZE_Z);
+		return p;
+	}
+	
 	/**
 	 * calculate if the position is in this area
 	 * @returns true, if the position is in this area
@@ -226,12 +238,45 @@ public:
 	 */
 	inline Material get(BlockPosition position) {
 		if(empty) return 0;
-		return m[position.x-pos.x][position.y-pos.y][position.z-pos.z];
+		
+		assert(operator<<(position));		
+		assert(m[getPos(position)] >= 0 && m[getPos(position)] < NUMBER_OF_MATERIALS);
+		
+		return m[getPos(position)];
 	}
+	
 	inline void set(BlockPosition position, Material mat) {
-		m[position.x-pos.x][position.y-pos.y][position.z-pos.z] = mat;
-		if(mat) empty = 0;
+		assert(operator<<(position));
+		assert(mat >= 0 && mat < NUMBER_OF_MATERIALS);
+		
+		if(empty && mat) {
+			allocm();
+			empty = 0;
+			blocks = 1;
+			m[getPos(position)] = mat;
+		} else if(full && !mat) {
+			full = 0;
+			blocks = AREASIZE_X*AREASIZE_Y*AREASIZE_Z-1;
+			m[getPos(position)] = mat;
+		} else if(!full && !empty) {
+			Material oldmat = m[getPos(position)];
+			if(mat && !oldmat) blocks++;
+			if(!mat && oldmat) blocks--;
+
+			m[getPos(position)] = mat;
+			
+			if(blocks == AREASIZE_X*AREASIZE_Y*AREASIZE_Z)
+				full = 1;
+			else if(blocks == 0) {
+				empty = 1;
+				delete [] m;
+				m = 0;
+			}			
+		}
+		needupdate = 1;
+		needstore = 1;
 	}
+	
 	inline std::string filename(std::string dir) {
 		std::ostringstream os(std::ostringstream::out);
 		os << dir << "/" << pos.x << "x" << pos.y << "x" << pos.z << ".map";
@@ -250,6 +295,17 @@ public:
 			}
 		}
 	}
+	
+	/*
+	inline void check() {
+		if(!empty) {
+			assert(m);
+			for(int i=0; i<AREASIZE_X*AREASIZE_Y*AREASIZE_Z; i++) {
+				assert(m[i]>=0 && m[i] < NUMBER_OF_MATERIALS);
+			}
+		} else assert(!m);
+	}
+	*/
 };
 
 /**

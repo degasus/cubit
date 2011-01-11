@@ -69,17 +69,22 @@ int threaded_read_from_harddisk(void* param) {
 }
 
 void Map::randomArea(Area* a) {
-	for(int x = 0; x < AREASIZE_X; x++)
-	for(int y = 0; y < AREASIZE_Y; y++)
-	for(int z = 0; z < AREASIZE_Z; z++){
-		int height = cos( ((2*M_PI)/180) * ((int)((a->pos.x+x)/0.7) % 180 )) * 8;
-		height += sin( ((2*M_PI)/180) * ((int)((a->pos.y+y)) % 180 )) * 8;
-		height += -sin( ((2*M_PI)/180) * ((int)((a->pos.x+x)/2.5) % 180 )) * 25;
-		height += -cos( ((2*M_PI)/180) * ((int)((a->pos.y+y)/5) % 180 )) * 50;
-		if(a->pos.z+z <  height)
-			a->m[x][y][z] = 1 + (z/3) % 3;
+	a->allocm();
+	a->empty = 0;
+	for(int x = a->pos.x; x < AREASIZE_X+a->pos.x; x++)
+	for(int y = a->pos.y; y < AREASIZE_Y+a->pos.y; y++)
+	for(int z = a->pos.z; z < AREASIZE_Z+a->pos.z; z++){
+		int height = cos( ((2*M_PI)/180) * ((int)((x)/0.7) % 180 )) * 8;
+		height += sin( ((2*M_PI)/180) * ((int)((y)) % 180 )) * 8;
+		height += -sin( ((2*M_PI)/180) * ((int)((x)/2.5) % 180 )) * 25;
+		height += -cos( ((2*M_PI)/180) * ((int)((y)/5) % 180 )) * 50;
+		if(z <  height) {
+			Material mat = 1 + ((z/3) % 3 + 3) % 3;
+			assert(mat >= 0 && mat < NUMBER_OF_MATERIALS);
+			a->m[a->getPos(BlockPosition::create(x,y,z))] = mat;
+		}
 		else
-			a->m[x][y][z] = 0;
+			a->m[a->getPos(BlockPosition::create(x,y,z))] = 0;
 	}
 }
 
@@ -324,8 +329,10 @@ void Map::load(Area *a) {
 		}
 		a->full = full;
 		a->blocks = sqlite3_column_int(loadArea, 3);
-		if(!a->empty)
+		if(!a->empty) {
+			a->allocm();
 			memcpy(a->m,sqlite3_column_blob(loadArea, 4),AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material));
+		}
 		a->state = Area::STATE_LOADED;
 		sqlite3_reset(loadArea);
 		SDL_UnlockMutex(c->sql_mutex);
@@ -345,30 +352,45 @@ void Map::recalc(Area* a) {
 	a->needstore = 1;
 	
 	a->blocks = 0;
-	for(int i=0; i<DIRECTION_COUNT; i++)
-		a->dir_full[i] = 1;
 	
-	for(int x = 0; x < AREASIZE_X; x++)
-	for(int y = 0; y < AREASIZE_Y; y++)
-	for(int z = 0; z < AREASIZE_Z; z++) {
-		a->blocks += (a->m[x][y][z] != 0);
-		for(int i=0; i<DIRECTION_COUNT; i++)
-		if(!a->m[x][y][z] && (
-				(x+DIRECTION_NEXT_BOX[i][0]) & ~(AREASIZE_X-1) ||
-				(y+DIRECTION_NEXT_BOX[i][1]) & ~(AREASIZE_Y-1) ||
-			(z+DIRECTION_NEXT_BOX[i][2]) & ~(AREASIZE_Z-1)
-			)
-		) a->dir_full[i] = 0;
+	a->full = 0;
+	for(int i=0; i<DIRECTION_COUNT; i++) {
+		a->dir_full[i] = 0;
 	}
 	
-	a->empty = (a->blocks == 0);
-	a->full = (a->blocks == AREASIZE_X*AREASIZE_Y*AREASIZE_Z);
+	if(!a->empty) {
+		for(int i=0; i<DIRECTION_COUNT; i++)
+			a->dir_full[i] = 1;
+		
+		for(int x = 0; x < AREASIZE_X; x++)
+		for(int y = 0; y < AREASIZE_Y; y++)
+		for(int z = 0; z < AREASIZE_Z; z++) {
+			a->blocks += (a->m[a->getPos(BlockPosition::create(x+a->pos.x,y+a->pos.y,z+a->pos.z))] != 0);
+			for(int i=0; i<DIRECTION_COUNT; i++)
+			if(!a->m[a->getPos(BlockPosition::create(x+a->pos.x,y+a->pos.y,z+a->pos.z))] && (
+					(x+DIRECTION_NEXT_BOX[i][0]) & ~(AREASIZE_X-1) ||
+					(y+DIRECTION_NEXT_BOX[i][1]) & ~(AREASIZE_Y-1) ||
+				(z+DIRECTION_NEXT_BOX[i][2]) & ~(AREASIZE_Z-1)
+				)
+			) a->dir_full[i] = 0;
+		}
+		
+		a->empty = (a->blocks == 0);
+		a->full = (a->blocks == AREASIZE_X*AREASIZE_Y*AREASIZE_Z);
+		
+		if(a->empty) {
+			delete [] a->m;
+			a->m = 0;
+		}
+	} 
 }
 	
 
 
 Area::Area(BlockPosition p)
 {
+	m = 0;
+	
 	pos = p;
 	gllist_generated = 0;
 	needupdate = 1;
@@ -387,11 +409,6 @@ Area::Area(BlockPosition p)
 	
 	blocks = 0;
 	
-	for(int x = 0; x < AREASIZE_X; x++)
-	for(int y = 0; y < AREASIZE_Y; y++)
-	for(int z = 0; z < AREASIZE_Z; z++)
-		m[x][y][z] = 0;
-	
 	state = STATE_NEW;
 
 	gllist = 0;
@@ -400,5 +417,8 @@ Area::Area(BlockPosition p)
 Area::~Area()
 {
 	deconfigure();
+	if(m) delete [] m;
+	m = 0;
+	empty = 1;
 }
 

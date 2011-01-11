@@ -186,7 +186,7 @@ void Renderer::renderArea(Area* area, bool show)
 
 			BlockPosition pos = BlockPosition::create(x,y,z);
 
-			Material now = area->get(pos);;
+			Material now = area->get(pos);
 			if(now) {
 				empty = 0;
 				for(int dir=0; dir < DIRECTION_COUNT; dir++) {
