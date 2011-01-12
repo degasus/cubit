@@ -1,17 +1,13 @@
 cmake_minimum_required (VERSION 2.6)
 project (cubit)
 
-
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
-
 find_package( SDL )
 find_package( SDL_mixer )
 find_package( SDL_image )
 find_package( OpenGL )
 find_package( Boost COMPONENTS program_options filesystem system)
-find_package( Sqlite3 )
-
-
+find_package( PkgConfig )
+pkg_check_modules(PKG REQUIRED sqlite3 bullet)
 
 # set default build type
 IF (NOT CMAKE_BUILD_TYPE)
@@ -23,8 +19,8 @@ ADD_DEFINITIONS(-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" )
 
 add_executable(cubit main.cpp controller.cpp map.cpp movement.cpp net.cpp ui.cpp renderer.cpp)
 
-include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE3_INCLUDE_DIR})
-target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES})
+include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PKG_INCLUDE_DIR})
+target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${PKG_LIBRARIES})
 
 
 
