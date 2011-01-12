@@ -59,7 +59,10 @@ private:
 	Controller *c;
 
 	bool highlightWholePlane;
-    int textureFilterMethod;
+	int textureFilterMethod;
+	 
+	GLuint texture_item;
+	GLuint gllist_item;
 };
 
 
