@@ -31,8 +31,8 @@ Controller::Controller(int argc, char *argv[])
 Controller::~Controller() {
 	delete ui;
 	delete renderer;
-	delete movement;
 	delete map;
+	delete movement;
 	
 	if(database) sqlite3_close(database);
 	if(sql_mutex) SDL_DestroyMutex(sql_mutex);

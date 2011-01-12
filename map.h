@@ -188,7 +188,19 @@ public:
 	
 	int blocks;
 	
-	btCollisionShape* colShape;
+	btTriangleMesh *mesh;
+	btBvhTriangleMeshShape *shape;
+	btDefaultMotionState *motion;
+	btRigidBody *rigid;
+	
+	inline void delete_collision(btCollisionWorld *world) {
+		if(rigid) world->removeCollisionObject(rigid);
+		
+		if(mesh) delete mesh; mesh = 0;
+		if(shape) delete shape; shape = 0;
+		if(motion) delete motion; motion = 0;
+		if(rigid) delete rigid; rigid = 0;
+	}
 	
 	enum AreaState {
 		STATE_NEW,
@@ -284,7 +296,7 @@ public:
 		gllist = 0;
 		
 	//	if(colShape) delete colShape;
-		colShape = 0;
+	//	colShape = 0;
 		
 		for(int i=0; i<DIRECTION_COUNT; i++) {
 			if(next[i]) {

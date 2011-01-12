@@ -44,6 +44,8 @@ Map::~Map()
 	for(it = areas.begin(); it != areas.end(); it++) {
 		if(storeMaps && it->second->needstore)
 			store(it->second);
+		
+		it->second->delete_collision(c->movement->dynamicsWorld);
 		delete it->second;
 	}
 	
@@ -239,6 +241,7 @@ void Map::setPosition(PlayerPosition pos)
 		
 		if(a->dijsktra_distance > deleteRange && a->state == Area::STATE_READY) {
 			a->deconfigure();
+			a->delete_collision(c->movement->dynamicsWorld);
 			areas_with_gllist.erase(a);
 			areas.erase(a->pos);
 			a->state = Area::STATE_DELETE;
@@ -441,17 +444,23 @@ Area::Area(BlockPosition p)
 	state = STATE_NEW;
 
 	gllist = 0;
-	colShape = 0;
+	
+	mesh = 0;
+	shape = 0;
+	motion = 0;
+	rigid = 0;
 }
-
 Area::~Area()
 {
 	deconfigure();
 	if(m) delete [] m;
-//	if(colShape) delete colShape;
 	m = 0;
-	colShape = 0;
 	empty = 1;
+	
+	assert(!mesh);
+	assert(!shape);
+	assert(!motion);
+	assert(!rigid);
 }
 
 std::string BlockPosition::to_string() {

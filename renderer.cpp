@@ -160,6 +160,15 @@ void Renderer::init()
 		}
 	}
 	
+	std::string cfile;
+	int k = rand()%86;
+	std::ifstream f3;
+	f3.open("structs/allfiles");
+	assert(f3.is_open());
+	for(int i=0; i<=k; i++)
+		f3 >> cfile;
+	
+	
 	glGenTextures( 1, &texture_item );
 	
 	gllist_item = glGenLists(1);
@@ -167,7 +176,7 @@ void Renderer::init()
 	glBindTexture( GL_TEXTURE_2D, texture_item );
 	
 	std::ifstream f;
-	f.open("structs/radarsensor.pie");
+	f.open((std::string("structs/") + cfile).c_str());
 	
 	assert(f.is_open());
 	
@@ -213,9 +222,9 @@ void Renderer::init()
 		f >> points[i*3+1];
 		f >> points[i*3+2];
 		points[i*3+1]-=10;
-		points[i*3+0]/=4;
-		points[i*3+1]/=4;
-		points[i*3+2]/=4;
+		points[i*3+0]/=100;
+		points[i*3+1]/=100;
+		points[i*3+2]/=100;
 	}
 	
 	f >> textur; 
@@ -297,8 +306,7 @@ void Renderer::renderArea(Area* area, bool show)
 		area->needupdate = 0;
 		if(area->gllist_generated)
 			glDeleteLists(area->gllist,1);
-	//	if(area->colShape) delete area->colShape;
-		area->colShape = 0;
+		area->delete_collision(c->movement->dynamicsWorld);
 		area->gllist = 0;
 		area->gllist_generated = 0;
 		return;
@@ -310,6 +318,9 @@ void Renderer::renderArea(Area* area, bool show)
 	
 	if(area->needupdate && (areasRendered <= areasPerFrame)) {
 		areasRendered++;
+		
+		
+		area->delete_collision(c->movement->dynamicsWorld);
 		
 		area->needupdate = 0;
 		
@@ -356,9 +367,8 @@ void Renderer::renderArea(Area* area, bool show)
 		} 
 		if(polys_count) {	
 			
-			btTriangleMesh *mesh = new btTriangleMesh();
+			area->mesh = new btTriangleMesh();
 	//		mesh.preallocateIndices(polys_count*(POINTS_PER_POLYGON-2));
-			
 			
 			if(!area->gllist_generated) {
 				area->gllist_generated = 1;
@@ -394,11 +404,11 @@ void Renderer::renderArea(Area* area, bool show)
 						);
 					}
 					for(int point=2; point < POINTS_PER_POLYGON; point++) {
-						mesh->addTriangle(
+						area->mesh->addTriangle(
 							btVector3(
-								POINTS_OF_DIRECTION[it->d][point-2][0]+diffx,
-								POINTS_OF_DIRECTION[it->d][point-2][1]+diffy,
-								POINTS_OF_DIRECTION[it->d][point-2][2]+diffz
+								POINTS_OF_DIRECTION[it->d][0][0]+diffx,
+								POINTS_OF_DIRECTION[it->d][0][1]+diffy,
+								POINTS_OF_DIRECTION[it->d][0][2]+diffz
 							),
 							btVector3(
 								POINTS_OF_DIRECTION[it->d][point-1][0]+diffx,
@@ -417,34 +427,26 @@ void Renderer::renderArea(Area* area, bool show)
 					glEnd();
 			}
 			glEndList();
-	//		if(area->colShape) delete area->colShape;
-			area->colShape = new btBvhTriangleMeshShape(mesh,1);
 			
-			// COPY AND PASTE 
-			// --------------
+			area->shape = new btBvhTriangleMeshShape(area->mesh,1);
 			
 			///create a few basic rigid bodies			
 			btTransform groundTransform;
 			groundTransform.setIdentity();
 			groundTransform.setOrigin(btVector3(area->pos.x,area->pos.y,area->pos.z));
 		
-			btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
-			btRigidBody::btRigidBodyConstructionInfo rbInfo(0,myMotionState,area->colShape,btVector3(0,0,0));
-			btRigidBody* body2 = new btRigidBody(rbInfo);
+			area->motion = new btDefaultMotionState(groundTransform);
+			area->rigid = new btRigidBody(0,area->motion,area->shape,btVector3(0,0,0));
 			
 			//add the body to the dynamics world
-			c->movement->dynamicsWorld->addRigidBody(body2);
-			
-			// END COPY AND PASTE
-			// ------------------
+			c->movement->dynamicsWorld->addRigidBody(area->rigid);
 			
 		} else {
 			if(area->gllist_generated)
 				glDeleteLists(area->gllist,1);
 			area->gllist_generated = 0;
-	//		if(area->colShape) delete area->colShape;
-			area->colShape = 0;
 			area->gllist = 0;
+			area->delete_collision(c->movement->dynamicsWorld);
 		}
 	}
 	if(area->gllist_generated) {
