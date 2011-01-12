@@ -1,6 +1,8 @@
 #include <boost/program_options.hpp>
 #include <SDL_mixer.h>
 #include <cmath>
+#include <LinearMath/btAlignedObjectArray.h>
+#include <btBulletDynamicsCommon.h>
 
 #ifndef _MOVEMENT_H_
 #define _MOVEMENT_H_
@@ -132,6 +134,8 @@ public:
 private:
 	bool movDebug;
 
+	void initPhysics();
+
 	//player stats
 	PlayerPosition position;
 	Material selectedMaterial;
@@ -202,10 +206,22 @@ private:
 	void calcCollisionAndMove();
 	void calcDucking();
 	void calcPointingOn();
+	void calcPhysics();
 	DIRECTION calcPointingOnInBlock(PlayerPosition*, BlockPosition);
 	
 	//Sounds
 	Mix_Chunk *step;
 	Mix_Chunk *putBlock;
+
+	//BulletPhysics
+	btDefaultCollisionConfiguration* collisionConfiguration;
+	btCollisionDispatcher* dispatcher;
+	btBroadphaseInterface* overlappingPairCache;
+	btSequentialImpulseConstraintSolver* solver;
+	btDiscreteDynamicsWorld* dynamicsWorld;
+	btCollisionShape* groundShape;
+	//btAlignedObjectArray<btCollisionShape*> collisionShapes;
+	
+	btTransform groundTransform;
 };
 #endif
