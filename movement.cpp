@@ -166,12 +166,13 @@ void	Movement::initPhysics(){
 		if (isDynamic)
 			colShape->calculateLocalInertia(mass,localInertia);
 		
-		startTransform.setOrigin(btVector3(20,0,-20));
+		startTransform.setOrigin(btVector3(26.1,-2.1,-20));
 		
 		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
 		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,colShape,localInertia);
 		body = new btRigidBody(rbInfo);
+		body->setDamping(0.5,0.5);
 		
 		dynamicsWorld->addRigidBody(body);
 	}

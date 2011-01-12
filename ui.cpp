@@ -291,7 +291,9 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 		if(c->movement->getPointingOn(&block, &direct))
 			c->renderer->highlightBlockDirection(block, direct);
 		
+		glDisable(GL_DEPTH_TEST);
 		c->movement->dynamicsWorld->debugDrawWorld();
+		glEnable(GL_DEPTH_TEST);
 		
 		drawHUD();
 		

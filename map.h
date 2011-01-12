@@ -279,7 +279,8 @@ public:
 		needstore = 1;
 		
 		for(int i=0; i<DIRECTION_COUNT; i++) {
-			if(next[i]) next[i]->needupdate = 1;
+			if(!operator<<(position + DIRECTION(i)) && next[i]) 
+				next[i]->needupdate = 1;
 		}
 	}
 	
@@ -300,6 +301,7 @@ public:
 		
 		for(int i=0; i<DIRECTION_COUNT; i++) {
 			if(next[i]) {
+				assert(next[i]->next[!DIRECTION(i)]);
 				next[i]->next[!DIRECTION(i)] = 0;
 				next[i] = 0;
 			}

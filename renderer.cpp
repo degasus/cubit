@@ -545,12 +545,8 @@ void Renderer::render(PlayerPosition pos)
 	BlockPosition areapos = pos.block().area();
 	generateViewPort(pos);
 	
-	std::stack<Area*> todelete;
-	
 	if(areasRendered<0) areasRendered = 0;
 	areasRendered -= areasPerFrame;
-
-//	areaInViewport(areapos, pos);
 
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
@@ -558,14 +554,7 @@ void Renderer::render(PlayerPosition pos)
 		bool inview = areaInViewport(a->pos, pos);
 		if(a->state == Area::STATE_READY && (inview || areasRendered < 0)) {
 			renderArea(a, inview);
-			if(!a->needupdate && !a->gllist_generated) {
-				todelete.push(a);
-			} 
 		}
-	}
-	while(!todelete.empty()) {
-		c->map->areas_with_gllist.erase(todelete.top());
-		todelete.pop();
 	}
 	
 	

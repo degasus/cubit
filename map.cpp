@@ -413,10 +413,10 @@ void Map::setBlock(BlockPosition pos, Material m){
 	if(a->state != Area::STATE_READY)
 		throw NotLoadedException();
 
+	if(a->empty && m)
+		areas_with_gllist.insert(a);
 	a->set(pos,m);
-	a->needupdate = 1;
-	a->needstore = 1;
-	areas_with_gllist.insert(a);
+	
 }
 
 Area::Area(BlockPosition p)
