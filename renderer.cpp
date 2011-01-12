@@ -44,6 +44,10 @@ void Renderer::config(const boost::program_options::variables_map& c)
 
 void Renderer::init()
 {
+	itemPos.x = 0;
+	itemPos.y = 0;
+	itemPos.z = -40;
+	
 	// Set the OpenGL state
 	glEnable(GL_TEXTURE_2D);											// Enable Texture Mapping
 	glClearColor(bgColor[0],bgColor[1], bgColor[2], bgColor[3]);	// Black Background
@@ -498,7 +502,7 @@ void Renderer::render(PlayerPosition pos)
 	
 	
 	glPushMatrix();
-	glTranslatef(0,0,-40);
+	glTranslatef(itemPos.x,itemPos.y,itemPos.z);
 	glCallList(gllist_item);
 	
 	glPopMatrix();

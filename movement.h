@@ -223,5 +223,6 @@ private:
 	//btAlignedObjectArray<btCollisionShape*> collisionShapes;
 	
 	btTransform groundTransform;
+	btRigidBody* body;
 };
 #endif

@@ -115,7 +115,7 @@ void	Movement::initPhysics(){
 	
 	btTransform groundTransform;
 	groundTransform.setIdentity();
-	groundTransform.setOrigin(btVector3(0,-56,0));
+	groundTransform.setOrigin(btVector3(0,-90,0));
 	
 	{
 		btScalar mass(0.);
@@ -130,18 +130,19 @@ void	Movement::initPhysics(){
 		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 			btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,groundShape,localInertia);
-			btRigidBody* body = new btRigidBody(rbInfo);
+			btRigidBody* body2 = new btRigidBody(rbInfo);
 			
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(body);
+			dynamicsWorld->addRigidBody(body2);
 	}
 	
 	
 	{
 		//create a dynamic rigidbody
 		
-		btCollisionShape* colShape = new btBoxShape(btVector3(3,4,5));
+		//btCollisionShape* colShape = new btBoxShape(btVector3(3,4,5));
 		//btCollisionShape* colShape = new btSphereShape(btScalar(1.));
+		btCollisionShape* colShape = new btCapsuleShape(btScalar(1.), btScalar(1.));
 		//collisionShapes.push_back(colShape);
 		
 		/// Create Dynamic Objects
@@ -157,12 +158,12 @@ void	Movement::initPhysics(){
 		if (isDynamic)
 			colShape->calculateLocalInertia(mass,localInertia);
 		
-		startTransform.setOrigin(btVector3(10,10,10));
+		startTransform.setOrigin(btVector3(0,-30,0));
 		
 		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
 		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,colShape,localInertia);
-		btRigidBody* body = new btRigidBody(rbInfo);
+		body = new btRigidBody(rbInfo);
 		
 		dynamicsWorld->addRigidBody(body);
 	}
@@ -170,8 +171,16 @@ void	Movement::initPhysics(){
 
 void Movement::calcPhysics(){
 	dynamicsWorld->stepSimulation(0.04);
-
-	dynamicsWorld->debugDrawWorld();
+	
+	if (body && body->getMotionState())
+	{
+		btTransform trans;
+		body->getMotionState()->getWorldTransform(trans);
+		c->renderer->itemPos.x = trans.getOrigin().getX();
+		c->renderer->itemPos.z = trans.getOrigin().getY();
+		c->renderer->itemPos.y = trans.getOrigin().getZ();
+		printf("world pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
+	}
 }
 
 
