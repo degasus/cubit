@@ -112,7 +112,7 @@ void	Movement::initPhysics(){
 	//btAlignedObjectArray<btCollisionShape*> collisionShapes;
 	
 	//collisionShapes.push_back(groundShape);
-	
+	/*
 	{
 		
 		///create a few basic rigid bodies
@@ -140,6 +140,7 @@ void	Movement::initPhysics(){
 		dynamicsWorld->addRigidBody(body2);
 	}
 	
+	*/
 	
 	{
 		//create a dynamic rigidbody
@@ -150,7 +151,6 @@ void	Movement::initPhysics(){
 		//collisionShapes.push_back(colShape);
 	
 		btCollisionShape* colShape = new btConvexTriangleMeshShape(&c->renderer->triangles_item);
-		
 		
 		/// Create Dynamic Objects
 		btTransform startTransform;
@@ -166,7 +166,7 @@ void	Movement::initPhysics(){
 		if (isDynamic)
 			colShape->calculateLocalInertia(mass,localInertia);
 		
-		startTransform.setOrigin(btVector3(0,0,-30));
+		startTransform.setOrigin(btVector3(20,0,-20));
 		
 		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
@@ -190,7 +190,7 @@ void Movement::calcPhysics(){
 		
 		c->renderer->itemPos.rotate = trans.getRotation();
 		
-		printf("world pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
+		//printf("world pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
 	}
 }
 

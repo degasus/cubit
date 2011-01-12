@@ -441,13 +441,16 @@ Area::Area(BlockPosition p)
 	state = STATE_NEW;
 
 	gllist = 0;
+	colShape = 0;
 }
 
 Area::~Area()
 {
 	deconfigure();
 	if(m) delete [] m;
+//	if(colShape) delete colShape;
 	m = 0;
+	colShape = 0;
 	empty = 1;
 }
 

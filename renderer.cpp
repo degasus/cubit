@@ -213,9 +213,9 @@ void Renderer::init()
 		f >> points[i*3+1];
 		f >> points[i*3+2];
 		points[i*3+1]-=10;
-		points[i*3+0]/=10;
-		points[i*3+1]/=10;
-		points[i*3+2]/=10;
+		points[i*3+0]/=4;
+		points[i*3+1]/=4;
+		points[i*3+2]/=4;
 	}
 	
 	f >> textur; 
@@ -297,6 +297,9 @@ void Renderer::renderArea(Area* area, bool show)
 		area->needupdate = 0;
 		if(area->gllist_generated)
 			glDeleteLists(area->gllist,1);
+	//	if(area->colShape) delete area->colShape;
+		area->colShape = 0;
+		area->gllist = 0;
 		area->gllist_generated = 0;
 		return;
 	}
@@ -313,6 +316,8 @@ void Renderer::renderArea(Area* area, bool show)
 		std::vector<polygon> polys[NUMBER_OF_MATERIALS];
 
 		bool empty = 1;
+		
+		int polys_count = 0;
 		
 		for(int x=area->pos.x; x<AREASIZE_X+area->pos.x; x++)
 		for(int y=area->pos.y; y<AREASIZE_Y+area->pos.y; y++)
@@ -340,6 +345,7 @@ void Renderer::renderArea(Area* area, bool show)
 						p.pos = pos;
 						p.d = (DIRECTION)dir;
 						polys[now].push_back(p);
+						polys_count++;
 					}
 				}
 			}
@@ -347,55 +353,99 @@ void Renderer::renderArea(Area* area, bool show)
 		if(empty) {
 			area->needstore = 1;
 			area->empty = 1;
-		}
-		
-		bool found_polygon = 0;
-		for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
-			bool texture_used = 0;
-			for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
-				
-				// create new list
-				if(!found_polygon) {
-					found_polygon = 1;
-					if(!area->gllist_generated) {
-						area->gllist_generated = 1;
-						area->gllist = glGenLists(1);
-					}
-					glNewList(area->gllist,GL_COMPILE);
-				}
-				
-				// switch texture
-				if(!texture_used) {
-					texture_used = 1;
-					glBindTexture( GL_TEXTURE_2D, texture[i] );
-					glBegin( GL_QUADS );
-				}
-				
-				
-				glNormal3f( NORMAL_OF_DIRECTION[it->d][0], NORMAL_OF_DIRECTION[it->d][1], NORMAL_OF_DIRECTION[it->d][2]);                                     // Normal Pointing Towards Viewer
-				for(int point=0; point < POINTS_PER_POLYGON; point++) {
-					glTexCoord2f(
-						TEXTUR_POSITION_OF_DIRECTION[it->d][point][0],
-						TEXTUR_POSITION_OF_DIRECTION[it->d][point][1]
-					);
-					glVertex3f(
-						POINTS_OF_DIRECTION[it->d][point][0]+(it->pos.x-area->pos.x),
-						POINTS_OF_DIRECTION[it->d][point][1]+(it->pos.y-area->pos.y),
-						POINTS_OF_DIRECTION[it->d][point][2]+(it->pos.z-area->pos.z)
-					);
-				}
+		} 
+		if(polys_count) {	
+			
+			btTriangleMesh *mesh = new btTriangleMesh();
+	//		mesh.preallocateIndices(polys_count*(POINTS_PER_POLYGON-2));
+			
+			
+			if(!area->gllist_generated) {
+				area->gllist_generated = 1;
+				area->gllist = glGenLists(1);
 			}
-			if(texture_used)
-				glEnd();
-		}
-		if(found_polygon)
+			glNewList(area->gllist,GL_COMPILE);
+			
+			for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
+				bool texture_used = 0;
+				for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
+					
+					// switch texture
+					if(!texture_used) {
+						texture_used = 1;
+						glBindTexture( GL_TEXTURE_2D, texture[i] );
+						glBegin( GL_QUADS );
+					}
+					
+					int diffx = it->pos.x-area->pos.x;
+					int diffy = it->pos.y-area->pos.y;
+					int diffz = it->pos.z-area->pos.z;
+					
+					glNormal3f( NORMAL_OF_DIRECTION[it->d][0], NORMAL_OF_DIRECTION[it->d][1], NORMAL_OF_DIRECTION[it->d][2]);                                     // Normal Pointing Towards Viewer
+					for(int point=0; point < POINTS_PER_POLYGON; point++) {
+						glTexCoord2f(
+							TEXTUR_POSITION_OF_DIRECTION[it->d][point][0],
+							TEXTUR_POSITION_OF_DIRECTION[it->d][point][1]
+						);
+						glVertex3f(
+							POINTS_OF_DIRECTION[it->d][point][0]+diffx,
+							POINTS_OF_DIRECTION[it->d][point][1]+diffy,
+							POINTS_OF_DIRECTION[it->d][point][2]+diffz
+						);
+					}
+					for(int point=2; point < POINTS_PER_POLYGON; point++) {
+						mesh->addTriangle(
+							btVector3(
+								POINTS_OF_DIRECTION[it->d][point-2][0]+diffx,
+								POINTS_OF_DIRECTION[it->d][point-2][1]+diffy,
+								POINTS_OF_DIRECTION[it->d][point-2][2]+diffz
+							),
+							btVector3(
+								POINTS_OF_DIRECTION[it->d][point-1][0]+diffx,
+								POINTS_OF_DIRECTION[it->d][point-1][1]+diffy,
+								POINTS_OF_DIRECTION[it->d][point-1][2]+diffz
+							),
+							btVector3(
+								POINTS_OF_DIRECTION[it->d][point][0]+diffx,
+								POINTS_OF_DIRECTION[it->d][point][1]+diffy,
+								POINTS_OF_DIRECTION[it->d][point][2]+diffz
+							)							
+						);
+					}
+				}
+				if(texture_used)
+					glEnd();
+			}
 			glEndList();
-		else {
+	//		if(area->colShape) delete area->colShape;
+			area->colShape = new btBvhTriangleMeshShape(mesh,1);
+			
+			// COPY AND PASTE 
+			// --------------
+			
+			///create a few basic rigid bodies			
+			btTransform groundTransform;
+			groundTransform.setIdentity();
+			groundTransform.setOrigin(btVector3(area->pos.x,area->pos.y,area->pos.z));
+		
+			btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(0,myMotionState,area->colShape,btVector3(0,0,0));
+			btRigidBody* body2 = new btRigidBody(rbInfo);
+			
+			//add the body to the dynamics world
+			c->movement->dynamicsWorld->addRigidBody(body2);
+			
+			// END COPY AND PASTE
+			// ------------------
+			
+		} else {
 			if(area->gllist_generated)
 				glDeleteLists(area->gllist,1);
-			area->gllist_generated = 0;	
+			area->gllist_generated = 0;
+	//		if(area->colShape) delete area->colShape;
+			area->colShape = 0;
+			area->gllist = 0;
 		}
-		
 	}
 	if(area->gllist_generated) {
 		if(show)

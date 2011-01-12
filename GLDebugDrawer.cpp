@@ -8,7 +8,7 @@
 
 #include <stdio.h> //printf debugging
 GLDebugDrawer::GLDebugDrawer()
-:m_debugMode(-1)
+:m_debugMode(0)
 {
 
 }

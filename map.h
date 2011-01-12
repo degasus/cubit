@@ -188,6 +188,8 @@ public:
 	
 	int blocks;
 	
+	btCollisionShape* colShape;
+	
 	enum AreaState {
 		STATE_NEW,
 		STATE_LOAD,
@@ -279,6 +281,10 @@ public:
 		if(gllist_generated)
 			glDeleteLists(gllist,1);
 		gllist_generated = 0;
+		gllist = 0;
+		
+	//	if(colShape) delete colShape;
+		colShape = 0;
 		
 		for(int i=0; i<DIRECTION_COUNT; i++) {
 			if(next[i]) {

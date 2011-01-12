@@ -295,6 +295,7 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 		
 		drawHUD();
 		
+		std::cout << pos.to_string() << std::endl;
 		
 		SDL_GL_SwapBuffers();
 	}
