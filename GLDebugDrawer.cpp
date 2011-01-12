@@ -15,11 +15,6 @@ GLDebugDrawer::GLDebugDrawer()
 
 void	GLDebugDrawer::drawLine(const btVector3& from,const btVector3& to,const btVector3& fromColor, const btVector3& toColor)
 {
-	std::cout << "color " << fromColor.getX() << " " << fromColor.getY() << " " << fromColor.getZ() << " " <<  std::endl;
-	std::cout << "begin " << from.getX() << " " << from.getY() << " " << from.getZ() << " " <<  std::endl;
-	std::cout << "end " << to.getX() << " " << to.getY() << " " << to.getZ() << " " <<  std::endl;
-	
-	
 	glBegin(GL_LINES);
 		glColor3f(fromColor.getX(), fromColor.getY(), fromColor.getZ());
 		glVertex3d(from.getX(), from.getY(), from.getZ());
@@ -107,6 +102,7 @@ void	GLDebugDrawer::setDebugMode(int debugMode)
 
 void	GLDebugDrawer::draw3dText(const btVector3& location,const char* textString)
 {
+	std::cout << textString << std::endl;
 	glRasterPos3f(location.x(),  location.y(),  location.z());
 	//BMF_DrawString(BMF_GetFont(BMF_kHelvetica10),textString);
 }
