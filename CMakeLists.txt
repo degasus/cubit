@@ -9,10 +9,6 @@ find_package( Boost COMPONENTS program_options filesystem system)
 find_package( PkgConfig )
 pkg_check_modules(PKG REQUIRED sqlite3 bullet)
 
-# set default build type
-IF (NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Release)
-ENDIF (NOT CMAKE_BUILD_TYPE)
 
 ADD_DEFINITIONS(-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" )
 
