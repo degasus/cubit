@@ -102,7 +102,9 @@ void	Movement::initPhysics(){
 	
 	dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,overlappingPairCache,solver,collisionConfiguration);
 	
-	dynamicsWorld->setGravity(btVector3(0,-10,0));
+	dynamicsWorld->setDebugDrawer(&debugDrawer);
+	
+	dynamicsWorld->setGravity(btVector3(0,0,-10));
 	
 	///create a few basic rigid bodies
 	btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.),btScalar(50.),btScalar(50.)));
@@ -115,7 +117,7 @@ void	Movement::initPhysics(){
 	
 	btTransform groundTransform;
 	groundTransform.setIdentity();
-	groundTransform.setOrigin(btVector3(0,-90,0));
+	groundTransform.setOrigin(btVector3(0,0,-90));
 	
 	{
 		btScalar mass(0.);
@@ -158,7 +160,7 @@ void	Movement::initPhysics(){
 		if (isDynamic)
 			colShape->calculateLocalInertia(mass,localInertia);
 		
-		startTransform.setOrigin(btVector3(0,-30,0));
+		startTransform.setOrigin(btVector3(0,0,-30));
 		
 		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
@@ -177,8 +179,8 @@ void Movement::calcPhysics(){
 		btTransform trans;
 		body->getMotionState()->getWorldTransform(trans);
 		c->renderer->itemPos.x = trans.getOrigin().getX();
-		c->renderer->itemPos.z = trans.getOrigin().getY();
-		c->renderer->itemPos.y = trans.getOrigin().getZ();
+		c->renderer->itemPos.y = trans.getOrigin().getY();
+		c->renderer->itemPos.z = trans.getOrigin().getZ();
 		printf("world pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
 	}
 }

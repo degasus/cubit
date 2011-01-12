@@ -4,6 +4,9 @@
 #include <SDL_opengl.h>
 #include <string>
 
+#include <LinearMath/btAlignedObjectArray.h>
+#include <btBulletDynamicsCommon.h>
+
 #ifndef _RENDERER_H_
 #define _RENDERER_H_
 
@@ -32,6 +35,9 @@ public:
 	GLuint texture[NUMBER_OF_MATERIALS];
 
 	PlayerPosition itemPos;
+	GLuint texture_item;
+	GLuint gllist_item;
+	btConvexHullShape shape_item;
 
 private:
 	
@@ -63,8 +69,6 @@ private:
 	bool highlightWholePlane;
 	int textureFilterMethod;
 	 
-	GLuint texture_item;
-	GLuint gllist_item;
 };
 
 

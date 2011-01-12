@@ -3,6 +3,7 @@
 #include <cmath>
 #include <LinearMath/btAlignedObjectArray.h>
 #include <btBulletDynamicsCommon.h>
+#include "GLDebugDrawer.h"
 
 #ifndef _MOVEMENT_H_
 #define _MOVEMENT_H_
@@ -131,7 +132,7 @@ public:
 	//Get block and plane the user is pointing on
 	bool getPointingOn(BlockPosition* block, DIRECTION* plane);
 
-private:
+//private:
 	bool movDebug;
 
 	void initPhysics();
@@ -221,6 +222,7 @@ private:
 	btDiscreteDynamicsWorld* dynamicsWorld;
 	btCollisionShape* groundShape;
 	//btAlignedObjectArray<btCollisionShape*> collisionShapes;
+	GLDebugDrawer debugDrawer;
 	
 	btTransform groundTransform;
 	btRigidBody* body;

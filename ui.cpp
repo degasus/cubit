@@ -291,7 +291,10 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 		if(c->movement->getPointingOn(&block, &direct))
 			c->renderer->highlightBlockDirection(block, direct);
 		
+		c->movement->dynamicsWorld->debugDrawWorld();
+		
 		drawHUD();
+		
 		
 		SDL_GL_SwapBuffers();
 	}
