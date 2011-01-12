@@ -271,11 +271,12 @@ void Renderer::init()
 		}
 		glEnd();
 		
-		triangles_item.addTriangle (
-			btVector3(points[dots[0]*3+0],points[dots[0]*3+1],points[dots[0]*3+2]), 
-			btVector3(points[dots[1]*3+0],points[dots[1]*3+1],points[dots[1]*3+2]), 
-			btVector3(points[dots[2]*3+0],points[dots[2]*3+1],points[dots[2]*3+2]));
-		
+		for(int k=2; k<dots_count; k++)
+			triangles_item.addTriangle (
+				btVector3(points[dots[0]*3+0],points[dots[0]*3+1],points[dots[0]*3+2]), 
+				btVector3(points[dots[k-1]*3+0],points[dots[k-1]*3+1],points[dots[k-1]*3+2]), 
+				btVector3(points[dots[k]*3+0],points[dots[k]*3+1],points[dots[k]*3+2]));
+	
 		delete [] dots;
 		delete [] tex;
 	}
