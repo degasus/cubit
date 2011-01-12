@@ -8,7 +8,7 @@
 
 #include <stdio.h> //printf debugging
 GLDebugDrawer::GLDebugDrawer()
-:m_debugMode(DBG_MAX_DEBUG_DRAW_MODE)
+:m_debugMode(-1)
 {
 
 }

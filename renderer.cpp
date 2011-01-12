@@ -212,9 +212,7 @@ void Renderer::init()
 		f >> points[i*3+0];
 		f >> points[i*3+1];
 		f >> points[i*3+2];
-		points[i*3+0]-=8;
-		points[i*3+1]-=8;
-		points[i*3+2]-=8;
+		points[i*3+1]-=10;
 		points[i*3+0]/=10;
 		points[i*3+1]/=10;
 		points[i*3+2]/=10;
