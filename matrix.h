@@ -1,9 +1,9 @@
+#include <iostream>
+#include <assert.h>
+
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include <iostream>
-#include <cmath>
-#include <assert.h>
 
 template<typename T, int width, int height> class Matrix;
 template<typename T, int dim> class LGSCH;

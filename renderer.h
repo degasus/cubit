@@ -1,11 +1,11 @@
-#ifndef _RENDERER_H_
-#define _RENDERER_H_
-
 #include <boost/program_options.hpp>
 
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <string>
+
+#ifndef _RENDERER_H_
+#define _RENDERER_H_
 
 class Renderer;
 

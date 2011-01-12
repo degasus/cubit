@@ -1,10 +1,12 @@
+#include <boost/program_options.hpp>
+
+
 #ifndef _UI_H_
 #define _UI_H_
 
 class UInterface;
 
 
-#include <boost/program_options.hpp>
 #include "renderer.h"
 #include "map.h"
 

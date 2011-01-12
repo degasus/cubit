@@ -1,5 +1,4 @@
 #include <map>
-#include <cmath>
 #include <queue>
 #include <cstdio>
 
@@ -11,8 +10,6 @@
 #define _MAP_H_
 
 #include "movement.h"
-
-
 #include "matrix.h"
 
 class Map;
@@ -104,7 +101,7 @@ struct BlockPosition {
 	/**
 	 * @returns the next Block in this direction
 	 */
-	BlockPosition operator+(DIRECTION dir) {
+	inline BlockPosition operator+(DIRECTION dir) {
 		return create(
 			x+DIRECTION_NEXT_BOX[dir][0],
 			y+DIRECTION_NEXT_BOX[dir][1],
@@ -115,7 +112,7 @@ struct BlockPosition {
 	/**
 	 * @returns the next Area in this direction
 	 */
-	BlockPosition operator*(DIRECTION dir) {
+	inline BlockPosition operator*(DIRECTION dir) {
 		return create(
 			x+DIRECTION_NEXT_BOX[dir][0]*AREASIZE_X,
 			y+DIRECTION_NEXT_BOX[dir][1]*AREASIZE_Y,
@@ -131,25 +128,16 @@ struct BlockPosition {
 		return !(position.x == x && position.y == y && position.z == z);
 	}
 	
-	BlockPosition area() {
+	inline BlockPosition area() {
 		return create(x & ~(AREASIZE_X-1),y & ~(AREASIZE_Y-1),z & ~(AREASIZE_Z-1));
 	}
 
-	inline std::string to_string(){
-
-		std::ostringstream oss (std::ostringstream::out);
-
-		oss << "bPos X = " << x << "; Y = " << y << "; Z = " << z;
-
-		return oss.str();
-	}
+	std::string to_string();
 
 	int x;
 	int y;
 	int z;
 };
-
-//bool operator<(const BlockPosition &posa, const BlockPosition &posb);
 
 inline bool operator<(const BlockPosition &posa, const BlockPosition &posb) {
 	if (posa.x<posb.x) return 1;
@@ -275,6 +263,10 @@ public:
 		}
 		needupdate = 1;
 		needstore = 1;
+		
+		for(int i=0; i<DIRECTION_COUNT; i++) {
+			if(next[i]) next[i]->needupdate = 1;
+		}
 	}
 	
 	inline std::string filename(std::string dir) {
@@ -323,48 +315,20 @@ public:
 	~Map();
 
 	void init();
+	
 	void config(const boost::program_options::variables_map &c);
 	
 	/**
 	 * @returns Material an der Stelle (x,y,z)
 	 * @throws NotLoadedException
 	 */
-	inline Material getBlock(BlockPosition pos){
-		iterator it = areas.find(pos.area());
-		if(it == areas.end())
-			throw NotLoadedException();
-		
-		if(it->second->state != Area::STATE_READY)
-			throw NotLoadedException();
-		
-		return it->second->get(pos);
-	}
+	Material getBlock(BlockPosition pos);
 
 	/**
 	 * @param m neues Material an der Stelle (x,y,z)
 	 * @throws NotLoadedException falls diese Gebiet noch nicht geladen ist
 	 */
-	void setBlock(BlockPosition pos, Material m){
-		iterator it = areas.find(pos.area());
-		if(it == areas.end())
-			throw NotLoadedException();
-		
-		if(it->second->state != Area::STATE_READY)
-			throw NotLoadedException();
-		
-		it->second->set(pos,m);
-		it->second->needupdate = 1;
-		it->second->needstore = 1;
-		areas_with_gllist.insert(it->second);
-		
-		for(int i=0; i<DIRECTION_COUNT; i++) {	
-			iterator it2 = areas.find((pos+(DIRECTION)i).area());
-			if(it2 != areas.end()) {
-				it2->second->needupdate = 1;
-				areas_with_gllist.insert(it2->second);
-			}
-		}
-	}
+	void setBlock(BlockPosition pos, Material m);
 
 	/**
 	 * @returns Area an der Stelle (x,y,z)

@@ -92,7 +92,7 @@ void Map::randomArea(Area* a) {
 
 void Map::read_from_harddisk() {
 	while(!thread_stop) {
-		Area* toload;
+		Area* toload = 0;
 		bool empty = 1;
 		do{
 			SDL_LockMutex(queue_mutex);
@@ -209,7 +209,7 @@ void Map::setPosition(PlayerPosition pos)
 		dijsktra_wert++;
 		Area* a = getOrCreate(p);
 		if(a->state == Area::STATE_NEW) {
-			a->state == Area::STATE_LOAD;
+			a->state = Area::STATE_LOAD;
 			to_load.push(a);
 		}
 		dijsktra_queue.push(a);
@@ -229,7 +229,7 @@ void Map::setPosition(PlayerPosition pos)
 						b->dijsktra = dijsktra_wert;
 						dijsktra_queue.push(b);
 						if(b->state == Area::STATE_NEW) {
-							b->state == Area::STATE_LOAD;
+							b->state = Area::STATE_LOAD;
 							to_load.push(b);	
 						}
 					}
@@ -241,7 +241,7 @@ void Map::setPosition(PlayerPosition pos)
 			a->deconfigure();
 			areas_with_gllist.erase(a);
 			areas.erase(a->pos);
-			a->state == Area::STATE_DELETE;
+			a->state = Area::STATE_DELETE;
 			to_save.push(a);
 		} else if(a->needstore && a->state == Area::STATE_READY) {
 			a->needstore = 0;
@@ -388,6 +388,33 @@ void Map::recalc(Area* a) {
 }
 	
 
+Material Map::getBlock(BlockPosition pos){
+	iterator it = areas.find(pos.area());
+	if(it == areas.end())
+		throw NotLoadedException();
+	
+	if(it->second->state != Area::STATE_READY)
+		throw NotLoadedException();
+	
+	return it->second->get(pos);
+}
+
+
+void Map::setBlock(BlockPosition pos, Material m){
+	iterator it = areas.find(pos.area());
+	if(it == areas.end())
+		throw NotLoadedException();
+	
+	Area* a = it->second;
+	
+	if(a->state != Area::STATE_READY)
+		throw NotLoadedException();
+
+	a->set(pos,m);
+	a->needupdate = 1;
+	a->needstore = 1;
+	areas_with_gllist.insert(a);
+}
 
 Area::Area(BlockPosition p)
 {
@@ -422,5 +449,14 @@ Area::~Area()
 	if(m) delete [] m;
 	m = 0;
 	empty = 1;
+}
+
+std::string BlockPosition::to_string() {
+
+	std::ostringstream oss (std::ostringstream::out);
+
+	oss << "bPos X = " << x << "; Y = " << y << "; Z = " << z;
+
+	return oss.str();
 }
 

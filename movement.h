@@ -1,8 +1,10 @@
+#include <boost/program_options.hpp>
+#include <SDL_mixer.h>
+#include <cmath>
+
 #ifndef _MOVEMENT_H_
 #define _MOVEMENT_H_
 
-#include <boost/program_options.hpp>
-#include <SDL_mixer.h>
 
 
 class Movement;
