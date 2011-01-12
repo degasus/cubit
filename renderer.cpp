@@ -4,6 +4,7 @@
 #include <stack>
 #include <SDL/SDL_image.h> 
 
+
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -211,6 +212,9 @@ void Renderer::init()
 		f >> points[i*3+0];
 		f >> points[i*3+1];
 		f >> points[i*3+2];
+		points[i*3+0]-=8;
+		points[i*3+1]-=8;
+		points[i*3+2]-=8;
 		points[i*3+0]/=10;
 		points[i*3+1]/=10;
 		points[i*3+2]/=10;
@@ -268,6 +272,11 @@ void Renderer::init()
 			glVertex3f(points[dots[k]*3+0],points[dots[k]*3+1],points[dots[k]*3+2]);
 		}
 		glEnd();
+		
+		triangles_item.addTriangle (
+			btVector3(points[dots[0]*3+0],points[dots[0]*3+1],points[dots[0]*3+2]), 
+			btVector3(points[dots[1]*3+0],points[dots[1]*3+1],points[dots[1]*3+2]), 
+			btVector3(points[dots[2]*3+0],points[dots[2]*3+1],points[dots[2]*3+2]));
 		
 		delete [] dots;
 		delete [] tex;

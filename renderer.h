@@ -37,7 +37,7 @@ public:
 	PlayerPosition itemPos;
 	GLuint texture_item;
 	GLuint gllist_item;
-	btConvexHullShape shape_item;
+	btTriangleMesh triangles_item;
 
 private:
 	

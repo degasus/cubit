@@ -104,7 +104,7 @@ void	Movement::initPhysics(){
 	
 	dynamicsWorld->setDebugDrawer(&debugDrawer);
 	
-	dynamicsWorld->setGravity(btVector3(-1,-1,-10));
+	dynamicsWorld->setGravity(btVector3(0,0,-10));
 	
 	///create a few basic rigid bodies
 	btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.),btScalar(50.),btScalar(50.)));
@@ -142,14 +142,18 @@ void	Movement::initPhysics(){
 	{
 		//create a dynamic rigidbody
 		
-		//btCollisionShape* colShape = new btBoxShape(btVector3(3,4,5));
+//		btCollisionShape* colShape = new btBoxShape(btVector3(3,4,5));
 		//btCollisionShape* colShape = new btSphereShape(btScalar(1.));
-		btCollisionShape* colShape = new btCapsuleShape(btScalar(1.), btScalar(1.));
+//		btCollisionShape* colShape = new btCapsuleShape(btScalar(1.), btScalar(1.));
 		//collisionShapes.push_back(colShape);
+	
+		btCollisionShape* colShape = new btConvexTriangleMeshShape(&c->renderer->triangles_item);
+		
 		
 		/// Create Dynamic Objects
 		btTransform startTransform;
 		startTransform.setIdentity();
+		startTransform.setRotation(btQuaternion(btVector3(1,0,0),30));
 		
 		btScalar	mass(1.f);
 		
