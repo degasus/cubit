@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <fstream>
 #include <vector>
 #include <stack>
 #include <SDL/SDL_image.h> 
@@ -153,8 +154,120 @@ void Renderer::init()
 			SDL_FreeSurface( surface );
 		}
 	}
+	
+	glGenTextures( 1, &texture_item );
+	
+	gllist_item = glGenLists(1);
+	glNewList(gllist_item,GL_COMPILE);
+	glBindTexture( GL_TEXTURE_2D, texture_item );
+	
+	std::ifstream f;
+	f.open("structs/radarsensor.pie");
+	
+	assert(f.is_open());
+	
+	std::string textur;
+	
+	for(int i=0; i<7; i++) {
+		f >> textur; cout << textur; 
+	}
+	
+	std::ifstream f2;
+	f2.open((std::string("texpages/") + textur).c_str());
+	
+	assert(f2.is_open());
+	
+	SDL_Surface *surface = IMG_Load((std::string("texpages/") + textur).c_str());
+	if(!surface) printf("SDL could not load %s: %s\n", (std::string("texpages/") + textur).c_str(), IMG_GetError());
+	glBindTexture( GL_TEXTURE_2D, texture_item );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	gluBuild2DMipmaps(GL_TEXTURE_2D, surface->format->BytesPerPixel, surface->w, surface->h, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
+	if ( surface ) SDL_FreeSurface( surface );
+	
 
+	for(int i=0; i<7; i++) {
+		f >> textur;
+	}
+	
+	int points_count;
+	f >> points_count;
+	float *points;
+	points = new float[points_count*3];
+	for(int i=0; i<points_count; i++) {
+		f >> points[i*3+0];
+		f >> points[i*3+1];
+		f >> points[i*3+2];
+		points[i*3+0]/=10;
+		points[i*3+1]/=10;
+		points[i*3+2]/=10;
+	}
+	
+	f >> textur; 
+	
+	int polygons;
+	f >> polygons;
+	for(int i=0; i<polygons; i++) {
+		double farbe[4];
+		int flags;
+		int dots_count;
+		f >> flags;
+		f >> dots_count;
+		
+		//assert(flags == 200 || flags == 4200);
+		
+		
+		int   *dots = new   int[dots_count];
+		double *tex  = new double[dots_count*2];
+		
+		for(int k=0; k<dots_count; k++) {
+			f >> dots[k];
+			assert(dots[k] < points_count);
+		}
+		
+		if((flags/1000) & 4) {
+			f >> farbe[0];
+			f >> farbe[1];
+			f >> farbe[2];
+			f >> farbe[3];
+			
+			farbe[0] /= 256;
+			farbe[1] /= 256;
+			farbe[2] /= 256;
+			farbe[3] /= 256;
+			
+			glColor4f(farbe[0],farbe[1],farbe[2],farbe[3]);
+		} else {
+			glColor4f(1,1,1,1);
+			
+		}
+		
+		for(int k=0; k<dots_count; k++) {
+			f >> tex[k*2]; f >> tex[k*2+1]; 
+		}
+		
+		
+		if(dots_count == 3) 	glBegin( GL_TRIANGLES );
+		if(dots_count == 4)	glBegin( GL_QUADS );
+		else						glBegin( GL_POLYGON );
+		for(int k=0; k<dots_count; k++) {
+			glTexCoord2f(tex[k*2+0]/256,tex[k*2+1]/256);
+			glVertex3f(points[dots[k]*3+0],points[dots[k]*3+1],points[dots[k]*3+2]);
+		}
+		glEnd();
+		
+		delete [] dots;
+		delete [] tex;
+	}
+	
+	delete [] points;
+
+	f.close();
+	glEndList();
+	
 }
+
+
 
 
 void Renderer::renderArea(Area* area, bool show)
@@ -381,6 +494,14 @@ void Renderer::render(PlayerPosition pos)
 		c->map->areas_with_gllist.erase(todelete.top());
 		todelete.pop();
 	}
+	
+	
+	
+	glPushMatrix();
+	glTranslatef(0,0,-40);
+	glCallList(gllist_item);
+	
+	glPopMatrix();
 	
 	//std::cout << "anzahl areas: " << c->map->areas_with_gllist.size() << " " <<  c->map->areas.size() <<std::endl;
 }
