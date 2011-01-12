@@ -177,12 +177,21 @@ void Renderer::init()
 	
 	assert(f2.is_open());
 	
-	SDL_Surface *surface = IMG_Load((std::string("texpages/") + textur).c_str());
-	if(!surface) printf("SDL could not load %s: %s\n", (std::string("texpages/") + textur).c_str(), IMG_GetError());
+	SDL_Surface *surface2 = IMG_Load((std::string("texpages/") + textur).c_str());
+	if(!surface2) printf("SDL could not load %s: %s\n", (std::string("texpages/") + textur).c_str(), IMG_GetError());
+	
+	SDL_Surface *surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
+															  surface2->w, surface2->h, 
+															32, 0x000000ff, 0x0000ff00,0x00ff0000 , 0xff000000);
+	if(!surface) printf("SDL could not load %s: %s\n", (std::string("texpages/") + textur).c_str(), SDL_GetError());
+	SDL_BlitSurface(surface2, 0, surface, 0);
+	
+	SDL_FreeSurface(surface2);
+	
 	glBindTexture( GL_TEXTURE_2D, texture_item );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	gluBuild2DMipmaps(GL_TEXTURE_2D, surface->format->BytesPerPixel, surface->w, surface->h, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 4, surface->w, surface->h, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
 	if ( surface ) SDL_FreeSurface( surface );
 	
 
@@ -499,6 +508,8 @@ void Renderer::render(PlayerPosition pos)
 	
 	glPushMatrix();
 	glTranslatef(0,0,-40);
+	
+	glRotatef(90,1.0f,0.0f,0.0f);
 	glCallList(gllist_item);
 	
 	glPopMatrix();
