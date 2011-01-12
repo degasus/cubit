@@ -31,6 +31,8 @@ struct PlayerPosition{
 	double z;
 	double orientationHorizontal;
 	double orientationVertical;
+	
+	btQuaternion rotate;
 
 	inline BlockPosition block(){
 		BlockPosition b;

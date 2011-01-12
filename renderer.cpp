@@ -512,7 +512,7 @@ void Renderer::render(PlayerPosition pos)
 	
 	glPushMatrix();
 	glTranslatef(itemPos.x,itemPos.y,itemPos.z);
-	glRotatef(90,1.0f,0.0f,0.0f);
+	glRotatef(itemPos.rotate.getAngle()*180/M_PI,itemPos.rotate.getAxis().getX(),itemPos.rotate.getAxis().getY(),itemPos.rotate.getAxis().getZ());
 	glCallList(gllist_item);
 	
 	glPopMatrix();
