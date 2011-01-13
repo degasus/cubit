@@ -7,4 +7,4 @@ Comment=first person role game in a world of cubes
 Icon=cubit
 TryExec=cubit
 Exec=cubit
-Categories=Game;Blocks;
+Categories=Game;BlocksGame;

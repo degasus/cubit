@@ -7,7 +7,7 @@ mkdir -p debs
 
 cd debs
 
-rm -rf cubit-* cubit*diff.gz cubit*dsc cubit*build cubit*changes
+rm -rf cubit-* cubit*diff.gz cubit*dsc cubit*build cubit*changes cubit_*
 
 git clone .. cubit-$CUBITVERSION
 
