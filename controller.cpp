@@ -103,7 +103,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("fogStartFactor", po::value<float>()->default_value(0.8), "Percental distance to fog start")
 		("visualRange", po::value<int>()->default_value(3), "maximal distance for rendering")
 		("enableFog", po::value<bool>()->default_value(1), "enable Fog")
-		("areasPerFrameRendering", po::value<int>()->default_value(4), "set the maximal rendered areas per frame")
+		("areasPerFrameRendering", po::value<int>()->default_value(1), "set the maximal rendered areas per frame")
 		("areasPerFrameLoading", po::value<int>()->default_value(10), "set the maximal from hard disk loaded areas per frame")
 		
 		("destroyAreaFaktor", po::value<double>()->default_value(2), "distance for destroying areas")

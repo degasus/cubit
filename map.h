@@ -392,6 +392,7 @@ private:
 	void load(Area* a);
 	void recalc(Area* a);
 	void randomArea(Area* a);
+
 	Area* getOrCreate(BlockPosition pos);
 	
 	Controller *c;

@@ -168,7 +168,6 @@ void Renderer::init()
 	for(int i=0; i<=k; i++)
 		f3 >> cfile;
 	
-	
 	glGenTextures( 1, &texture_item );
 	
 	gllist_item = glGenLists(1);
@@ -221,10 +220,10 @@ void Renderer::init()
 		f >> points[i*3+0];
 		f >> points[i*3+1];
 		f >> points[i*3+2];
-		points[i*3+1]-=10;
-		points[i*3+0]/=100;
-		points[i*3+1]/=100;
-		points[i*3+2]/=100;
+		points[i*3+1]-=15;
+		points[i*3+0]/=3;
+		points[i*3+1]/=3;
+		points[i*3+2]/=3;
 	}
 	
 	f >> textur; 

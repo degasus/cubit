@@ -104,7 +104,7 @@ void	Movement::initPhysics(){
 	
 	dynamicsWorld->setDebugDrawer(&debugDrawer);
 	
-	dynamicsWorld->setGravity(btVector3(0,0,-10));
+	dynamicsWorld->setGravity(btVector3(0,0,-100));
 	
 	
 	//keep track of the shapes, we release memory at exit.
@@ -166,13 +166,13 @@ void	Movement::initPhysics(){
 		if (isDynamic)
 			colShape->calculateLocalInertia(mass,localInertia);
 		
-		startTransform.setOrigin(btVector3(26.1,-2.1,-20));
+		startTransform.setOrigin(btVector3(10,0,-30));
 		
 		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
 		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,colShape,localInertia);
 		body = new btRigidBody(rbInfo);
-		body->setDamping(0.5,0.5);
+	//	body->setDamping(0.5,0.5);
 		
 		dynamicsWorld->addRigidBody(body);
 	}
