@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export CUBITVERSION=0.0.1ubuntu1
+export CUBITVERSION=0.0.2
 
 
 mkdir -p debs
@@ -14,12 +14,11 @@ git clone .. cubit-$CUBITVERSION
 rm -rf cubit-$CUBITVERSION/.git
 
 if [ ! -e cubit_$CUBITVERSION.orig.tar.gz ]
-then echo tar -zcf cubit_$CUBITVERSION.orig.tar.gz cubit-$CUBITVERSION
+then tar -zcf cubit_$CUBITVERSION.orig.tar.gz cubit-$CUBITVERSION
 fi
 
 cd cubit-$CUBITVERSION
 
-debuild -S
 debuild
 
 cd ..

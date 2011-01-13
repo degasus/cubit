@@ -13,7 +13,7 @@
 	dh $@
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DCMAKE_BUILD_TYPE=Release
+	dh_auto_configure -- -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -ffast-math -DNDEBUG"
 
 override_dh_strip:
 	dh_strip --dbg-package=cubit-dbg
