@@ -1,4 +1,5 @@
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 
 
 #ifndef _UI_H_
@@ -47,9 +48,9 @@ private:
 	void handleMouseEvents(SDL_MouseMotionEvent e);
 	void drawHUD();
 
-	std::string workingDirectory;
-	std::string dataDirectory;
-	std::string localDirectory;
+	boost::filesystem::path workingDirectory;
+	boost::filesystem::path dataDirectory;
+	boost::filesystem::path localDirectory;
 
 	//default frame size on no fullscreen
 	int noFullX;

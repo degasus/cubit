@@ -2,10 +2,13 @@
 #include <math.h>
 #include <iostream>
 #include <SDL_mixer.h>
-#include <SDL/SDL_image.h> 
+#include <SDL/SDL_image.h>
 
 #include "controller.h"
 #include "movement.h"
+
+
+namespace fs = boost::filesystem;
 
 UInterface::UInterface(Controller *controller)
 {
@@ -25,7 +28,7 @@ void UInterface::init()
 	if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0 ) {
 		printf("Unable to initialize SDL: %s\n", SDL_GetError());
 	}
-	
+
 	// load support for the JPG and PNG image formats
 	int flags=IMG_INIT_JPG|IMG_INIT_PNG;
 	int initted=IMG_Init(flags);
@@ -34,35 +37,35 @@ void UInterface::init()
 		printf("IMG_Init: %s\n", IMG_GetError());
 		// handle error
 	}
-	
+
 	/* We're going to be requesting certain things from our audio
 	device, so we set them up beforehand */
 	int audio_rate = 44100;
 	Uint16 audio_format = AUDIO_S16; /* 16-bit stereo */
 	int audio_channels = 2;
 	int audio_buffers = 4096;
-	
+
 	/* This is where we open up our audio device.  Mix_OpenAudio takes
 	as its parameters the audio format we'd /like/ to have. */
 	if(Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) {
 		printf("Unable to open audio!\n");
 	}
-	
+
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 	if(enableAntiAliasing){
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 	}
-	
+
 	initWindow();
-#ifndef _WIN32	
-	std::string filename("/sound/music/forest.ogg");
-	
+#ifndef _WIN32
+	fs::path filename = fs::path("sound") / "music" / "forest.ogg";
+
 	//load and start music
-	if((ingameMusic = Mix_LoadMUS((dataDirectory + filename).c_str()))||
-		(ingameMusic = Mix_LoadMUS((workingDirectory + filename).c_str())) ||
-		(ingameMusic = Mix_LoadMUS((localDirectory + filename).c_str())) ||
-		(ingameMusic = Mix_LoadMUS((std::string(".") + filename).c_str())) 
+	if((ingameMusic = Mix_LoadMUS((dataDirectory / filename).string().c_str()))||
+		(ingameMusic = Mix_LoadMUS((workingDirectory / filename).string().c_str())) ||
+		(ingameMusic = Mix_LoadMUS((localDirectory / filename).string().c_str())) ||
+		(ingameMusic = Mix_LoadMUS((filename).string().c_str()))
 	) {
 		Mix_PlayMusic(ingameMusic, -1);
 	} else {
@@ -74,7 +77,7 @@ void UInterface::init()
 void UInterface::config(const boost::program_options::variables_map &c)
 {
 	noFullX 		= c["noFullX"].as<int>();
-	
+
 	noFullY 		= c["noFullY"].as<int>();
 	isFullscreen 	= c["fullscreen"].as<bool>();
 	if(!isFullscreen) {
@@ -82,10 +85,10 @@ void UInterface::config(const boost::program_options::variables_map &c)
 		screenY = noFullY;
 	}
 	enableAntiAliasing = c["enableAntiAliasing"].as<bool>();
-	
-	workingDirectory = c["workingDirectory"].as<std::string>();
-	dataDirectory = c["dataDirectory"].as<std::string>();
-	localDirectory = c["localDirectory"].as<std::string>();
+
+	workingDirectory = c["workingDirectory"].as<fs::path>();
+	dataDirectory = c["dataDirectory"].as<fs::path>();
+	localDirectory = c["localDirectory"].as<fs::path>();
 
 	k_forward		= c["k_forward"].as<int>();
 	k_backwards		= c["k_backwards"].as<int>();
@@ -104,7 +107,7 @@ void UInterface::config(const boost::program_options::variables_map &c)
 
 
 void UInterface::initWindow()
-{	
+{
 	if (isFullscreen) {
 		const SDL_VideoInfo *vi = SDL_GetVideoInfo();
 		screenX = vi->current_w;
@@ -121,21 +124,21 @@ void UInterface::initWindow()
 	if ( !screen ) {
 		printf("Unable to set video mode: %s\n", SDL_GetError());
 	}
-	
+
 	if(catchMouse) {
 		SDL_ShowCursor(SDL_DISABLE);
 		SDL_WarpMouse(screenX/2, screenY/2);
 	} else {
 		SDL_ShowCursor(SDL_ENABLE);
 	}
-	
+
 	glViewport(0, 0, screenX, screenY);	// Reset The Current Viewport
 	glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
 	glLoadIdentity();					// Reset The Projection Matrix
-	
+
 	// Calculate The Aspect Ratio Of The Window
 	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, 1000.0f);
-	
+
 	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 	glLoadIdentity();					// Reset The Projection Matrix
 
@@ -160,7 +163,7 @@ Uint32 GameLoopTimer(Uint32 interval, void* param)
 void UInterface::run()
 {
 	SDL_TimerID timer = SDL_AddTimer(40,GameLoopTimer,0);
-	
+
 	SDL_Event event;
 
 	while((!done) && (SDL_WaitEvent(&event))) {
@@ -184,13 +187,13 @@ void UInterface::run()
 }
 
 void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
-{	
+{
 	ActionEvent ae;
 	ae.name = ActionEvent::NONE;
 
 	int code = (int)e.keysym.sym;
 	std::cout << "KeyPressed: " << code << std::endl;
-	
+
 	if(code == k_forward){
 		ae.name = ActionEvent::PRESS_FORWARD;
 	}
@@ -226,7 +229,7 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	if(code == k_quit){
 		done = 1;
 	}
-	
+
 	if(ae.name != ActionEvent::NONE)
 		c->movement->performAction(ae);
 }
@@ -235,10 +238,10 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 {
 	ActionEvent ae;
 	ae.name = ActionEvent::NONE;
-	
+
 	int code = (int)e.keysym.sym;
 	std::cout << "KeyReleased: " << code << std::endl;
-	
+
 	if(code == k_forward){
 		ae.name = ActionEvent::RELEASE_FORWARD;
 	}
@@ -264,13 +267,13 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	if(code == k_music){
 		if(!musicPlaying) {
 			Mix_PlayMusic(ingameMusic, -1);
-			musicPlaying = true;		
-		} 
+			musicPlaying = true;
+		}
 		else {
 			Mix_HaltMusic();
 			musicPlaying = false;
 		}
-	}	
+	}
 #endif
 	if(ae.name != ActionEvent::NONE)
 		c->movement->performAction(ae);
@@ -279,25 +282,26 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 void UInterface::handleUserEvents(SDL_UserEvent e)
 {
 	c->movement->triggerNextFrame();
-	
-	SDL_Event next;	
+
+	SDL_Event next;
 	SDL_PumpEvents();
 	if(!SDL_PeepEvents(&next, 1, SDL_PEEKEVENT, ~SDL_USEREVENT)) {
 		PlayerPosition pos = c->movement->getPosition();
 		c->map->setPosition(pos);
 		c->renderer->render(pos);
+
 		BlockPosition block;
 		DIRECTION direct;
 		if(c->movement->getPointingOn(&block, &direct))
 			c->renderer->highlightBlockDirection(block, direct);
-		
-		glDisable(GL_DEPTH_TEST);
+
+		//glDisable(GL_DEPTH_TEST);
 		c->movement->dynamicsWorld->debugDrawWorld();
-		glEnable(GL_DEPTH_TEST);
-		
+		//glEnable(GL_DEPTH_TEST);
+
 		drawHUD();
-		
-		
+
+
 		SDL_GL_SwapBuffers();
 	}
 }
@@ -307,7 +311,7 @@ void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
 	if(catchMouse) {
 		ActionEvent ae;
 		ae.name = ActionEvent::NONE;
-		
+
 		switch(e.button){
 			case SDL_BUTTON_RIGHT:
 				ae.name = ActionEvent::PRESS_BUILD_BLOCK;
@@ -328,7 +332,7 @@ void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 		ActionEvent ae;
 		ae.name = ActionEvent::NONE;
 		Material nextMat = 0;
-		
+
 		switch(e.button){
 			case SDL_BUTTON_RIGHT:
 				ae.name = ActionEvent::RELEASE_BUILD_BLOCK;
@@ -355,7 +359,7 @@ void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 				ae.iValue = nextMat;
 				break;
 		}
-		
+
 		if(ae.name != ActionEvent::NONE)
 			c->movement->performAction(ae);
 	}
@@ -375,7 +379,7 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 		ae.name = ActionEvent::ROTATE_VERTICAL;
 		ae.value = -y*turningSpeed;
 		c->movement->performAction(ae);
-		
+
 		SDL_WarpMouse(screenX/2, screenY/2);
 	}
 }
@@ -393,7 +397,7 @@ void UInterface::drawHUD() {
 	glEnable(GL_LIGHT1);
 
 	glDisable(GL_LIGHT2);
-	
+
 	glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 	glEnable(GL_BLEND);
@@ -428,7 +432,7 @@ void UInterface::drawHUD() {
 	glTranslatef(-0.5, -0.5, -0.5);*/
 
 	int selectedMaterial = c->movement->getSelectedMaterial();
-	
+
 	if(fadingProgress>0)
 		fadingProgress -= 10;
 	else if(fadingProgress < 0)
@@ -458,7 +462,7 @@ void UInterface::drawHUD() {
 	}
 
 	fading = sin(fadingProgress*M_PI/180)*2+2;
-	
+
 	for(int pos = -(numberOfHUDcubes/2); pos <= numberOfHUDcubes/2; pos++){
 		if(numberOfHUDcubes % 2 == 0){
 			if(pos == numberOfHUDcubes/2 && fadingProgress > 0)
@@ -475,13 +479,13 @@ void UInterface::drawHUD() {
 		glScalef(-1,1,1);
 		glRotatef(90.0,0.0f,0.0f,1.0f);
 		glRotatef(90.0,0.0f,1.0f,0.0f);
-		
+
 		glTranslatef(18.0f,-1.5f+pos*2.0+fading,-6.0f);
 		glRotatef(cubeTurn[mat], 0.0, 0.0, 1.0);
 		glRotatef(35.264389683, 0.0, 1.0, 0.0);
 		glRotatef(45, 1.0, 0.0, 0.0);
 		glTranslatef(-0.5, -0.5, -0.5);
-		
+
 		glBindTexture( GL_TEXTURE_2D, c->renderer->texture[mat] );
 		if(c->movement->getSelectedMaterial() == mat){
 			//glDisable(GL_BLEND);

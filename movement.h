@@ -1,4 +1,5 @@
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 #include <SDL_mixer.h>
 #include <cmath>
 #include <LinearMath/btAlignedObjectArray.h>
@@ -185,9 +186,9 @@ public:
 	double maxFallingSpeed;
 	double jumpSpeed;
 	bool enableFly;
-	std::string workingDirectory;
-	std::string dataDirectory;
-	std::string localDirectory;
+	boost::filesystem::path workingDirectory;
+	boost::filesystem::path dataDirectory;
+	boost::filesystem::path localDirectory;
 	
 	//Steps
 	int stepProgress;

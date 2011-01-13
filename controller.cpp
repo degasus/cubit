@@ -1,7 +1,7 @@
+#include <boost/filesystem.hpp>
 #include <iostream>
 #include <time.h>
 #include <fstream>
-#include <boost/filesystem.hpp>
 
 #include "controller.h"
 
@@ -9,7 +9,7 @@
 
 
 namespace po = boost::program_options;
-using namespace std;
+namespace fs = boost::filesystem;
 
 Controller::Controller(int argc, char *argv[])
 {
@@ -58,27 +58,27 @@ void Controller::run() {
 
 void Controller::init() {
 	//creating working directory
-	boost::filesystem::create_directory( vm["workingDirectory"].as<std::string>() );
+	fs::create_directory( vm["workingDirectory"].as<fs::path>() );
 	
 	// init SQL
-	if(sqlite3_open((vm["workingDirectory"].as<std::string>() + "/cubit.db").c_str(), &database) != SQLITE_OK)
-      // Es ist ein Fehler aufgetreten!
-      cout << "Fehler beim Öffnen: " << sqlite3_errmsg(database) << endl;
+	if(sqlite3_open((vm["workingDirectory"].as<fs::path>() / "cubit.db").string().c_str(), &database) != SQLITE_OK)
+	// Es ist ein Fehler aufgetreten!
+	std::cout << "Fehler beim Öffnen: " << sqlite3_errmsg(database) << std::endl;
 	
 	// create tables
 	sqlite3_exec(database,
-					 "CREATE TABLE IF NOT EXISTS area ( "
-							"posx INT NOT NULL, "
-							"posy INT NOT NULL, "
-							"posz INT NOT NULL, "
-							"empty BOOL NOT NULL DEFAULT 0, "
-							"revision INT DEFAULT 0, "
-							"full INT NOT NULL DEFAULT 0, "	
-							"blocks INT NOT NULL DEFAULT -1, "
-							"data BLOB(32768), "
-							"PRIMARY KEY (posx, posy, posz) "
-						");"
-					 , 0, 0, 0);
+		"CREATE TABLE IF NOT EXISTS area ( "
+			"posx INT NOT NULL, "
+			"posy INT NOT NULL, "
+			"posz INT NOT NULL, "
+			"empty BOOL NOT NULL DEFAULT 0, "
+			"revision INT DEFAULT 0, "
+			"full INT NOT NULL DEFAULT 0, "	
+			"blocks INT NOT NULL DEFAULT -1, "
+			"data BLOB(32768), "
+			"PRIMARY KEY (posx, posy, posz) "
+		");"
+		, 0, 0, 0);
 	sqlite3_exec(database, "PRAGMA synchronous = 0;", 0, 0, 0);
 	sql_mutex = SDL_CreateMutex();
 	
@@ -124,13 +124,13 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning (\"mouse speed\")")
 		("jumpSpeed", po::value<double>()->default_value(0.215), "initial speed when jumping")
 #ifdef _WIN32
-		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("PROGRAMFILES")) + "\\Cubit"), "Folder for saving areas")
-		("dataDirectory", po::value<string>()->default_value(std::string(std::getenv("PROGRAMFILES")) + "\\Cubit"), "Folder for music and images")
-		("localDirectory", po::value<string>()->default_value(std::string(std::getenv("PROGRAMFILES")) + "\\Cubit"), "Folder for music and images")
+		("workingDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("PROGRAMFILES")) / "Cubit"), "Folder for saving areas")
+		("dataDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("PROGRAMFILES")) / "Cubit"), "Folder for music and images")
+		("localDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("PROGRAMFILES")) / "Cubit"), "Folder for music and images")
 #else
-		("workingDirectory", po::value<string>()->default_value(std::string(std::getenv("HOME")) + "/.cubit"), "Folder for saving areas")
-		("dataDirectory", po::value<string>()->default_value(std::string(CMAKE_INSTALL_PREFIX) + "/share/games/cubit"), "Folder for music and images")
-		("localDirectory", po::value<string>()->default_value(boost::filesystem::path(argv[0]).remove_filename().string()), "Folder for music and images")
+		("workingDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("HOME")) / ".cubit"), "Folder for saving areas")
+		("dataDirectory", po::value<fs::path>()->default_value(fs::path(CMAKE_INSTALL_PREFIX) / "share" / "games" / "cubit"), "Folder for music and images")
+		("localDirectory", po::value<fs::path>()->default_value(fs::path(argv[0]).remove_filename()), "Folder for music and images")
 #endif
 		
 		
@@ -154,8 +154,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 
 	//config file
-	std::ifstream i;
-	i.open((vm["workingDirectory"].as<std::string>() + "/cubit.conf").c_str());
+	std::ifstream i((vm["workingDirectory"].as<fs::path>() / "cubit.conf").string().c_str());
 	if (i.is_open()) {
 		po::store(po::parse_config_file(i, desc), vm);
 	}

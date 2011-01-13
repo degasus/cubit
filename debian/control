@@ -17,7 +17,7 @@ Description: first person role game in a world of cubes
 
 Package: cubit-data
 Architecture: all
-Depends: ${misc:Depends}, cubit
+Depends: ${misc:Depends}
 Description: first person role game in a world of cubes - data files
  Cubit is a game in which you walk around in a world that
  consists only out of cubes. You can build and destroy cubes
@@ -25,7 +25,7 @@ Description: first person role game in a world of cubes - data files
 
 Package: cubit-music
 Architecture: all
-Depends: ${misc:Depends}, cubit
+Depends: ${misc:Depends}
 Description: first person role game in a world of cubes - music files
  Cubit is a game in which you walk around in a world that
  consists only out of cubes. You can build and destroy cubes
@@ -34,7 +34,7 @@ Description: first person role game in a world of cubes - music files
 Package: cubit-dbg
 Section: universe/debug
 Architecture: any
-Depends: ${misc:Depends}, cubit
+Depends: ${misc:Depends}
 Description: first person role game in a world of cubes - data files
  Cubit is a game in which you walk around in a world that
  consists only out of cubes. You can build and destroy cubes

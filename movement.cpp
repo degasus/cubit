@@ -12,6 +12,7 @@
 #include "map.h"
 
 
+namespace fs = boost::filesystem;
 
 Movement::Movement(Controller* controller)
 {
@@ -54,9 +55,9 @@ void Movement::config(const boost::program_options::variables_map& c){
 	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<double>();
 	maxFallingSpeed		= c["maxFallingSpeed"].as<double>();
 	jumpSpeed			= c["jumpSpeed"].as<double>();
-	workingDirectory = c["workingDirectory"].as<std::string>();
-	dataDirectory = c["dataDirectory"].as<std::string>();
-	localDirectory = c["localDirectory"].as<std::string>();
+	workingDirectory = c["workingDirectory"].as<fs::path>();
+	dataDirectory = c["dataDirectory"].as<fs::path>();
+	localDirectory = c["localDirectory"].as<fs::path>();
 
 	accelVertical	= normalAccelVertical;
 	movementSpeed 	= normalMovementSpeed;
@@ -77,12 +78,12 @@ void Movement::init()
 	//putBlock = Mix_LoadWAV((workingDirectory + "/sound/fx/nutfall.wav").c_str());
 	
 	
-	std::string filename("/sound/fx/nutfall.wav");
+	fs::path filename = fs::path("sound") / "fx" / "nutfall.wav";
 	//load and start music
-	if((putBlock = Mix_LoadWAV((dataDirectory + filename).c_str()))||
-		(putBlock = Mix_LoadWAV((workingDirectory + filename).c_str())) ||
-		(putBlock = Mix_LoadWAV((localDirectory + filename).c_str())) ||
-		(putBlock = Mix_LoadWAV((std::string(".") + filename).c_str())) 
+	if((putBlock = Mix_LoadWAV((dataDirectory / filename).string().c_str()))||
+		(putBlock = Mix_LoadWAV((workingDirectory / filename).string().c_str())) ||
+		(putBlock = Mix_LoadWAV((localDirectory / filename).string().c_str())) ||
+		(putBlock = Mix_LoadWAV((filename).string().c_str())) 
 	) {
 	} else {
 		std::cout << "Could not find the sound file " << filename <<  std::endl;
@@ -198,7 +199,7 @@ void Movement::calcPhysics(){
 
 void Movement::savePosition() {
 	std::ofstream of;
-	of.open((workingDirectory + "/position.dat").c_str());
+	of.open((workingDirectory / "position.dat").string().c_str());
 	
 	of << position.x << std::endl << position.y << std::endl << position.z << std::endl;
 	of << position.orientationHorizontal << std::endl << position.orientationVertical << std::endl;
@@ -210,7 +211,7 @@ bool Movement::loadPosition()
 {
 	std::ifstream i;
 	bool success = false;
-	i.open((workingDirectory + "/position.dat").c_str());
+	i.open((workingDirectory / "position.dat").string().c_str());
 	if (i.is_open()) {
 		i >> position.x >> position.y >> position.z >> position.orientationHorizontal >> position.orientationVertical;
 		success = true;

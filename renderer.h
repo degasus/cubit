@@ -1,4 +1,5 @@
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 
 #include <SDL.h>
 #include <SDL_opengl.h>
@@ -53,9 +54,9 @@ private:
 	int maxareas;
 	bool enableFog;
 	
-	std::string workingDirectory;
-	std::string dataDirectory;
-	std::string localDirectory;
+	boost::filesystem::path workingDirectory;
+	boost::filesystem::path dataDirectory;
+	boost::filesystem::path localDirectory;
 	
 	
 	//fog

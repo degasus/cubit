@@ -14,7 +14,7 @@
 #include "matrix.h"
 
 using namespace std;
-
+namespace fs = boost::filesystem;
 
 Renderer::Renderer(Controller* controller)
 {
@@ -34,9 +34,9 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	maxareas			= c["visualRange"].as<int>()*c["visualRange"].as<int>();
 	enableFog			= c["enableFog"].as<bool>();
 
-	workingDirectory = c["workingDirectory"].as<string>();
-	dataDirectory = c["dataDirectory"].as<string>();
-	localDirectory = c["localDirectory"].as<string>();
+	workingDirectory = c["workingDirectory"].as<fs::path>();
+	dataDirectory = c["dataDirectory"].as<fs::path>();
+	localDirectory = c["localDirectory"].as<fs::path>();
 
 	areasPerFrame		= c["areasPerFrameRendering"].as<int>();
 	highlightWholePlane	= c["highlightWholePlane"].as<bool>();
@@ -107,22 +107,22 @@ void Renderer::init()
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
 		SDL_Surface *surface; // Gives us the information to make the texture
 		
-		std::string filename = std::string("/tex/tex-") + boost::lexical_cast<std::string>(i) + ".jpg";
+		fs::path filename = fs::path("tex") / (std::string("tex-") + boost::lexical_cast<std::string>(i) + ".jpg");
 		
-		if ( 	(surface = IMG_Load((dataDirectory + filename).c_str())) ||
-				(surface = IMG_Load((workingDirectory + filename).c_str())) ||
-				(surface = IMG_Load((localDirectory + filename).c_str())) ||
-				(surface = IMG_Load((string(".") + filename).c_str()))
+		if ( 	(surface = IMG_Load((dataDirectory / filename).string().c_str())) ||
+				(surface = IMG_Load((workingDirectory / filename).string().c_str())) ||
+				(surface = IMG_Load((localDirectory / filename).string().c_str())) ||
+				(surface = IMG_Load(filename.string().c_str()))
 		) {
 
 			// Check that the image's width is a power of 2
 			if ( (surface->w & (surface->w - 1)) != 0 ) {
-				printf("warning: %s's width is not a power of 2\n", filename.c_str());
+				printf("warning: %s's width is not a power of 2\n", filename.string().c_str());
 			}
 
 			// Also check if the height is a power of 2
 			if ( (surface->h & (surface->h - 1)) != 0 ) {
-				printf("warning: %s's height is not a power of 2\n", filename.c_str());
+				printf("warning: %s's height is not a power of 2\n", filename.string().c_str());
 			}
 
 			// Bind the texture object
@@ -150,7 +150,7 @@ void Renderer::init()
 				
 		}
 		else {
-			printf("SDL could not load %s: %s\n", filename.c_str(), IMG_GetError());
+			printf("SDL could not load %s: %s\n", filename.string().c_str(), IMG_GetError());
 			SDL_Quit();
 		}
 
@@ -161,10 +161,11 @@ void Renderer::init()
 	}
 	
 	std::string cfile;
-	int k = rand()%86;
+	int k = 1; //rand()%86;
 	std::ifstream f3;
-	f3.open("structs/allfiles");
+	f3.open((fs::path("structs") / "allfiles").string().c_str());
 	assert(f3.is_open());
+	
 	for(int i=0; i<=k; i++)
 		f3 >> cfile;
 	
@@ -174,29 +175,27 @@ void Renderer::init()
 	glNewList(gllist_item,GL_COMPILE);
 	glBindTexture( GL_TEXTURE_2D, texture_item );
 	
-	std::ifstream f;
-	f.open((std::string("structs/") + cfile).c_str());
-	
+	std::ifstream f((fs::path("structs") / cfile).string().c_str());
 	assert(f.is_open());
 	
 	std::string textur;
 	
 	for(int i=0; i<7; i++) {
-		f >> textur; cout << textur; 
+		f >> textur; cout << f;
 	}
 	
 	std::ifstream f2;
-	f2.open((std::string("texpages/") + textur).c_str());
+	f2.open((fs::path("texpages") / textur).string().c_str());
 	
 	assert(f2.is_open());
 	
-	SDL_Surface *surface2 = IMG_Load((std::string("texpages/") + textur).c_str());
-	if(!surface2) printf("SDL could not load %s: %s\n", (std::string("texpages/") + textur).c_str(), IMG_GetError());
+	SDL_Surface *surface2 = IMG_Load((fs::path("texpages") / textur).string().c_str());
+	if(!surface2) printf("SDL could not load %s: %s\n", (fs::path("texpages") / textur).string().c_str(), IMG_GetError());
 	
 	SDL_Surface *surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
 															  surface2->w, surface2->h, 
 															32, 0x000000ff, 0x0000ff00,0x00ff0000 , 0xff000000);
-	if(!surface) printf("SDL could not load %s: %s\n", (std::string("texpages/") + textur).c_str(), SDL_GetError());
+	if(!surface) printf("SDL could not load %s: %s\n", (fs::path("texpages") / textur).string().c_str(), SDL_GetError());
 	SDL_BlitSurface(surface2, 0, surface, 0);
 	
 	SDL_FreeSurface(surface2);
