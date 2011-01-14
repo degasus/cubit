@@ -109,20 +109,20 @@ void Renderer::init()
 		
 		fs::path filename = fs::path("tex") / (std::string("tex-") + boost::lexical_cast<std::string>(i) + ".jpg");
 		
-		if ( 	(surface = IMG_Load((dataDirectory / filename).string().c_str())) ||
-				(surface = IMG_Load((workingDirectory / filename).string().c_str())) ||
-				(surface = IMG_Load((localDirectory / filename).string().c_str())) ||
-				(surface = IMG_Load(filename.string().c_str()))
+		if ( 	(surface = IMG_Load((dataDirectory / filename).file_string().c_str())) ||
+				(surface = IMG_Load((workingDirectory / filename).file_string().c_str())) ||
+				(surface = IMG_Load((localDirectory / filename).file_string().c_str())) ||
+				(surface = IMG_Load(filename.file_string().c_str()))
 		) {
 
 			// Check that the image's width is a power of 2
 			if ( (surface->w & (surface->w - 1)) != 0 ) {
-				printf("warning: %s's width is not a power of 2\n", filename.string().c_str());
+				printf("warning: %s's width is not a power of 2\n", filename.file_string().c_str());
 			}
 
 			// Also check if the height is a power of 2
 			if ( (surface->h & (surface->h - 1)) != 0 ) {
-				printf("warning: %s's height is not a power of 2\n", filename.string().c_str());
+				printf("warning: %s's height is not a power of 2\n", filename.file_string().c_str());
 			}
 
 			// Bind the texture object
@@ -150,7 +150,7 @@ void Renderer::init()
 				
 		}
 		else {
-			printf("SDL could not load %s: %s\n", filename.string().c_str(), IMG_GetError());
+			printf("SDL could not load %s: %s\n", filename.file_string().c_str(), IMG_GetError());
 			SDL_Quit();
 		}
 
@@ -163,7 +163,7 @@ void Renderer::init()
 	std::string cfile;
 	int k = 1; //rand()%86;
 	std::ifstream f3;
-	f3.open((fs::path("structs") / "allfiles").string().c_str());
+	f3.open((fs::path("structs") / "allfiles").file_string().c_str());
 	assert(f3.is_open());
 	
 	for(int i=0; i<=k; i++)
@@ -175,7 +175,7 @@ void Renderer::init()
 	glNewList(gllist_item,GL_COMPILE);
 	glBindTexture( GL_TEXTURE_2D, texture_item );
 	
-	std::ifstream f((fs::path("structs") / cfile).string().c_str());
+	std::ifstream f((fs::path("structs") / cfile).file_string().c_str());
 	assert(f.is_open());
 	
 	std::string textur;
@@ -185,17 +185,17 @@ void Renderer::init()
 	}
 	
 	std::ifstream f2;
-	f2.open((fs::path("texpages") / textur).string().c_str());
+	f2.open((fs::path("texpages") / textur).file_string().c_str());
 	
 	assert(f2.is_open());
 	
-	SDL_Surface *surface2 = IMG_Load((fs::path("texpages") / textur).string().c_str());
-	if(!surface2) printf("SDL could not load %s: %s\n", (fs::path("texpages") / textur).string().c_str(), IMG_GetError());
+	SDL_Surface *surface2 = IMG_Load((fs::path("texpages") / textur).file_string().c_str());
+	if(!surface2) printf("SDL could not load %s: %s\n", (fs::path("texpages") / textur).file_string().c_str(), IMG_GetError());
 	
 	SDL_Surface *surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
 															  surface2->w, surface2->h, 
 															32, 0x000000ff, 0x0000ff00,0x00ff0000 , 0xff000000);
-	if(!surface) printf("SDL could not load %s: %s\n", (fs::path("texpages") / textur).string().c_str(), SDL_GetError());
+	if(!surface) printf("SDL could not load %s: %s\n", (fs::path("texpages") / textur).file_string().c_str(), SDL_GetError());
 	SDL_BlitSurface(surface2, 0, surface, 0);
 	
 	SDL_FreeSurface(surface2);

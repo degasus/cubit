@@ -62,10 +62,10 @@ void UInterface::init()
 	fs::path filename = fs::path("sound") / "music" / "forest.ogg";
 
 	//load and start music
-	if((ingameMusic = Mix_LoadMUS((dataDirectory / filename).string().c_str()))||
-		(ingameMusic = Mix_LoadMUS((workingDirectory / filename).string().c_str())) ||
-		(ingameMusic = Mix_LoadMUS((localDirectory / filename).string().c_str())) ||
-		(ingameMusic = Mix_LoadMUS((filename).string().c_str()))
+	if((ingameMusic = Mix_LoadMUS((dataDirectory / filename).file_string().c_str()))||
+		(ingameMusic = Mix_LoadMUS((workingDirectory / filename).file_string().c_str())) ||
+		(ingameMusic = Mix_LoadMUS((localDirectory / filename).file_string().c_str())) ||
+		(ingameMusic = Mix_LoadMUS((filename).file_string().c_str()))
 	) {
 		Mix_PlayMusic(ingameMusic, -1);
 	} else {
