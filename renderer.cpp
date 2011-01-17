@@ -564,7 +564,17 @@ void Renderer::render(PlayerPosition pos)
 	
 	glPopMatrix();
 	
-	//std::cout << "anzahl areas: " << c->map->areas_with_gllist.size() << " " <<  c->map->areas.size() <<std::endl;
+/*	int anzahl_mit_data=0;
+	int anzahl_ohne_data=0;
+	
+	for(Map::iterator it = c->map->areas.begin(); it != c->map->areas.end(); it++)
+		if(it->second->m)
+			anzahl_mit_data++;
+		else
+			anzahl_ohne_data++;
+	std::cout << "anzahl areas: " << anzahl_mit_data << " " << anzahl_ohne_data <<std::endl;
+	*/
+	
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
