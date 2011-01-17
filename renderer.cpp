@@ -181,7 +181,7 @@ void Renderer::init()
 	std::string textur;
 	
 	for(int i=0; i<7; i++) {
-		f >> textur; cout << f;
+		f >> textur;
 	}
 	
 	std::ifstream f2;

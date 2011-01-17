@@ -25,6 +25,9 @@ const int AREASIZE_Y = AREASIZE_X;
 const int AREASIZE_Z = AREASIZE_X;
 
 typedef unsigned char Material;
+
+const int AREASIZE = AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material);
+
 class NotLoadedException {};
 class AreaEmptyException {};
 

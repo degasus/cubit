@@ -14,6 +14,10 @@
 
 #include "map.h"
 
+#include "lzo/lzoconf.h"
+#include "lzo/lzo1x.h"
+
+
 Map::Map(Controller *controller) {
 	c = controller;
 	
@@ -26,6 +30,10 @@ Map::Map(Controller *controller) {
 	inital_loaded = 0;
 	
 	dijsktra_wert = 1;
+	
+	
+	lzo_init();
+
 }
 
 Map::~Map()
@@ -311,9 +319,18 @@ void Map::store(Area *a) {
 	sqlite3_bind_int(saveArea, 7, a->blocks);
 	if(a->empty)
 		sqlite3_bind_null(saveArea, 8);
-	else
-		sqlite3_bind_blob(saveArea, 8, (const void*) a->m, AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material), SQLITE_STATIC);
-	
+	else {
+		unsigned char wrkmem[LZO1X_1_MEM_COMPRESS];
+		unsigned char buffer[AREASIZE + AREASIZE / 16 + 64 + 3];
+		lzo_uint buffer_usage;
+		
+		int r = lzo1x_1_compress(a->m,AREASIZE,buffer,&buffer_usage,wrkmem);
+
+		if(buffer_usage < AREASIZE)
+			sqlite3_bind_blob(saveArea, 8, (const void*) buffer, buffer_usage, SQLITE_STATIC);
+		else
+			sqlite3_bind_blob(saveArea, 8, (const void*) a->m, AREASIZE, SQLITE_STATIC);
+	}
 	sqlite3_step(saveArea);
 	sqlite3_reset(saveArea);
 	SDL_UnlockMutex(c->sql_mutex);
@@ -336,7 +353,14 @@ void Map::load(Area *a) {
 		a->blocks = sqlite3_column_int(loadArea, 3);
 		if(!a->empty) {
 			a->allocm();
-			memcpy(a->m,sqlite3_column_blob(loadArea, 4),AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material));
+			int bytes = sqlite3_column_bytes16(loadArea, 4);
+			if(bytes == AREASIZE)
+				memcpy(a->m,sqlite3_column_blob(loadArea, 4),AREASIZE);
+			else {
+				lzo_uint length = 0;
+				int r = lzo1x_decompress((unsigned char*)sqlite3_column_blob(loadArea, 4), bytes, a->m,&length,0);
+			}
+				
 		}
 		a->state = Area::STATE_LOADED;
 		sqlite3_reset(loadArea);

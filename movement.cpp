@@ -192,7 +192,7 @@ void Movement::calcPhysics(){
 		
 		c->renderer->itemPos.rotate = trans.getRotation();
 		
-		printf("world pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
+		//printf("world pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
 	}
 }
 
