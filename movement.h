@@ -229,5 +229,7 @@ public:
 	
 	btTransform groundTransform;
 	btRigidBody* body;
+	private:
+	void calcCharacter();
 };
 #endif

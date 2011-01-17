@@ -107,49 +107,7 @@ void	Movement::initPhysics(){
 	
 	dynamicsWorld->setGravity(btVector3(0,0,-100));
 	
-	
-	//keep track of the shapes, we release memory at exit.
-	//make sure to re-use collision shapes among rigid bodies whenever possible!
-	//btAlignedObjectArray<btCollisionShape*> collisionShapes;
-	
-	//collisionShapes.push_back(groundShape);
-	/*
 	{
-		
-		///create a few basic rigid bodies
-		btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.),btScalar(50.),btScalar(50.)));
-		
-		btTransform groundTransform;
-		groundTransform.setIdentity();
-		groundTransform.setOrigin(btVector3(0,0,-90));
-	
-		btScalar mass(0.);
-		
-		//rigidbody is dynamic if and only if mass is non zero, otherwise static
-		bool isDynamic = (mass != 0.f);
-		
-		btVector3 localInertia(0,0,0);
-		if (isDynamic)
-			groundShape->calculateLocalInertia(mass,localInertia);
-		
-		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-		btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,groundShape,localInertia);
-		btRigidBody* body2 = new btRigidBody(rbInfo);
-		
-		//add the body to the dynamics world
-		dynamicsWorld->addRigidBody(body2);
-	}
-	
-	*/
-	
-	{
-		//create a dynamic rigidbody
-		
-//		btCollisionShape* colShape = new btBoxShape(btVector3(3,4,5));
-		//btCollisionShape* colShape = new btSphereShape(btScalar(1.));
-//		btCollisionShape* colShape = new btCapsuleShape(btScalar(1.), btScalar(1.));
-		//collisionShapes.push_back(colShape);
 	
 		btCollisionShape* colShape = new btConvexTriangleMeshShape(&c->renderer->triangles_item);
 		
@@ -167,7 +125,7 @@ void	Movement::initPhysics(){
 		if (isDynamic)
 			colShape->calculateLocalInertia(mass,localInertia);
 		
-		startTransform.setOrigin(btVector3(10,0,-30));
+		startTransform.setOrigin(btVector3(10,0,0));
 		
 		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
@@ -196,6 +154,10 @@ void Movement::calcPhysics(){
 	}
 }
 
+void Movement::calcCharacter()
+{
+	
+}
 
 void Movement::savePosition() {
 	std::ofstream of;
@@ -995,9 +957,10 @@ void Movement::removeBlock()
 
 void Movement::triggerNextFrame(){
 	calcPhysics();
-	calcDucking();
+	calcCharacter();
+	/*calcDucking();
 	calcNewSpeed();
-	calcCollisionAndMove();
+	calcCollisionAndMove();*/
 	calcPointingOn();
 	calcBuilding();
 }
