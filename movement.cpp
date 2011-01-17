@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <SDL_mixer.h>
 #include <btBulletDynamicsCommon.h>
+#include <BulletDynamics/Character/btKinematicCharacterController.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
 
 #include "controller.h"
 
@@ -108,7 +110,6 @@ void	Movement::initPhysics(){
 	dynamicsWorld->setGravity(btVector3(0,0,-100));
 	
 	{
-	
 		btCollisionShape* colShape = new btConvexTriangleMeshShape(&c->renderer->triangles_item);
 		
 		/// Create Dynamic Objects
@@ -125,7 +126,7 @@ void	Movement::initPhysics(){
 		if (isDynamic)
 			colShape->calculateLocalInertia(mass,localInertia);
 		
-		startTransform.setOrigin(btVector3(10,0,0));
+		startTransform.setOrigin(btVector3(0,0,0));
 		
 		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
@@ -134,6 +135,26 @@ void	Movement::initPhysics(){
 	//	body->setDamping(0.5,0.5);
 		
 		dynamicsWorld->addRigidBody(body);
+	}
+
+	//Character initialization
+	{
+		ghost = new btPairCachingGhostObject();
+		btConvexShape* cShape = new btCapsuleShape(offset,personSize);
+		ghost->setCollisionShape (cShape);
+		//ghost->setCollisionFlags (btCollisionObject::CF_CHARACTER_OBJECT);
+
+		btTransform trans;
+		trans.setOrigin(btVector3(0,0,30));
+		ghost->setWorldTransform(trans);
+		
+		btKinematicCharacterController* kinCon = new btKinematicCharacterController(ghost, cShape, 1.0, 2);
+		kinCon->setFallSpeed(0.01);
+		//kinCon->setMaxJumpHeight(1.3);
+
+		dynamicsWorld->addCollisionObject(ghost,btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::StaticFilter|btBroadphaseProxy::DefaultFilter);
+		
+		dynamicsWorld->addAction(kinCon);
 	}
 }
 
@@ -149,9 +170,11 @@ void Movement::calcPhysics(){
 		c->renderer->itemPos.z = trans.getOrigin().getZ();
 		
 		c->renderer->itemPos.rotate = trans.getRotation();
-		
-		//printf("world pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
+		//printf("item pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
 	}
+
+	btTransform trans = ghost->getWorldTransform();
+	printf("char pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
 }
 
 void Movement::calcCharacter()
@@ -958,9 +981,9 @@ void Movement::removeBlock()
 void Movement::triggerNextFrame(){
 	calcPhysics();
 	calcCharacter();
-	/*calcDucking();
+	calcDucking();
 	calcNewSpeed();
-	calcCollisionAndMove();*/
+	calcCollisionAndMove();
 	calcPointingOn();
 	calcBuilding();
 }

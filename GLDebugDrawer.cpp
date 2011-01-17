@@ -7,7 +7,7 @@
 
 #include <stdio.h> //printf debugging
 GLDebugDrawer::GLDebugDrawer()
-:m_debugMode(0)
+:m_debugMode(1)
 {
 
 }

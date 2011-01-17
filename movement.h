@@ -4,6 +4,7 @@
 #include <cmath>
 #include <LinearMath/btAlignedObjectArray.h>
 #include <btBulletDynamicsCommon.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include "GLDebugDrawer.h"
 
 #ifndef _MOVEMENT_H_
@@ -229,7 +230,8 @@ public:
 	
 	btTransform groundTransform;
 	btRigidBody* body;
-	private:
+
+	btPairCachingGhostObject* ghost;
 	void calcCharacter();
 };
 #endif
