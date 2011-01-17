@@ -1,6 +1,5 @@
 
 #include "GLDebugDrawer.h"
-#include "GLDebugFont.h"
 //#include "GlutStuff.h"
 
 #include <SDL_opengl.h>
@@ -103,7 +102,7 @@ void	GLDebugDrawer::setDebugMode(int debugMode)
 void	GLDebugDrawer::draw3dText(const btVector3& location,const char* textString)
 {
 	std::cout << textString << std::endl;
-	glRasterPos3f(location.x(),  location.y(),  location.z());
+	//glRasterPos3f(location.x(),  location.y(),  location.z());
 	//BMF_DrawString(BMF_GetFont(BMF_kHelvetica10),textString);
 }
 
