@@ -5,6 +5,7 @@
 #include <LinearMath/btAlignedObjectArray.h>
 #include <btBulletDynamicsCommon.h>
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <BulletDynamics/Character/btKinematicCharacterController.h>
 #include "GLDebugDrawer.h"
 
 #ifndef _MOVEMENT_H_
@@ -209,7 +210,7 @@ public:
 	void calcBuilding();
 	void calcNewSpeed();
 	void calcCollisionAndMove();
-	void calcDucking();
+	void calcDuckingAndSteps();
 	void calcPointingOn();
 	void calcPhysics();
 	DIRECTION calcPointingOnInBlock(PlayerPosition*, BlockPosition);
@@ -232,6 +233,7 @@ public:
 	btRigidBody* body;
 
 	btPairCachingGhostObject* ghost;
+	btKinematicCharacterController* kinCon;
 	void calcCharacter();
 };
 #endif
