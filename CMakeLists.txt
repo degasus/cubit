@@ -9,14 +9,23 @@ find_package( Boost COMPONENTS program_options filesystem system)
 find_package( PkgConfig )
 pkg_check_modules(PKG REQUIRED sqlite3 bullet)
 
+FIND_PATH(LZO_INCLUDE_DIR lzo1x.h
+	/usr/include/lzo/
+	/usr/local/include/lzo/
+)
 
-ADD_DEFINITIONS(-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" )
+FIND_LIBRARY(LZO_LIBRARIES NAMES lzo2
+	/usr/lib
+	/usr/local/lib
+)
+
+ADD_DEFINITIONS(-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 
 
-add_executable(cubit main.cpp controller.cpp map.cpp movement.cpp net.cpp ui.cpp renderer.cpp GLDebugDrawer.cpp GLDebugFont.cpp)
+add_executable(cubit main.cpp controller.cpp map.cpp movement.cpp net.cpp ui.cpp renderer.cpp GLDebugDrawer.cpp)
 
-include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PKG_INCLUDE_DIRS})
-target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${PKG_LIBRARIES})
+include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PKG_INCLUDE_DIRS} ${LZO_INCLUDE_DIR})
+target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${PKG_LIBRARIES} ${LZO_LIBRARIES})
 
 
 
