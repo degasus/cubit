@@ -99,63 +99,68 @@ void Movement::init()
 
 void	Movement::initPhysics(){
 	collisionConfiguration = new btDefaultCollisionConfiguration();
+	
 	dispatcher = new	btCollisionDispatcher(collisionConfiguration);
+	
 	overlappingPairCache = new btDbvtBroadphase();
+	overlappingPairCache->getOverlappingPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
+	
 	solver = new btSequentialImpulseConstraintSolver;
 	
 	dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,overlappingPairCache,solver,collisionConfiguration);
-	
 	dynamicsWorld->setDebugDrawer(&debugDrawer);
-	
 	dynamicsWorld->setGravity(btVector3(0,0,-100));
 	
-	{
-		btCollisionShape* colShape = new btConvexTriangleMeshShape(&c->renderer->triangles_item);
-		
-		/// Create Dynamic Objects
-		btTransform startTransform;
-		startTransform.setIdentity();
-		startTransform.setRotation(btQuaternion(btVector3(1,0,0),30));
-		
-		btScalar	mass(1.f);
-		
-		//rigidbody is dynamic if and only if mass is non zero, otherwise static
-		bool isDynamic = (mass != 0.f);
-		
-		btVector3 localInertia(0,0,0);
-		if (isDynamic)
-			colShape->calculateLocalInertia(mass,localInertia);
-		
-		startTransform.setOrigin(btVector3(0,0,0));
-		
-		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,colShape,localInertia);
-		body = new btRigidBody(rbInfo);
-	//	body->setDamping(0.5,0.5);
-		
-		dynamicsWorld->addRigidBody(body);
-	}
+
+	btConvexShape* colShape = new btConvexTriangleMeshShape(&c->renderer->triangles_item);
+	
+	/// Create Dynamic Objects
+	btTransform startTransform;
+	startTransform.setIdentity();
+	startTransform.setRotation(btQuaternion(btVector3(1,0,0),30));
+	
+	btScalar	mass(1.f);
+	
+	//rigidbody is dynamic if and only if mass is non zero, otherwise static
+	bool isDynamic = (mass != 0.f);
+	
+	btVector3 localInertia(0,0,0);
+	if (isDynamic)
+		colShape->calculateLocalInertia(mass,localInertia);
+	
+	startTransform.setOrigin(btVector3(0,0,0));
+	
+	//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
+	btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,colShape,localInertia);
+	body = new btRigidBody(rbInfo);
+//	body->setDamping(0.5,0.5);
+	
+	//dynamicsWorld->addRigidBody(body);
+
 
 	//Character initialization
-	{
-		ghost = new btPairCachingGhostObject();
-		btConvexShape* cShape = new btCapsuleShape(offset,personSize);
-		ghost->setCollisionShape (cShape);
-		//ghost->setCollisionFlags (btCollisionObject::CF_CHARACTER_OBJECT);
+	ghost = new btPairCachingGhostObject();
+	btConvexShape* cShape = new btCapsuleShapeZ(offset,personSize);
+	//btConvexShape* cShape = colShape;
+	
+	ghost->setCollisionShape (cShape);
+	ghost->setCollisionFlags (btCollisionObject::CF_CHARACTER_OBJECT);
 
-		btTransform trans;
-		trans.setOrigin(btVector3(0,0,30));
-		ghost->setWorldTransform(trans);
-		
-		btKinematicCharacterController* kinCon = new btKinematicCharacterController(ghost, cShape, 1.0, 2);
-		kinCon->setFallSpeed(0.01);
-		//kinCon->setMaxJumpHeight(1.3);
+	btTransform trans;
+	trans.setIdentity ();
+	trans.setOrigin(btVector3(0.1,0.1,0));
+	ghost->setWorldTransform(trans);
+	
+	
+	btKinematicCharacterController* kinCon = new btKinematicCharacterController(ghost, cShape, 0.3, 2);
+	//kinCon->setFallSpeed(1);
+	kinCon->setMaxJumpHeight(1.3);
 
-		dynamicsWorld->addCollisionObject(ghost,btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::StaticFilter|btBroadphaseProxy::DefaultFilter);
-		
-		dynamicsWorld->addAction(kinCon);
-	}
+	dynamicsWorld->addCollisionObject(ghost,btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::StaticFilter|btBroadphaseProxy::DefaultFilter);
+	
+	dynamicsWorld->addAction(kinCon);
+	
 }
 
 void Movement::calcPhysics(){
@@ -175,6 +180,11 @@ void Movement::calcPhysics(){
 
 	btTransform trans = ghost->getWorldTransform();
 	printf("char pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
+	
+	
+	position.x = trans.getOrigin().getX();
+	position.y = trans.getOrigin().getY();
+	position.z = trans.getOrigin().getZ();
 }
 
 void Movement::calcCharacter()
@@ -344,7 +354,7 @@ void Movement::performAction(ActionEvent event)
 	}
 }
 
-PlayerPosition Movement::getPosition(){
+PlayerPosition Movement::getPosition(){	
 	return position;
 }
 
@@ -981,9 +991,9 @@ void Movement::removeBlock()
 void Movement::triggerNextFrame(){
 	calcPhysics();
 	calcCharacter();
-	calcDucking();
+	/*calcDucking();
 	calcNewSpeed();
-	calcCollisionAndMove();
+	calcCollisionAndMove();*/
 	calcPointingOn();
 	calcBuilding();
 }

@@ -224,7 +224,7 @@ public:
 	btBroadphaseInterface* overlappingPairCache;
 	btSequentialImpulseConstraintSolver* solver;
 	btDiscreteDynamicsWorld* dynamicsWorld;
-	btCollisionShape* groundShape;
+	btConvexShape* groundShape;
 	//btAlignedObjectArray<btCollisionShape*> collisionShapes;
 	GLDebugDrawer debugDrawer;
 	
