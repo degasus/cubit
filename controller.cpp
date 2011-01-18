@@ -124,9 +124,9 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning (\"mouse speed\")")
 		("jumpSpeed", po::value<double>()->default_value(0.215), "initial speed when jumping")
 #ifdef _WIN32
-		("workingDirectory", po::value<fs::path>()->default_value(fs::path("%APPDATA%") / "Cubit"), "Folder for saving areas")
-		("dataDirectory", po::value<fs::path>()->default_value(fs::path("%PROGRAMFILES%") / "Cubit"), "Folder for music and images")
-		("localDirectory", po::value<fs::path>()->default_value(fs::path("%PROGRAMFILES%") / "Cubit"), "Folder for music and images")
+		("workingDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("PROGRAMFILES")) / "Cubit"), "Folder for saving areas")
+		("dataDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("PROGRAMFILES")) / "Cubit"), "Folder for music and images")
+		("localDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("PROGRAMFILES")) / "Cubit"), "Folder for music and images")
 #else
 		("workingDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("HOME")) / ".cubit"), "Folder for saving areas")
 		("dataDirectory", po::value<fs::path>()->default_value(fs::path(CMAKE_INSTALL_PREFIX) / "share" / "games" / "cubit"), "Folder for music and images")
