@@ -57,6 +57,7 @@ void Renderer::init()
 	glDepthFunc(GL_LEQUAL);												// The Type Of Depth Testing To Do
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);					// Really Nice Perspective Calculations
 
+	glEnable(GL_CULL_FACE);
 	
 	//LIGHT
 
