@@ -435,16 +435,16 @@ void UInterface::drawHUD() {
 	float lineLength = 0.25f;
 
 	glBegin(GL_QUADS);						// Draw A Quad
-		glVertex3f(0.0f, -lineWidth/2, lineLength/2);				// Top Left
-		glVertex3f(0.0f, lineWidth/2, lineLength/2);				// Top Right
-		glVertex3f(0.0f,  lineWidth/2, -lineLength/2);				// Bottom Right
+		glVertex3f(0.0f,  lineWidth/2, -lineLength/2);				// Top Left
+		glVertex3f(0.0f,  lineWidth/2,  lineLength/2);				// Top Right
+		glVertex3f(0.0f, -lineWidth/2,  lineLength/2);				// Bottom Right
 		glVertex3f(0.0f, -lineWidth/2, -lineLength/2);				// Bottom Left
 	glEnd();
 
 	glBegin(GL_QUADS);						// Draw A Quad
 		glVertex3f(0.0f,  lineLength/2, -lineWidth/2);				// Top Left
-		glVertex3f(0.0f,  lineLength/2, lineWidth/2);				// Top Right
-		glVertex3f(0.0f, -lineLength/2, lineWidth/2);				// Bottom Right
+		glVertex3f(0.0f,  lineLength/2,  lineWidth/2);				// Top Right
+		glVertex3f(0.0f, -lineLength/2,  lineWidth/2);				// Bottom Right
 		glVertex3f(0.0f, -lineLength/2, -lineWidth/2);				// Bottom Left
 	glEnd();
 

@@ -95,7 +95,7 @@ void Renderer::init()
 	glFogi(GL_FOG_MODE, GL_LINEAR);		// Fog Mode
 	glFogfv(GL_FOG_COLOR, bgColor);	// Set Fog Color
 	glFogf(GL_FOG_DENSITY, fogDense);	// How Dense Will The Fog Be
-	glHint(GL_FOG_HINT, GL_DONT_CARE);	// Fog Hint Value
+	glHint(GL_FOG_HINT, GL_FASTEST); 
 	glFogf(GL_FOG_START, (visualRange-1)*fogStartFactor*AREASIZE_X);
 	glFogf(GL_FOG_END, (visualRange-1)*AREASIZE_X);
 	if(enableFog)
@@ -592,7 +592,7 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 	glEnable(GL_BLEND);
 	glBegin(GL_QUADS);		
 
-	for(int i = 0; i < POINTS_PER_POLYGON; i++){
+	for(int i = POINTS_PER_POLYGON-1; i >=0; i--){
 		glVertex3f(block.x + POINTS_OF_DIRECTION[direct][i][0],
 			block.y + POINTS_OF_DIRECTION[direct][i][1],
 			block.z + POINTS_OF_DIRECTION[direct][i][2]
