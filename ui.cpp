@@ -99,6 +99,9 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	k_jump			= c["k_jump"].as<int>();
 	k_duck			= c["k_duck"].as<int>();
 	k_fly			= c["k_fly"].as<int>();
+	k_lastMat			= c["k_lastMat"].as<int>();
+	k_nextMat			= c["k_nextMat"].as<int>();
+	k_selMat			= c["k_selMat"].as<int>();
 	k_quit			= c["k_quit"].as<int>();
 	k_music			= c["k_music"].as<int>();
 
@@ -190,6 +193,7 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 {
 	ActionEvent ae;
 	ae.name = ActionEvent::NONE;
+	int nextMat;
 
 	int code = (int)e.keysym.sym;
 	std::cout << "KeyPressed: " << code << std::endl;
@@ -225,6 +229,31 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	}
 	if(code == k_fly){
 		ae.name = ActionEvent::PRESS_FLY;
+	}
+	if(code == k_nextMat){
+		ae.name = ActionEvent::SELECT_MATERIAL;
+		nextMat = c->movement->getSelectedMaterial();
+		if(nextMat >= NUMBER_OF_MATERIALS-1)
+			nextMat = 1;
+		else
+			nextMat++;
+		ae.iValue = nextMat;
+	}
+	if(code == k_lastMat){
+		ae.name = ActionEvent::SELECT_MATERIAL;
+		nextMat = c->movement->getSelectedMaterial();
+		if(nextMat <= 1)
+			nextMat = NUMBER_OF_MATERIALS-1;
+		else
+			nextMat--;
+		ae.iValue = nextMat;
+	}
+	if(code == k_selMat){
+		ae.name = ActionEvent::SELECT_MATERIAL;
+		BlockPosition bp;
+		DIRECTION dir;
+		c->movement->getPointingOn(&bp, &dir);;
+		ae.iValue = c->map->getBlock(bp+dir);
 	}
 	if(code == k_quit){
 		done = 1;
@@ -431,6 +460,14 @@ void UInterface::drawHUD() {
 	glTranslatef(-0.5, -0.5, -0.5);*/
 
 	int selectedMaterial = c->movement->getSelectedMaterial();
+
+	/*if(lastMaterial + 1 != selectedMaterial
+		&& lastMaterial - 1 != selectedMaterial
+		&& (
+			(selectedMaterial == 1 && lastMaterial != NUMBER_OF_MATERIALS-1)
+			|| (selectedMaterial == NUMBER_OF_MATERIALS-1 &&  lastMaterial != 1)
+		))
+		lastMaterial = selectedMaterial;*/
 
 	if(fadingProgress>0)
 		fadingProgress -= 10;
