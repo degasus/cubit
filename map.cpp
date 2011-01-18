@@ -201,13 +201,16 @@ Area* Map::getOrCreate(BlockPosition pos) {
 	}
 	return *a;
 }
-
+double a = 0;
 void Map::setPosition(PlayerPosition pos)
 {
+	a+=0.1;
 	btConvexShape* s = new btBoxShape (btVector3(0.25,0.25,0.25));
 	btVector3 localInertia(0,0,0);
 	s->calculateLocalInertia(0.1,localInertia);
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.1,new btDefaultMotionState(btTransform::getIdentity()),s,localInertia);
+	btTransform t = btTransform::getIdentity();
+	t.setOrigin(btVector3(std::cos(a)*10,std::sin(a)*10,0));
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.1,new btDefaultMotionState(t),s,localInertia);
 	MovingObjects* o = new MovingObjects(rbInfo);
 	o->tex = c->movement->selectedMaterial;
 	objects.push_back(o);

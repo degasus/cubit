@@ -328,7 +328,7 @@ class MovingObjects : public btRigidBody {
 public:
 	MovingObjects(btRigidBodyConstructionInfo body) :  btRigidBody(body) {
 		m = getMotionState();
-		setDamping(0.5,0.5);
+	//	setDamping(0.5,0.5);
 	}
 	int tex;
 	btMotionState *m;

@@ -109,7 +109,7 @@ void	Movement::initPhysics(){
 	
 	dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,overlappingPairCache,solver,collisionConfiguration);
 	dynamicsWorld->setDebugDrawer(&debugDrawer);
-	dynamicsWorld->setGravity(btVector3(0,0,-100));
+	dynamicsWorld->setGravity(btVector3(0,0,-10));
 	
 /*
 	btConvexShape* colShape = new btConvexTriangleMeshShape(&c->renderer->triangles_item);
