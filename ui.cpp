@@ -289,7 +289,6 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 		PlayerPosition pos = c->movement->getPosition();
 		c->map->setPosition(pos);
 		c->renderer->render(pos);
-
 		BlockPosition block;
 		DIRECTION direct;
 		if(c->movement->getPointingOn(&block, &direct))

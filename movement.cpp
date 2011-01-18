@@ -111,7 +111,7 @@ void	Movement::initPhysics(){
 	dynamicsWorld->setDebugDrawer(&debugDrawer);
 	dynamicsWorld->setGravity(btVector3(0,0,-100));
 	
-
+/*
 	btConvexShape* colShape = new btConvexTriangleMeshShape(&c->renderer->triangles_item);
 	
 	/// Create Dynamic Objects
@@ -137,7 +137,7 @@ void	Movement::initPhysics(){
 //	body->setDamping(0.5,0.5);
 	
 	dynamicsWorld->addRigidBody(body);
-
+*/
 
 	//Character initialization
 	ghost = new btPairCachingGhostObject();
@@ -166,7 +166,7 @@ void	Movement::initPhysics(){
 void Movement::calcPhysics(){
 	dynamicsWorld->stepSimulation(0.04);
 	
-	if (body && body->getMotionState())
+/*	if (body && body->getMotionState())
 	{
 		btTransform trans;
 		body->getMotionState()->getWorldTransform(trans);
@@ -176,10 +176,10 @@ void Movement::calcPhysics(){
 		
 		c->renderer->itemPos.rotate = trans.getRotation();
 		//printf("item pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
-	}
+	}*/
 
 	btTransform trans = ghost->getWorldTransform();
-	printf("char pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
+//	printf("char pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
 	
 	
 	position.x = trans.getOrigin().getX();

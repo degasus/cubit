@@ -1,5 +1,6 @@
 #include <map>
 #include <queue>
+#include <list>
 #include <cstdio>
 
 #include <boost/program_options.hpp>
@@ -323,6 +324,16 @@ public:
 	*/
 };
 
+class MovingObjects : public btRigidBody {
+public:
+	MovingObjects(btRigidBodyConstructionInfo body) :  btRigidBody(body) {
+		m = getMotionState();
+		setDamping(0.5,0.5);
+	}
+	int tex;
+	btMotionState *m;
+};
+
 /**
  * Sorgt für das Laden der Karteninformation von Server
  * und stellt sie unter einfachen Funktionen bereit.
@@ -389,6 +400,8 @@ public:
 	
 	
 	std::set<Area*> areas_with_gllist;
+	
+	std::list<MovingObjects*> objects;
     
 private:
 	void store(Area* a);

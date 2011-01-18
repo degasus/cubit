@@ -204,6 +204,15 @@ Area* Map::getOrCreate(BlockPosition pos) {
 
 void Map::setPosition(PlayerPosition pos)
 {
+	btConvexShape* s = new btBoxShape (btVector3(0.25,0.25,0.25));
+	btVector3 localInertia(0,0,0);
+	s->calculateLocalInertia(0.1,localInertia);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.1,new btDefaultMotionState(btTransform::getIdentity()),s,localInertia);
+	MovingObjects* o = new MovingObjects(rbInfo);
+	o->tex = c->movement->selectedMaterial;
+	objects.push_back(o);
+	c->movement->dynamicsWorld->addRigidBody(o);
+	
 	SDL_LockMutex(queue_mutex);
 	
 	BlockPosition p = pos.block().area();
