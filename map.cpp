@@ -207,14 +207,21 @@ void Map::setPosition(PlayerPosition pos)
 	a+=0.1;
 	btConvexShape* s = new btBoxShape (btVector3(0.25,0.25,0.25));
 	btVector3 localInertia(0,0,0);
-	s->calculateLocalInertia(0.1,localInertia);
+	s->calculateLocalInertia(0.01,localInertia);
 	btTransform t = btTransform::getIdentity();
 	t.setOrigin(btVector3(std::cos(a)*10,std::sin(a)*10,0));
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.1,new btDefaultMotionState(t),s,localInertia);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.01,new btDefaultMotionState(t),s,localInertia);
 	MovingObjects* o = new MovingObjects(rbInfo);
 	o->tex = c->movement->selectedMaterial;
 	objects.push_back(o);
 	c->movement->dynamicsWorld->addRigidBody(o);
+	
+	if(objects.size() > 500) {
+		o = objects.front();
+		c->movement->dynamicsWorld->removeRigidBody(o);
+		delete o;
+		objects.pop_front();
+	}
 	
 	SDL_LockMutex(queue_mutex);
 	

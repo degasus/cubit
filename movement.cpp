@@ -164,7 +164,7 @@ void	Movement::initPhysics(){
 }
 
 void Movement::calcPhysics(){
-	dynamicsWorld->stepSimulation(0.04);
+	dynamicsWorld->stepSimulation(0.04,5);
 	
 /*	if (body && body->getMotionState())
 	{
