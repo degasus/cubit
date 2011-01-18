@@ -146,6 +146,9 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("k_jump", po::value<int>()->default_value(32), "KeyCode for jumping (Space)")
 		("k_fly", po::value<int>()->default_value(60), "KeyCode for enabling/disabling fly (<)")
 		("k_duck", po::value<int>()->default_value(304), "KeyCode for ducking (Left-Shift)")
+		("k_lastMat", po::value<int>()->default_value(281), "KeyCode for scrolling down the materiallist (PgDown)")
+		("k_nextMat", po::value<int>()->default_value(280), "KeyCode for scrolling up the materiallist (PgUp)")
+		("k_selMat", po::value<int>()->default_value(112), "KeyCode for enabling the pipette mode (selecting material) (P)")
 		("k_music", po::value<int>()->default_value(46), "KeyCode for start/stop music (.)")
 		("k_quit", po::value<int>()->default_value(27), "KeyCode for exiting (Esc)")
 	;

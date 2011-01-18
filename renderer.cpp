@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <stack>
-#include <SDL/SDL_image.h> 
+#include <SDL_image.h> 
 
 
 #define _USE_MATH_DEFINES
@@ -45,9 +45,9 @@ void Renderer::config(const boost::program_options::variables_map& c)
 
 void Renderer::init()
 {
-	itemPos.x = 0;
-	itemPos.y = 0;
-	itemPos.z = -40;
+//	itemPos.x = 0;
+//	itemPos.y = 0;
+//	itemPos.z = -40;
 	
 	// Set the OpenGL state
 	glEnable(GL_TEXTURE_2D);											// Enable Texture Mapping
@@ -159,7 +159,8 @@ void Renderer::init()
 			SDL_FreeSurface( surface );
 		}
 	}
-	
+	/*
+	 
 	std::string cfile;
 	int k = 1; //rand()%86;
 	std::ifstream f3;
@@ -292,7 +293,7 @@ void Renderer::init()
 
 	f.close();
 	glEndList();
-	
+	*/
 }
 
 
@@ -555,15 +556,15 @@ void Renderer::render(PlayerPosition pos)
 		}
 	}
 	
+	renderObjects();
 	
-	
-	glPushMatrix();
+/*	glPushMatrix();
 	glTranslatef(itemPos.x,itemPos.y,itemPos.z);
 	glRotatef(itemPos.rotate.getAngle()*180/M_PI,itemPos.rotate.getAxis().getX(),itemPos.rotate.getAxis().getY(),itemPos.rotate.getAxis().getZ());
 	glCallList(gllist_item);
 	
 	glPopMatrix();
-	
+	*/
 /*	int anzahl_mit_data=0;
 	int anzahl_ohne_data=0;
 	
@@ -578,32 +579,65 @@ void Renderer::render(PlayerPosition pos)
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
-		glDisable(GL_LIGHT1);
-		glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHT1);
+	glDisable(GL_LIGHTING);
 
-		if(highlightWholePlane)
-			glDisable(GL_DEPTH_TEST);
-		else
-			glEnable(GL_DEPTH_TEST);
-		glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
-		glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
-		glEnable(GL_BLEND);
-		glBegin(GL_QUADS);		
-
-		for(int i = 0; i < POINTS_PER_POLYGON; i++){
-			glVertex3f(block.x + POINTS_OF_DIRECTION[direct][i][0],
-					   block.y + POINTS_OF_DIRECTION[direct][i][1],
-					   block.z + POINTS_OF_DIRECTION[direct][i][2]
-  					);
-		}
-		
-		glEnd();
-		glDisable(GL_BLEND);
+	if(highlightWholePlane)
+		glDisable(GL_DEPTH_TEST);
+	else
 		glEnable(GL_DEPTH_TEST);
-		
-		glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
+	glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
+	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
+	glEnable(GL_BLEND);
+	glBegin(GL_QUADS);		
 
-		glEnable(GL_LIGHT1);
-		glEnable(GL_LIGHTING);
+	for(int i = 0; i < POINTS_PER_POLYGON; i++){
+		glVertex3f(block.x + POINTS_OF_DIRECTION[direct][i][0],
+			block.y + POINTS_OF_DIRECTION[direct][i][1],
+			block.z + POINTS_OF_DIRECTION[direct][i][2]
+		);
+	}
+	
+	glEnd();
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+	
+	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
+
+	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHTING);
 }
 
+void Renderer::renderObjects() {
+	std::list<MovingObjects*>::iterator it;
+	for(it = c->map->objects.begin(); it != c->map->objects.end(); it++) {
+		glPushMatrix();
+		
+		btTransform trans;
+		(*it)->m->getWorldTransform(trans);		
+		glTranslatef(trans.getOrigin().getX(),trans.getOrigin().getY(),trans.getOrigin().getZ());
+		glRotatef( trans.getRotation().getAngle()*180/M_PI, trans.getRotation().getAxis().getX(), trans.getRotation().getAxis().getY(), trans.getRotation().getAxis().getZ());
+		
+		glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
+		glBegin( GL_QUADS );
+
+		for(int i=0; i<DIRECTION_COUNT; i++) {
+			glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
+					
+			for(int point=0; point < POINTS_PER_POLYGON; point++) {
+				glTexCoord2f(
+					TEXTUR_POSITION_OF_DIRECTION[i][point][0],
+					TEXTUR_POSITION_OF_DIRECTION[i][point][1]
+				);
+				glVertex3f(
+					(POINTS_OF_DIRECTION[i][point][0]-0.5)/2,
+					(POINTS_OF_DIRECTION[i][point][1]-0.5)/2,
+					(POINTS_OF_DIRECTION[i][point][2]-0.5)/2
+				);
+			}
+		}
+		glEnd();
+
+		glPopMatrix();
+	}
+}

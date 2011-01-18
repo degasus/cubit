@@ -35,14 +35,10 @@ public:
 	void config(const boost::program_options::variables_map &c);
 	GLuint texture[NUMBER_OF_MATERIALS];
 
-	PlayerPosition itemPos;
-	GLuint texture_item;
-	GLuint gllist_item;
-	btTriangleMesh triangles_item;
-
 private:
 	
 	void renderArea(Area* area, bool show);
+	void renderObjects();
 	bool areaInViewport(BlockPosition apos, PlayerPosition ppos);
 	void generateViewPort(PlayerPosition pos);
 
