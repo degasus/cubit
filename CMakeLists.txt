@@ -5,27 +5,96 @@ find_package( SDL )
 find_package( SDL_mixer )
 find_package( SDL_image )
 find_package( OpenGL )
-find_package( Boost COMPONENTS program_options filesystem system)
-find_package( PkgConfig )
-pkg_check_modules(PKG REQUIRED sqlite3 bullet)
+find_package( Boost COMPONENTS program_options filesystem system )
+#find_package( PkgConfig )
+#pkg_check_modules(PKG REQUIRED sqlite3 bullet)
 
-FIND_PATH(LZO_INCLUDE_DIR lzo1x.h
+FIND_PATH(LZO_INCLUDE_DIR lzo/lzo1x.h
+	HINTS
+	$ENV{LZODIR}
+	PATH_SUFFIXES include
+	PATHS
 	/usr/include/lzo/
 	/usr/local/include/lzo/
 )
 
 FIND_LIBRARY(LZO_LIBRARIES NAMES lzo2
-	/usr/lib
-	/usr/local/lib
+	HINTS
+	$ENV{LZODIR}
+	PATH_SUFFIXES lib
+	PATHS
+	/usr/include/lzo/
+	/usr/local/include/lzo/
 )
+
+FIND_PATH(SQLITE_INCLUDE_DIR sqlite3.h
+	HINTS
+	$ENV{SQLITEDIR}
+	PATH_SUFFIXES include
+	PATHS
+	/usr/include/
+	/usr/local/include/
+)
+
+FIND_LIBRARY(SQLITE_LIBRARIES NAMES sqlite3
+	HINTS
+	$ENV{SQLITEDIR}
+	PATH_SUFFIXES lib
+	PATHS
+	/usr/include/
+	/usr/local/include/
+)
+
+FIND_PATH(BULLET_INCLUDE_DIR btBulletDynamicsCommon.h
+	HINTS
+	$ENV{BULLETDIR}
+	PATH_SUFFIXES include/bullet
+	PATHS
+	/usr/include/
+	/usr/local/include/
+)
+
+FIND_LIBRARY(BULLET_LIBRARIES_SOFTBODY NAMES BulletSoftBody BulletDynamics BulletCollision LinearMath
+	HINTS
+	$ENV{BULLETDIR}
+	PATH_SUFFIXES lib
+	PATHS
+	/usr/include/
+	/usr/local/include/
+)
+FIND_LIBRARY(BULLET_LIBRARIES_DYNAMICS NAMES BulletDynamics 
+	HINTS
+	$ENV{BULLETDIR}
+	PATH_SUFFIXES lib
+	PATHS
+	/usr/include/
+	/usr/local/include/
+)
+FIND_LIBRARY(BULLET_LIBRARIES_COLLISION NAMES BulletCollision
+	HINTS
+	$ENV{BULLETDIR}
+	PATH_SUFFIXES lib
+	PATHS
+	/usr/include/
+	/usr/local/include/
+)
+FIND_LIBRARY(BULLET_LIBRARIES_MATH NAMES LinearMath
+	HINTS
+	$ENV{BULLETDIR}
+	PATH_SUFFIXES lib
+	PATHS
+	/usr/include/
+	/usr/local/include/
+)
+SET(BULLET_LIBRARIES "${BULLET_LIBRARIES_SOFTBODY};${BULLET_LIBRARIES_DYNAMICS};${BULLET_LIBRARIES_COLLISION};${BULLET_LIBRARIES_MATH}")
 
 ADD_DEFINITIONS(-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 
 
 add_executable(cubit main.cpp controller.cpp map.cpp movement.cpp net.cpp ui.cpp renderer.cpp GLDebugDrawer.cpp)
 
-include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PKG_INCLUDE_DIRS} ${LZO_INCLUDE_DIR})
-target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${PKG_LIBRARIES} ${LZO_LIBRARIES})
+include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${LZO_INCLUDE_DIR} ${BULLET_INCLUDE_DIR})
+target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE_LIBRARIES} ${LZO_LIBRARIES} ${BULLET_LIBRARIES})
 
 
 

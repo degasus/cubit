@@ -2,7 +2,7 @@
 #include <math.h>
 #include <iostream>
 #include <SDL_mixer.h>
-#include <SDL/SDL_image.h>
+#include <SDL_image.h>
 
 #include "controller.h"
 #include "movement.h"

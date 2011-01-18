@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <stack>
-#include <SDL/SDL_image.h> 
+#include <SDL_image.h> 
 
 
 #define _USE_MATH_DEFINES
