@@ -354,8 +354,10 @@ void Map::load(Area *a) {
 		if(!a->empty) {
 			a->allocm();
 			int bytes = sqlite3_column_bytes16(loadArea, 4);
-			if(bytes == AREASIZE)
+			if(bytes == AREASIZE) {
 				memcpy(a->m,sqlite3_column_blob(loadArea, 4),AREASIZE);
+				a->blocks = -1;
+			}
 			else {
 				lzo_uint length = 0;
 				int r = lzo1x_decompress((unsigned char*)sqlite3_column_blob(loadArea, 4), bytes, a->m,&length,0);
