@@ -691,13 +691,10 @@ void Movement::throwBlock(){
 }
 
 void Movement::calcElevator()
-{
-	PlayerPosition feetPos;
-	
-	feetPos.z -= personSize;
+{	
 	int feetBlock = 1;
 	try{
-		feetBlock = c->map->getBlock(feetPos.block());
+		feetBlock = c->map->getBlock(position.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "not loaded" << std::endl;
