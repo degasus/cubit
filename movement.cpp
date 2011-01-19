@@ -31,6 +31,7 @@ Movement::Movement(Controller* controller)
 	buildBlockPressed = false;
 	removeBlockPressed = false;
 	fastPressed = false;
+	throwPressed = false;
 	moveFast = false;
 	isPointingOn = false;
 	enableFly = false;
@@ -360,6 +361,14 @@ void Movement::performAction(ActionEvent event)
 			removeBlockPressed = false;
 			break;
 
+		case ActionEvent::PRESS_THROW_BLOCK:
+			lastThrow = 8;
+			throwPressed = true;
+			break;
+		case ActionEvent::RELEASE_THROW_BLOCK:
+			throwPressed = false;
+			break;
+
 		case ActionEvent::ROTATE_HORIZONTAL:
 			//std::cout << "r_hor: " << event.value << std::endl;
 			position.orientationHorizontal += event.value;
@@ -601,12 +610,67 @@ void Movement::buildBlock()
 
 void Movement::removeBlock()
 {
+	BlockPosition block = pointingOnBlock+pointingOnPlane;
+	
+	btConvexShape* s = new btBoxShape (btVector3(0.25,0.25,0.25));
+	btVector3 localInertia(0,0,0);
+	s->calculateLocalInertia(0.01,localInertia);
+	btTransform t = btTransform::getIdentity();
+	t.setOrigin(btVector3(block.x+0.375,block.y+0.375,block.z+0.375));
+	t.setRotation(btQuaternion(btVector3(0,0,1),position.orientationHorizontal*(M_PI/180)));
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.01,new btDefaultMotionState(t),s,localInertia);
+	MovingObject* o = new MovingObject(rbInfo);
+	o->applyCentralImpulse(btVector3(sin((rand()%360-180)*(M_PI/180))*0.02,
+									 sin((rand()%360-180)*(M_PI/180))*0.02,
+									 sin(rand()%90*(M_PI/180))*0.02
+	));
+	o->tex = c->map->getBlock(block);
+	c->map->objects.push_back(o);
+	dynamicsWorld->addRigidBody(o);
+	
+	if(c->map->objects.size() > 250) {
+		o = c->map->objects.front();
+		dynamicsWorld->removeRigidBody(o);
+		delete o;
+		c->map->objects.pop_front();
+	}
+
 	try{
-		c->map->setBlock(pointingOnBlock+pointingOnPlane, 0);
+		c->map->setBlock(block, 0);
 	}
 	catch(NotLoadedException e){
 		if(movDebug)
 			std::cout << "NotLoadedException removeBlock" << std::endl;
+	}
+}
+
+void Movement::throwBlock(){
+	btConvexShape* s = new btBoxShape (btVector3(0.25,0.25,0.25));
+	btVector3 localInertia(0,0,0);
+	s->calculateLocalInertia(0.01,localInertia);
+	btTransform t = btTransform::getIdentity();
+	t.setOrigin(btVector3(
+						  position.x+cos(position.orientationHorizontal*(M_PI/180))*cos(position.orientationVertical*(M_PI/180))*1.3,
+						  position.y+sin(position.orientationHorizontal*(M_PI/180))*cos(position.orientationVertical*(M_PI/180))*1.3,
+						  position.z+sin(position.orientationVertical*(M_PI/180))
+						 )
+			   );
+	t.setRotation(btQuaternion(btVector3(0,0,1),position.orientationHorizontal*(M_PI/180)));
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.01,new btDefaultMotionState(t),s,localInertia);
+	MovingObject* o = new MovingObject(rbInfo);
+	o->applyCentralImpulse(btVector3(cos(position.orientationHorizontal*(M_PI/180))*cos(position.orientationVertical*(M_PI/180))*0.1,
+									 sin(position.orientationHorizontal*(M_PI/180))*cos(position.orientationVertical*(M_PI/180))*0.1,
+									 sin(position.orientationVertical*(M_PI/180))*0.1
+									));
+	o->tex = selectedMaterial;
+	c->map->objects.push_back(o);
+	dynamicsWorld->addRigidBody(o);
+	
+	if(c->map->objects.size() > 250) {
+		o = c->map->objects.front();
+		dynamicsWorld->removeRigidBody(o);
+		delete o;
+		c->map->objects.pop_front();
 	}
 }
 
@@ -615,6 +679,11 @@ void Movement::triggerNextFrame(){
 	calcCharacter();
 	calcPhysics();
 	calcDuckingAndSteps();
+	lastThrow++;
+	if(throwPressed && (lastThrow >= 8 || fastPressed)){
+		lastThrow = 0;
+		throwBlock();
+	}
 	/*calcNewSpeed();
 	calcCollisionAndMove();*/
 	calcPointingOn();

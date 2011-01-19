@@ -95,6 +95,9 @@ struct ActionEvent {
 		//turning around
 		ROTATE_HORIZONTAL, ROTATE_VERTICAL,
 
+		//throwing blocks
+		PRESS_THROW_BLOCK, RELEASE_THROW_BLOCK,
+
 		//flying
 		PRESS_FLY, RELEASE_FLY,
 
@@ -177,8 +180,10 @@ public:
 
 	//Building
 	int lastBuild;
+	int lastThrow;
 	void buildBlock();
 	void removeBlock();
+	void throwBlock();
 	
 	//Movement settings
 	float slowMovementSpeed;
@@ -206,6 +211,7 @@ public:
 	bool removeBlockPressed;
 	bool moveFast;
 	bool fastPressed;
+	bool throwPressed;
 
 	void calcBuilding();
 	void calcNewSpeed();

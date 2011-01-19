@@ -324,9 +324,9 @@ public:
 	*/
 };
 
-class MovingObjects : public btRigidBody {
+class MovingObject : public btRigidBody {
 public:
-	MovingObjects(btRigidBodyConstructionInfo body) :  btRigidBody(body) {
+	MovingObject(btRigidBodyConstructionInfo body) :  btRigidBody(body) {
 		m = getMotionState();
 	//	setDamping(0.5,0.5);
 	}
@@ -401,7 +401,7 @@ public:
 	
 	std::set<Area*> areas_with_gllist;
 	
-	std::list<MovingObjects*> objects;
+	std::list<MovingObject*> objects;
     
 private:
 	void store(Area* a);

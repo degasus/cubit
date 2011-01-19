@@ -98,10 +98,11 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	k_catchMouse	= c["k_catchMouse"].as<int>();
 	k_jump			= c["k_jump"].as<int>();
 	k_duck			= c["k_duck"].as<int>();
+	k_throw			= c["k_throw"].as<int>();
 	k_fly			= c["k_fly"].as<int>();
-	k_lastMat			= c["k_lastMat"].as<int>();
-	k_nextMat			= c["k_nextMat"].as<int>();
-	k_selMat			= c["k_selMat"].as<int>();
+	k_lastMat		= c["k_lastMat"].as<int>();
+	k_nextMat		= c["k_nextMat"].as<int>();
+	k_selMat		= c["k_selMat"].as<int>();
 	k_quit			= c["k_quit"].as<int>();
 	k_music			= c["k_music"].as<int>();
 
@@ -227,6 +228,9 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	if(code == k_duck){
 		ae.name = ActionEvent::PRESS_DUCK;
 	}
+	if(code == k_throw){
+		ae.name = ActionEvent::PRESS_THROW_BLOCK;
+	}
 	if(code == k_fly){
 		ae.name = ActionEvent::PRESS_FLY;
 	}
@@ -285,6 +289,9 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	}
 	if(code == k_jump){
 		ae.name = ActionEvent::RELEASE_JUMP;
+	}
+	if(code == k_throw){
+		ae.name = ActionEvent::RELEASE_THROW_BLOCK;
 	}
 	if(code == k_moveFast){
 		ae.name = ActionEvent::RELEASE_FAST_SPEED;

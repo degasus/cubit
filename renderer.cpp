@@ -610,7 +610,7 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 }
 
 void Renderer::renderObjects() {
-	std::list<MovingObjects*>::iterator it;
+	std::list<MovingObject*>::iterator it;
 	for(it = c->map->objects.begin(); it != c->map->objects.end(); it++) {
 		glPushMatrix();
 		

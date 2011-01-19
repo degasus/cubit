@@ -80,6 +80,7 @@ private:
 	int k_moveFast;
 	int k_Duck;
 	int k_fly;
+	int k_throw;
 	int k_lastMat;
 	int k_nextMat;
 	int k_selMat;
