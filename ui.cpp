@@ -215,6 +215,7 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 		ae.name = ActionEvent::PRESS_FAST_SPEED;
 	}
 	if(code == k_catchMouse){
+		SDL_WarpMouse(screenX/2, screenY/2);
 		catchMouse = !catchMouse;
 		if(catchMouse) {
 			SDL_ShowCursor(SDL_DISABLE);
