@@ -110,7 +110,7 @@ void	Movement::initPhysics(){
 	
 	dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,overlappingPairCache,solver,collisionConfiguration);
 	dynamicsWorld->setDebugDrawer(&debugDrawer);
-	dynamicsWorld->setGravity(btVector3(0,0,-10));
+	dynamicsWorld->setGravity(btVector3(0,0,-5));
 
 	//Character initialization
 	ghost = new btPairCachingGhostObject();
@@ -636,9 +636,9 @@ void Movement::removeBlock()
 	t.setRotation(btQuaternion(btVector3(0,0,1),position.orientationHorizontal*(M_PI/180)));
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.01,new btDefaultMotionState(t),s,localInertia);
 	MovingObject* o = new MovingObject(rbInfo);
-	o->applyCentralImpulse(btVector3(sin((rand()%360-180)*(M_PI/180))*0.02,
-									 sin((rand()%360-180)*(M_PI/180))*0.02,
-									 sin(rand()%90*(M_PI/180))*0.02
+	o->applyCentralImpulse(btVector3(sin((rand()%360-180)*(M_PI/180))*0.005,
+									 sin((rand()%360-180)*(M_PI/180))*0.005,
+									 sin(rand()%90*(M_PI/180))*0.005
 	));
 	o->tex = c->map->getBlock(block);
 	c->map->objects.push_back(o);
