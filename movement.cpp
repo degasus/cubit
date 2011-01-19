@@ -668,7 +668,7 @@ void Movement::throwBlock(){
 	t.setOrigin(btVector3(
 						  position.x+cos(position.orientationHorizontal*(M_PI/180))*cos(position.orientationVertical*(M_PI/180))*1.3,
 						  position.y+sin(position.orientationHorizontal*(M_PI/180))*cos(position.orientationVertical*(M_PI/180))*1.3,
-						  position.z+sin(position.orientationVertical*(M_PI/180))
+						  position.z+sin(position.orientationVertical*(M_PI/180))*1.3
 						 )
 			   );
 	t.setRotation(
