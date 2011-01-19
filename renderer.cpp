@@ -632,9 +632,9 @@ void Renderer::renderObjects() {
 					TEXTUR_POSITION_OF_DIRECTION[i][point][1]
 				);
 				glVertex3f(
-					(POINTS_OF_DIRECTION[i][point][0]-0.5)/2,
-					(POINTS_OF_DIRECTION[i][point][1]-0.5)/2,
-					(POINTS_OF_DIRECTION[i][point][2]-0.5)/2
+					(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.1,
+					(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.1,
+					(POINTS_OF_DIRECTION[i][point][2]*2-1)*0.1
 				);
 			}
 		}

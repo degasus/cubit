@@ -628,7 +628,7 @@ void Movement::removeBlock()
 {
 	BlockPosition block = pointingOnBlock+pointingOnPlane;
 	
-	btConvexShape* s = new btBoxShape (btVector3(0.25,0.25,0.25));
+	btConvexShape* s = new btBoxShape (btVector3(0.1,0.1,0.1));
 	btVector3 localInertia(0,0,0);
 	s->calculateLocalInertia(0.01,localInertia);
 	btTransform t = btTransform::getIdentity();
@@ -661,7 +661,7 @@ void Movement::removeBlock()
 }
 
 void Movement::throwBlock(){
-	btConvexShape* s = new btBoxShape (btVector3(0.25,0.25,0.25));
+	btConvexShape* s = new btBoxShape (btVector3(0.1,0.1,0.1));
 	btVector3 localInertia(0,0,0);
 	s->calculateLocalInertia(0.01,localInertia);
 	btTransform t = btTransform::getIdentity();
@@ -671,7 +671,10 @@ void Movement::throwBlock(){
 						  position.z+sin(position.orientationVertical*(M_PI/180))
 						 )
 			   );
-	t.setRotation(btQuaternion(btVector3(0,0,1),position.orientationHorizontal*(M_PI/180)));
+	t.setRotation(
+		btQuaternion(btVector3(0,0,1),position.orientationHorizontal*(M_PI/180)) * 
+		btQuaternion(btVector3(0,1,0),-position.orientationVertical*(M_PI/180))
+		);
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.01,new btDefaultMotionState(t),s,localInertia);
 	MovingObject* o = new MovingObject(rbInfo);
 	o->applyCentralImpulse(btVector3(cos(position.orientationHorizontal*(M_PI/180))*cos(position.orientationVertical*(M_PI/180))*0.1,
