@@ -241,5 +241,7 @@ public:
 	btPairCachingGhostObject* ghost;
 	btKinematicCharacterController* kinCon;
 	void calcCharacter();
+	private:
+	void calcElevator();
 };
 #endif

@@ -48,7 +48,7 @@ Movement::~Movement(){
 void Movement::config(const boost::program_options::variables_map& c){
 	offset				= c["offset"].as<double>();
 	offsetAbove			= c["offsetAbove"].as<double>();
-	accelHorizontal		= c["accelHorizontal"].as<double>();
+	accelHorizontal		= c["accelHorizontal"].as<double>()/2;
 	normalAccelVertical	= c["accelVertical"].as<double>();
 	personSizeNormal	= c["personSizeNormal"].as<double>();
 	personSizeDucked	= c["personSizeDucked"].as<double>();
@@ -111,34 +111,6 @@ void	Movement::initPhysics(){
 	dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,overlappingPairCache,solver,collisionConfiguration);
 	dynamicsWorld->setDebugDrawer(&debugDrawer);
 	dynamicsWorld->setGravity(btVector3(0,0,-10));
-	
-/*
-	btConvexShape* colShape = new btConvexTriangleMeshShape(&c->renderer->triangles_item);
-	
-	/// Create Dynamic Objects
-	btTransform startTransform;
-	startTransform.setIdentity();
-	startTransform.setRotation(btQuaternion(btVector3(1,0,0),30));
-	
-	btScalar	mass(1.f);
-	
-	//rigidbody is dynamic if and only if mass is non zero, otherwise static
-	bool isDynamic = (mass != 0.f);
-	
-	btVector3 localInertia(0,0,0);
-	if (isDynamic)
-		colShape->calculateLocalInertia(mass,localInertia);
-	
-	startTransform.setOrigin(btVector3(0,0,0));
-	
-	//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-	btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,colShape,localInertia);
-	body = new btRigidBody(rbInfo);
-//	body->setDamping(0.5,0.5);
-	
-	dynamicsWorld->addRigidBody(body);
-*/
 
 	//Character initialization
 	ghost = new btPairCachingGhostObject();
@@ -158,7 +130,7 @@ void	Movement::initPhysics(){
 	//kinCon->setFallSpeed(1);
 	kinCon->setMaxJumpHeight(1.1);
 
-	dynamicsWorld->addCollisionObject(ghost,btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::StaticFilter|btBroadphaseProxy::DefaultFilter);
+	dynamicsWorld->addCollisionObject(ghost, btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::StaticFilter|btBroadphaseProxy::DefaultFilter);
 	
 	dynamicsWorld->addAction(kinCon);
 	
@@ -207,27 +179,27 @@ void Movement::calcCharacter()
 	btVector3 walkDirection = btVector3(0.0, 0.0, 0.0);
 	
 	//rotate view
-	if (leftPressed)
+	if (leftPressed || rightPressed)
 	{
-		walkDirection += leftDir;
+		walkDirection -= leftDir*speedRight;
 	}
 	
-	if (rightPressed)
+	/*if (rightPressed)
 	{
 		walkDirection -= leftDir;
+	}*/
+	
+	if (forwardPressed || backwardsPressed){
+		walkDirection += forwardDir*speedForward;
 	}
 	
-	if (forwardPressed){
-		walkDirection += forwardDir;
-	}
-	
-	if (backwardsPressed)
-		walkDirection -= forwardDir;
+	/*if (backwardsPressed)
+		walkDirection -= forwardDir;*/
 
 	if (jumpPressed)
 		kinCon->jump();
 	
-	kinCon->setWalkDirection(walkDirection*movementSpeed);
+	kinCon->setWalkDirection(walkDirection/2);
 }
 
 void Movement::savePosition() {
@@ -266,7 +238,6 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::RELEASE_FORWARD:
 			forwardPressed = false;
 			//Steps
-			stepProgress = 11;
 			if(!duckPressed)
 				personSize = personSizeNormal;
 			else
@@ -279,7 +250,6 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::RELEASE_BACKWARDS:
 			backwardsPressed = false;
 			//Steps
-			stepProgress = 11;
 			if(!duckPressed)
 				personSize = personSizeNormal;
 			else
@@ -292,7 +262,6 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::RELEASE_LEFT:
 			leftPressed = false;
 			//Steps
-			stepProgress = 11;
 			if(!duckPressed)
 				personSize = personSizeNormal;
 			else
@@ -305,7 +274,6 @@ void Movement::performAction(ActionEvent event)
 		case ActionEvent::RELEASE_RIGHT:
 			rightPressed = false;
 			//Steps
-			stepProgress = 11;
 			if(!duckPressed)
 				personSize = personSizeNormal;
 			else
@@ -532,6 +500,54 @@ DIRECTION Movement::calcPointingOnInBlock(PlayerPosition* posIn, BlockPosition b
 	return (DIRECTION)0;
 }
 
+void Movement::calcNewSpeed()
+{
+	if(forwardPressed){
+		if(speedForward <= movementSpeed)
+			speedForward += accelHorizontal;
+		else
+			speedForward = movementSpeed;
+	}
+	else if(speedForward > 0){
+		speedForward -= accelHorizontal;
+		if(speedForward < 0)
+			speedForward = 0;
+	}
+	if(backwardsPressed){
+		if(speedForward >= -movementSpeed)
+			speedForward -= accelHorizontal;
+		else
+			speedForward = -movementSpeed;
+	}
+	else if(speedForward < 0){
+		speedForward += accelHorizontal;
+		if(speedForward > 0)
+			speedForward = 0;
+	}
+	if(rightPressed){
+		if(speedRight <= movementSpeed)
+			speedRight += accelHorizontal;
+		else
+			speedRight = movementSpeed;
+	}
+	else if(speedRight > 0){
+		speedRight -= accelHorizontal;
+		if(speedRight < 0)
+			speedRight = 0;
+	}
+	if(leftPressed){
+		if(speedRight >= -movementSpeed)
+			speedRight -= accelHorizontal;
+		else
+			speedRight = -movementSpeed;
+	}
+	else if(speedRight < 0){
+		speedRight += accelHorizontal;
+		if(speedRight > 0)
+			speedRight = 0;
+	}
+}
+
 void Movement::calcBuilding(){
 	lastBuild++;
 	if((lastBuild >= 10 || fastPressed) && isPointingOn && buildBlockPressed){
@@ -674,24 +690,45 @@ void Movement::throwBlock(){
 	}
 }
 
+void Movement::calcElevator()
+{
+	PlayerPosition feetPos;
+	
+	feetPos.z -= personSize;
+	int feetBlock = 1;
+	try{
+		feetBlock = c->map->getBlock(feetPos.block());
+	}
+	catch(NotLoadedException e){
+		std::cout << "not loaded" << std::endl;
+	}
+	if(feetBlock != 0){
+		btTransform t = ghost->getWorldTransform();
+		btVector3 org = t.getOrigin();
+		org.setZ(org.getZ()+1);
+		t.setOrigin(org);
+		ghost->setWorldTransform(t);
+	}
+}
 
 void Movement::triggerNextFrame(){
+	calcNewSpeed();
+	calcDuckingAndSteps();
 	calcCharacter();
 	calcPhysics();
-	calcDuckingAndSteps();
 	lastThrow++;
 	if(throwPressed && (lastThrow >= 8 || fastPressed)){
 		lastThrow = 0;
 		throwBlock();
 	}
-	/*calcNewSpeed();
-	calcCollisionAndMove();*/
+	/*calcCollisionAndMove();*/
 	calcPointingOn();
 	calcBuilding();
+	calcElevator();
 }
 
 /* old col. det.
- v *oid Movement::calcNewSpeed()
+ void Movement::calcNewSpeed()
  {
 	 if(forwardPressed){
 		 if(speedForward <= movementSpeed)

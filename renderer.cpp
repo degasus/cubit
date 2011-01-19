@@ -582,12 +582,13 @@ void Renderer::render(PlayerPosition pos)
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 	glDisable(GL_LIGHT1);
 	glDisable(GL_LIGHTING);
+	glBindTexture( GL_TEXTURE_2D, texture[1] );
+	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 
 	if(highlightWholePlane)
 		glDisable(GL_DEPTH_TEST);
 	else
 		glEnable(GL_DEPTH_TEST);
-	glColor4f(0.0f, 1.0f, 1.0f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 	glEnable(GL_BLEND);
 	glBegin(GL_QUADS);		

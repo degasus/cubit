@@ -426,6 +426,7 @@ void UInterface::drawHUD() {
 	glScalef(-1,1,1);
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
+	glBindTexture( GL_TEXTURE_2D, c->renderer->texture[1] );
 
 	GLfloat LightPosition[] = { -200.0f, 200.0f, 300.0f, 1.0f };
 	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
@@ -433,7 +434,7 @@ void UInterface::drawHUD() {
 
 	glDisable(GL_LIGHT2);
 
-	glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 	glEnable(GL_BLEND);
 
