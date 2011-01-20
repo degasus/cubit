@@ -87,12 +87,17 @@ void Controller::init() {
 
 void Controller::parse_command_line(int argc, char *argv[]) {
 	// Declare the supported options.
-	po::options_description desc("Allowed options");
-	desc.add_options()
-		("help", "produce help message")
+	po::options_description common("Common options");
+	common.add_options()
+		("help", "produce this short help message, add --verbose for the full help page")
+		("fullscreen", po::value<bool>()->default_value(0), "start in fullscreen")
+		("visualRange", po::value<int>()->default_value(4), "maximal distance for rendering");
+	
+	po::options_description advanced("Advanced options");
+	advanced.add_options()
+		("verbose", "verbose output")
 		("noFullX", po::value<int>()->default_value(1024), "set the default x-resolution")
 		("noFullY", po::value<int>()->default_value(768), "set the default y-resolution")
-		("fullscreen", po::value<bool>()->default_value(0), "start in fullscreen")
 		("enableAntiAliasing", po::value<bool>()->default_value(0), "enables Multi-Sampling")
 		("textureFilterMethod", po::value<int>()->default_value(3), "set the texture filter method (1=nearest; 2=linear; 3=triliear)")
 		("bgColorR", po::value<float>()->default_value(0.6), "Background Color Red")
@@ -101,7 +106,6 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("bgColorA", po::value<float>()->default_value(1.0), "Background Color Aplha")
 		("fogDense", po::value<float>()->default_value(0.6), "Densitivity of Fog")
 		("fogStartFactor", po::value<float>()->default_value(0.8), "Percental distance to fog start")
-		("visualRange", po::value<int>()->default_value(4), "maximal distance for rendering")
 		("enableFog", po::value<bool>()->default_value(1), "enable Fog")
 		("areasPerFrameRendering", po::value<int>()->default_value(3), "set the maximal rendered areas per frame")
 		("areasPerFrameLoading", po::value<int>()->default_value(20), "set the maximal from hard disk loaded areas per frame")
@@ -155,21 +159,37 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("k_music", po::value<int>()->default_value(46), "KeyCode for start/stop music (.)")
 		("k_quit", po::value<int>()->default_value(27), "KeyCode for exiting (Esc)")
 	;
-		
-	//command-line args
-	po::store(po::parse_command_line(argc, argv, desc), vm);
-
-	//config file
-	std::ifstream i((vm["workingDirectory"].as<fs::path>() / "cubit.conf").file_string().c_str());
-	if (i.is_open()) {
-		po::store(po::parse_config_file(i, desc), vm);
-	}
-	i.close();
 	
-	po::notify(vm);
+	po::options_description cmdline_options;
+	cmdline_options.add(common).add(advanced);
+		
+	try{
+		//command-line args
+		po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
+
+		po::notify(vm);
+		
+		//config file
+		std::ifstream i((vm["workingDirectory"].as<fs::path>() / "cubit.conf").file_string().c_str());
+		if (i.is_open()) {
+			po::store(po::parse_config_file(i, cmdline_options), vm);
+		}
+		i.close();
+		
+		po::notify(vm);
+	} catch(std::exception &e) {
+		std::cout << "Error: " << e.what() << std::endl << std::endl;
+		std::cout << common << std::endl;
+		
+		//TODO vm["help"] should be set
+	}
 	
 	
 	if (vm.count("help")) {
-		std::cout << desc << "\n";
+		if (vm.count("verbose")) {
+			std::cout << cmdline_options << std::endl;
+		} else {
+			std::cout << common << std::endl;
+		}
 	}
 }
