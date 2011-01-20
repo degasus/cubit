@@ -1,18 +1,18 @@
 cubit (0.0.2) UNRELEASED; urgency=low
 
- New features:
+  New features:
   * pipette
   * throw block
   * spawn of small blocks on remove big one
 
- Tweaks:
+  Tweaks:
   * jpg pictures 
   * memory improvements
   * bullet physics library
   * database compression
   * framedrop
   
- Bugfixes:
+  Bugfixes:
   * resizable window
   * area loading problem
   * XP and Vista support
