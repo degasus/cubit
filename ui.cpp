@@ -58,7 +58,7 @@ void UInterface::init()
 	}
 
 	initWindow();
-#ifndef _WIN32
+//#ifndef _WIN32
 	fs::path filename = fs::path("sound") / "music" / "forest.ogg";
 
 	//load and start music
@@ -71,7 +71,7 @@ void UInterface::init()
 	} else {
 		std::cout << "Could not find the music file " << filename << " Error: " << Mix_GetError() <<  std::endl;
 	}
-#endif
+//#endif
 }
 
 void UInterface::config(const boost::program_options::variables_map &c)
@@ -300,7 +300,7 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	if(code == k_duck){
 		ae.name = ActionEvent::RELEASE_DUCK;
 	}
-#ifndef _WIN32
+//#ifndef _WIN32
 	if(code == k_music){
 		if(!musicPlaying) {
 			Mix_PlayMusic(ingameMusic, -1);
@@ -311,7 +311,7 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 			musicPlaying = false;
 		}
 	}
-#endif
+//#endif
 	if(ae.name != ActionEvent::NONE)
 		c->movement->performAction(ae);
 }
