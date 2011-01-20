@@ -243,5 +243,6 @@ public:
 	void calcCharacter();
 	private:
 	void calcElevator();
+	int maxMovingObjects;
 };
 #endif

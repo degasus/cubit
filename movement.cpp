@@ -58,9 +58,10 @@ void Movement::config(const boost::program_options::variables_map& c){
 	fastSpeedMultiplier	= c["fastSpeedMultiplier"].as<double>();
 	maxFallingSpeed		= c["maxFallingSpeed"].as<double>();
 	jumpSpeed			= c["jumpSpeed"].as<double>();
-	workingDirectory = c["workingDirectory"].as<fs::path>();
-	dataDirectory = c["dataDirectory"].as<fs::path>();
-	localDirectory = c["localDirectory"].as<fs::path>();
+	workingDirectory 	= c["workingDirectory"].as<fs::path>();
+	dataDirectory 		= c["dataDirectory"].as<fs::path>();
+	localDirectory 		= c["localDirectory"].as<fs::path>();
+	maxMovingObjects	= c["maxMovingObjects"].as<int>();
 
 	accelVertical	= normalAccelVertical;
 	movementSpeed 	= normalMovementSpeed;
@@ -644,7 +645,7 @@ void Movement::removeBlock()
 	c->map->objects.push_back(o);
 	dynamicsWorld->addRigidBody(o);
 	
-	if(c->map->objects.size() > 250) {
+	if(c->map->objects.size() > maxMovingObjects) {
 		o = c->map->objects.front();
 		dynamicsWorld->removeRigidBody(o);
 		delete o;
@@ -685,7 +686,7 @@ void Movement::throwBlock(){
 	c->map->objects.push_back(o);
 	dynamicsWorld->addRigidBody(o);
 	
-	if(c->map->objects.size() > 250) {
+	if(c->map->objects.size() > maxMovingObjects) {
 		o = c->map->objects.front();
 		dynamicsWorld->removeRigidBody(o);
 		delete o;

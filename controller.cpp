@@ -132,7 +132,8 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("dataDirectory", po::value<fs::path>()->default_value(fs::path(CMAKE_INSTALL_PREFIX) / "share" / "games" / "cubit"), "Folder for music and images")
 		("localDirectory", po::value<fs::path>()->default_value(fs::path(argv[0]).remove_filename()), "Folder for music and images")
 #endif
-		
+		//Collision
+		("maxMovingObjects", po::value<int>()->default_value(250), "maximum of moving objects in the world")
 		
 		//UI
 		("highlightWholePlane", po::value<bool>()->default_value(1), "highlight the pointing on plane without depth test")
