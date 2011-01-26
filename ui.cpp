@@ -259,8 +259,10 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 		ae.name = ActionEvent::SELECT_MATERIAL;
 		BlockPosition bp;
 		DIRECTION dir;
-		c->movement->getPointingOn(&bp, &dir);;
-		ae.iValue = c->map->getBlock(bp+dir);
+		if(c->movement->getPointingOn(&bp, &dir))
+			ae.iValue = c->map->getBlock(bp+dir);
+		else
+			ae.name = ActionEvent::NONE;
 	}
 	if(code == k_quit){
 		done = 1;
