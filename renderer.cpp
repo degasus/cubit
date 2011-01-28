@@ -96,8 +96,8 @@ void Renderer::init()
 	glFogfv(GL_FOG_COLOR, bgColor);	// Set Fog Color
 	glFogf(GL_FOG_DENSITY, fogDense);	// How Dense Will The Fog Be
 	glHint(GL_FOG_HINT, GL_FASTEST); 
-	glFogf(GL_FOG_START, (visualRange-1)*fogStartFactor*AREASIZE_X);
-	glFogf(GL_FOG_END, (visualRange-1)*AREASIZE_X);
+	glFogf(GL_FOG_START, visualRange*fogStartFactor*AREASIZE_X);
+	glFogf(GL_FOG_END, visualRange*AREASIZE_X);
 	if(enableFog)
 		glEnable(GL_FOG);					// Enables GL_FOG
 
@@ -509,7 +509,7 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 //	std::cout << std::endl;
 	
 	return (erg.data[0][0] > - AREASIZE_X/2*1.7321) 				// nicht hinter einem
-	    && (erg.data[0][0] < AREASIZE_X*visualRange)	// sichtweite
+	    && (erg.data[0][0] < AREASIZE_X*(visualRange+0.866))	// sichtweite
 		 && (abs(erg.data[0][1])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < (double(c->ui->screenX) / c->ui->screenY)/2 )	// seitlich ausm sichtbereich
 		 && (abs(erg.data[0][2])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < 0.5 )	// seitlich ausm sichtbereich
 		 ;

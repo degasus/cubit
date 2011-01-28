@@ -106,6 +106,8 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	workingDirectory = c["workingDirectory"].as<fs::path>();
 	dataDirectory = c["dataDirectory"].as<fs::path>();
 	localDirectory = c["localDirectory"].as<fs::path>();
+	
+	visualRange = c["visualRange"].as<int>();
 
 	k_forward		= c["k_forward"].as<int>();
 	k_backwards		= c["k_backwards"].as<int>();
@@ -158,7 +160,7 @@ void UInterface::initWindow()
 	glLoadIdentity();					// Reset The Projection Matrix
 
 	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, 1000.0f);
+	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, visualRange * AREASIZE_X);
 
 	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 	glLoadIdentity();					// Reset The Projection Matrix
@@ -274,8 +276,10 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 		ae.name = ActionEvent::SELECT_MATERIAL;
 		BlockPosition bp;
 		DIRECTION dir;
-		c->movement->getPointingOn(&bp, &dir);;
-		ae.iValue = c->map->getBlock(bp+dir);
+		if(c->movement->getPointingOn(&bp, &dir))
+			ae.iValue = c->map->getBlock(bp+dir);
+		else
+			ae.name = ActionEvent::NONE;
 	}
 	if(code == k_quit){
 		done = 1;

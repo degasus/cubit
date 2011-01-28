@@ -53,6 +53,8 @@ private:
 	boost::filesystem::path workingDirectory;
 	boost::filesystem::path dataDirectory;
 	boost::filesystem::path localDirectory;
+	
+	int visualRange;
 
 	//default frame size on no fullscreen
 	int noFullX;
