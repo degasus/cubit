@@ -224,6 +224,7 @@ public:
 	//Sounds
 	Mix_Chunk *step;
 	Mix_Chunk *putBlock;
+	bool enableFX;
 
 	//BulletPhysics
 	btDefaultCollisionConfiguration* collisionConfiguration;
