@@ -10,6 +10,7 @@ class UInterface;
 
 #include "renderer.h"
 #include "map.h"
+#include <SDL_ttf.h>
 
 /**
  *
@@ -47,6 +48,7 @@ private:
 	void handleMouseUPEvents(SDL_MouseButtonEvent e);
 	void handleMouseEvents(SDL_MouseMotionEvent e);
 	void drawHUD();
+	void renderText(TTF_Font *Font, double X, double Y, double Z,  std::string Text);
 
 	boost::filesystem::path workingDirectory;
 	boost::filesystem::path dataDirectory;
@@ -69,6 +71,10 @@ private:
 	//SDL vars
 	SDL_Surface *screen;
 	bool done;
+	SDL_Surface *textFace;
+
+	TTF_Font *font;
+	SDL_Color textColor;
 	
 	Controller *c;
 

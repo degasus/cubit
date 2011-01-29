@@ -3,6 +3,7 @@
 #include <iostream>
 #include <SDL_mixer.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 
 #include "controller.h"
 #include "movement.h"
@@ -19,7 +20,10 @@ UInterface::UInterface(Controller *controller)
 		cubeTurn[i] = 120.0/NUMBER_OF_MATERIALS;
 	fadingProgress = 0;
 	lastMaterial = 1;
-	musicPlaying = true;
+	musicPlaying = false;
+
+	SDL_Color textColorInit = { 255, 255, 255 };
+	textColor = textColorInit;
 }
 
 void UInterface::init()
@@ -36,6 +40,21 @@ void UInterface::init()
 		printf("IMG_Init: Failed to init required jpg and png support!\n");
 		printf("IMG_Init: %s\n", IMG_GetError());
 		// handle error
+	}
+
+	//Initialize SDL_ttf
+	if( TTF_Init() == -1 )
+	{
+		printf("Unable to initialize SDL_TTF");
+	}
+
+	//Open the font
+	font = TTF_OpenFont( "freefont-ttf/sfd/FreeSans.ttf", 10 );
+
+	//If there was an error in loading the font
+	if( font == NULL )
+	{
+		printf("Unable to open font");
 	}
 
 	/* We're going to be requesting certain things from our audio
@@ -61,14 +80,12 @@ void UInterface::init()
 //#ifndef _WIN32
 	fs::path filename = fs::path("sound") / "music" / "forest.ogg";
 
-	//load and start music
-	if((ingameMusic = Mix_LoadMUS((dataDirectory / filename).file_string().c_str()))||
+	//load music
+	if(!((ingameMusic = Mix_LoadMUS((dataDirectory / filename).file_string().c_str()))||
 		(ingameMusic = Mix_LoadMUS((workingDirectory / filename).file_string().c_str())) ||
 		(ingameMusic = Mix_LoadMUS((localDirectory / filename).file_string().c_str())) ||
-		(ingameMusic = Mix_LoadMUS((filename).file_string().c_str()))
+		(ingameMusic = Mix_LoadMUS((filename).file_string().c_str())))
 	) {
-		Mix_PlayMusic(ingameMusic, -1);
-	} else {
 		std::cout << "Could not find the music file " << filename << " Error: " << Mix_GetError() <<  std::endl;
 	}
 //#endif
@@ -125,7 +142,7 @@ void UInterface::initWindow()
 		screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE);
 	}
 
-	SDL_WM_SetCaption("Cubit Alpha","Cubit Alpha");
+	SDL_WM_SetCaption("Cubit Alpha 0.0.3","Cubit Alpha 0.0.3");
 
 	if ( !screen ) {
 		printf("Unable to set video mode: %s\n", SDL_GetError());
@@ -320,6 +337,36 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 		c->movement->performAction(ae);
 }
 
+void UInterface::renderText(TTF_Font *Font, double X, double Y, double Z,  std::string Text)
+{
+	/*Create some variables.*/
+	SDL_Surface *Message = TTF_RenderText_Solid(const_cast<TTF_Font*>(Font), Text.c_str(), textColor);
+	unsigned Texture = 0;
+	
+	/*Generate an OpenGL 2D texture from the SDL_Surface*.*/
+	glGenTextures(1, &Texture);
+	glBindTexture(GL_TEXTURE_2D, Texture);
+	
+	/*glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	*/
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Message->w, Message->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, Message->pixels);
+	std::cout << Message->w << "|" << Message->h << std::endl;
+	
+	/*Draw this texture on a quad with the given xyz coordinates.*/
+	glBegin(GL_QUADS);
+	glTexCoord2d(0, 0); glVertex3d(X, Y, Z);
+	glTexCoord2d(1, 0); glVertex3d(X+Message->w, Y, Z);
+	glTexCoord2d(1, 1); glVertex3d(X+Message->w, Y, Z+Message->h);
+	glTexCoord2d(0, 1); glVertex3d(X, Y, Z+Message->h);
+	glEnd();
+	
+	/*Clean up.*/
+	glDeleteTextures(1, &Texture);
+	SDL_FreeSurface(Message);
+}
+
 void UInterface::handleUserEvents(SDL_UserEvent e)
 {
 	c->movement->triggerNextFrame();
@@ -340,7 +387,6 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 		//glEnable(GL_DEPTH_TEST);
 
 		drawHUD();
-
 
 		SDL_GL_SwapBuffers();
 	}
@@ -423,6 +469,8 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 		SDL_WarpMouse(screenX/2, screenY/2);
 	}
 }
+
+double a = -10.0;
 
 void UInterface::drawHUD() {
 	glLoadIdentity();
@@ -563,9 +611,19 @@ void UInterface::drawHUD() {
 		glEnd();
 	}
 
-	glDisable(GL_BLEND);
+	glDisable(GL_BLEND);	
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT1);
 	glEnable(GL_LIGHT2);
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
+
+	glLoadIdentity();
+	glDisable(GL_FOG);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glScalef(-1,1,1);
+	glRotatef(90.0,0.0f,0.0f,1.0f);
+	glRotatef(90.0,0.0f,1.0f,0.0f);
+	a = 20;
+	//renderText(font, a, a, a, (std::string)"test");
+	//std::cout << a << std::endl;
 }

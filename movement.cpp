@@ -62,6 +62,7 @@ void Movement::config(const boost::program_options::variables_map& c){
 	dataDirectory 		= c["dataDirectory"].as<fs::path>();
 	localDirectory 		= c["localDirectory"].as<fs::path>();
 	maxMovingObjects	= c["maxMovingObjects"].as<int>();
+	enableFX 			= c["enableFX"].as<bool>();
 
 	accelVertical	= normalAccelVertical;
 	movementSpeed 	= normalMovementSpeed;
@@ -616,7 +617,8 @@ void Movement::buildBlock()
 	if(!noBuild){
 		try{
 			c->map->setBlock(pointingOnBlock, selectedMaterial);
-			Mix_PlayChannel(-1, putBlock, 0);
+			if(enableFX)
+				Mix_PlayChannel(-1, putBlock, 0);
 		}
 		catch(NotLoadedException e){
 			if(movDebug)
