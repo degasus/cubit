@@ -411,14 +411,14 @@ void Renderer::renderArea(Area* area, bool show)
 								POINTS_OF_DIRECTION[it->d][0][2]+diffz
 							),
 							btVector3(
-								POINTS_OF_DIRECTION[it->d][point-1][0]+diffx,
-								POINTS_OF_DIRECTION[it->d][point-1][1]+diffy,
-								POINTS_OF_DIRECTION[it->d][point-1][2]+diffz
-							),
-							btVector3(
 								POINTS_OF_DIRECTION[it->d][point][0]+diffx,
 								POINTS_OF_DIRECTION[it->d][point][1]+diffy,
 								POINTS_OF_DIRECTION[it->d][point][2]+diffz
+							),
+							btVector3(
+								POINTS_OF_DIRECTION[it->d][point-1][0]+diffx,
+								POINTS_OF_DIRECTION[it->d][point-1][1]+diffy,
+								POINTS_OF_DIRECTION[it->d][point-1][2]+diffz
 							)							
 						);
 					}
@@ -429,6 +429,7 @@ void Renderer::renderArea(Area* area, bool show)
 			glEndList();
 			
 			area->shape = new btBvhTriangleMeshShape(area->mesh,1);
+			//area->shape = new btConvexTriangleMeshShape(area->mesh);
 			
 			///create a few basic rigid bodies			
 			btTransform groundTransform;
@@ -450,8 +451,9 @@ void Renderer::renderArea(Area* area, bool show)
 		}
 	}
 	if(area->gllist_generated) {
-		if(show)
+		if(show) {
 			glCallList(area->gllist);
+		}
 	} else {
 		// do nothing
 	}

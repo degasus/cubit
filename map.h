@@ -194,6 +194,7 @@ public:
 	
 	btTriangleMesh *mesh;
 	btBvhTriangleMeshShape *shape;
+	//btConvexTriangleMeshShape *shape;
 	btDefaultMotionState *motion;
 	btRigidBody *rigid;
 	
