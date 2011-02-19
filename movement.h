@@ -141,7 +141,9 @@ public:
 	bool getPointingOn(BlockPosition* block, DIRECTION* plane);
 
 //private:
+	//Meta
 	bool movDebug;
+	bool sandboxMode;
 
 	void initPhysics();
 

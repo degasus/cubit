@@ -4,9 +4,11 @@
 #include <SDL_mixer.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <FTGL/ftgl.h>
 
 #include "controller.h"
 #include "movement.h"
+#include "ui.h"
 
 
 namespace fs = boost::filesystem;
@@ -21,9 +23,6 @@ UInterface::UInterface(Controller *controller)
 	fadingProgress = 0;
 	lastMaterial = 1;
 	musicPlaying = false;
-
-	SDL_Color textColorInit = { 255, 255, 255 };
-	textColor = textColorInit;
 }
 
 void UInterface::init()
@@ -42,21 +41,6 @@ void UInterface::init()
 		// handle error
 	}
 
-	//Initialize SDL_ttf
-	if( TTF_Init() == -1 )
-	{
-		printf("Unable to initialize SDL_TTF");
-	}
-
-	//Open the font
-	font = TTF_OpenFont( "freefont-ttf/sfd/FreeSans.ttf", 10 );
-
-	//If there was an error in loading the font
-	if( font == NULL )
-	{
-		printf("Unable to open font");
-	}
-
 	/* We're going to be requesting certain things from our audio
 	device, so we set them up beforehand */
 	int audio_rate = 44100;
@@ -69,6 +53,13 @@ void UInterface::init()
 	if(Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) {
 		printf("Unable to open audio!\n");
 	}
+
+	// Create a pixmap font from a TrueType file.
+	font = new FTPixmapFont("freefont-ttf/sfd/FreeSans.ttf");
+
+	// If something went wrong, bail out.
+	if(font->Error())
+		printf("Unable to open Font!\n");
 
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 	if(enableAntiAliasing){
@@ -337,34 +328,11 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 		c->movement->performAction(ae);
 }
 
-void UInterface::renderText(TTF_Font *Font, double X, double Y, double Z,  std::string Text)
+void UInterface::renderText(double x, double y, char* Text, int size = 20)
 {
-	/*Create some variables.*/
-	SDL_Surface *Message = TTF_RenderText_Solid(const_cast<TTF_Font*>(Font), Text.c_str(), textColor);
-	unsigned Texture = 0;
-	
-	/*Generate an OpenGL 2D texture from the SDL_Surface*.*/
-	glGenTextures(1, &Texture);
-	glBindTexture(GL_TEXTURE_2D, Texture);
-	
-	/*glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	*/
-	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Message->w, Message->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, Message->pixels);
-	std::cout << Message->w << "|" << Message->h << std::endl;
-	
-	/*Draw this texture on a quad with the given xyz coordinates.*/
-	glBegin(GL_QUADS);
-	glTexCoord2d(0, 0); glVertex3d(X, Y, Z);
-	glTexCoord2d(1, 0); glVertex3d(X+Message->w, Y, Z);
-	glTexCoord2d(1, 1); glVertex3d(X+Message->w, Y, Z+Message->h);
-	glTexCoord2d(0, 1); glVertex3d(X, Y, Z+Message->h);
-	glEnd();
-	
-	/*Clean up.*/
-	glDeleteTextures(1, &Texture);
-	SDL_FreeSurface(Message);
+	// Set the font size
+	font->FaceSize(size);
+	font->Render(Text, -1, FTPoint(FTGL_DOUBLE(y), FTGL_DOUBLE(y)));
 }
 
 void UInterface::handleUserEvents(SDL_UserEvent e)
@@ -508,27 +476,14 @@ void UInterface::drawHUD() {
 		glVertex3f(0.0f, -lineLength/2,  lineWidth/2);				// Bottom Right
 		glVertex3f(0.0f, -lineLength/2, -lineWidth/2);				// Bottom Left
 	glEnd();
-
+	
 	glDisable(GL_BLEND);
 
-	//glTranslatef(6.0f,-7.2f,-3.7f);
 	cubeTurn[c->movement->getSelectedMaterial()] += 2;
 	if(cubeTurn[c->movement->getSelectedMaterial()] > 360)
 		cubeTurn[c->movement->getSelectedMaterial()] -= 360;
-	/*glRotatef(cubeTurn, 0.0, 0.0, 1.0);
-	glRotatef(35.2644, 0.0, 1.0, 0.0);
-	glRotatef(45, 1.0, 0.0, 0.0);
-	glTranslatef(-0.5, -0.5, -0.5);*/
 
 	int selectedMaterial = c->movement->getSelectedMaterial();
-
-	/*if(lastMaterial + 1 != selectedMaterial
-		&& lastMaterial - 1 != selectedMaterial
-		&& (
-			(selectedMaterial == 1 && lastMaterial != NUMBER_OF_MATERIALS-1)
-			|| (selectedMaterial == NUMBER_OF_MATERIALS-1 &&  lastMaterial != 1)
-		))
-		lastMaterial = selectedMaterial;*/
 
 	if(fadingProgress>0)
 		fadingProgress -= 10;
@@ -572,6 +527,7 @@ void UInterface::drawHUD() {
 			mat = NUMBER_OF_MATERIALS + mat - 1;
 		while(mat > (NUMBER_OF_MATERIALS - 1))
 			mat = mat - NUMBER_OF_MATERIALS + 1;
+
 		glLoadIdentity();
 		glScalef(-1,1,1);
 		glRotatef(90.0,0.0f,0.0f,1.0f);
@@ -610,6 +566,9 @@ void UInterface::drawHUD() {
 			}
 		glEnd();
 	}
+
+	glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
+	renderText(50, 50, "Hallo Test");
 
 	glDisable(GL_BLEND);	
 	glEnable(GL_LIGHTING);

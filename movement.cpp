@@ -63,6 +63,7 @@ void Movement::config(const boost::program_options::variables_map& c){
 	localDirectory 		= c["localDirectory"].as<fs::path>();
 	maxMovingObjects	= c["maxMovingObjects"].as<int>();
 	enableFX 			= c["enableFX"].as<bool>();
+	sandboxMode			= c["sandboxMode"].as<bool>();
 
 	accelVertical	= normalAccelVertical;
 	movementSpeed 	= normalMovementSpeed;
@@ -186,17 +187,9 @@ void Movement::calcCharacter()
 		walkDirection -= leftDir*speedRight;
 	}
 	
-	/*if (rightPressed)
-	{
-		walkDirection -= leftDir;
-	}*/
-	
 	if (forwardPressed || backwardsPressed){
 		walkDirection += forwardDir*speedForward;
 	}
-	
-	/*if (backwardsPressed)
-		walkDirection -= forwardDir;*/
 
 	if (jumpPressed)
 		kinCon->jump();
@@ -283,6 +276,7 @@ void Movement::performAction(ActionEvent event)
 			break;
 			
 		case ActionEvent::PRESS_JUMP:
+			kinCon->jump();
 			jumpPressed = true;
 			break;
 		case ActionEvent::RELEASE_JUMP:
@@ -290,12 +284,20 @@ void Movement::performAction(ActionEvent event)
 			break;
 
 		case ActionEvent::PRESS_FAST_SPEED:
-			fastPressed = true;
-			movementSpeed *= fastSpeedMultiplier;
+			if(sandboxMode){
+				fastPressed = true;
+				movementSpeed *= fastSpeedMultiplier;
+				dynamicsWorld->removeAction(kinCon);
+				kinCon->setMaxJumpHeight(20.1);
+				dynamicsWorld->addAction(kinCon);
+			}
 			break;
 		case ActionEvent::RELEASE_FAST_SPEED:
-			fastPressed = false;
-			movementSpeed /= fastSpeedMultiplier;
+			if(sandboxMode){
+				fastPressed = false;
+				movementSpeed /= fastSpeedMultiplier;
+				kinCon->setMaxJumpHeight(1.1);
+			}
 			break;
 			
 		case ActionEvent::PRESS_DUCK:
@@ -332,8 +334,10 @@ void Movement::performAction(ActionEvent event)
 			break;
 
 		case ActionEvent::PRESS_THROW_BLOCK:
-			lastThrow = 8;
-			throwPressed = true;
+			if(sandboxMode){
+				lastThrow = 8;
+				throwPressed = true;
+			}
 			break;
 		case ActionEvent::RELEASE_THROW_BLOCK:
 			throwPressed = false;
@@ -359,13 +363,15 @@ void Movement::performAction(ActionEvent event)
 				position.orientationVertical = -90;
 			break;
 		case ActionEvent::PRESS_FLY:
-			if(enableFly){
-				enableFly = false;
-				accelVertical = normalAccelVertical;
-			}
-			else{
-				enableFly = true;
-				accelVertical = 0.0;
+			if(sandboxMode){
+				if(enableFly){
+					enableFly = false;
+					accelVertical = normalAccelVertical;
+				}
+				else{
+					enableFly = true;
+					accelVertical = 0.0;
+				}
 			}
 			break;
 		case ActionEvent::SELECT_MATERIAL:
@@ -446,7 +452,6 @@ void Movement::calcPointingOn(){
 		}
 
 		if(c->map->getBlock(pointingOnBlock) == 0)
-
 			isPointingOn = false;
 		else
 			isPointingOn = true;
@@ -630,28 +635,30 @@ void Movement::buildBlock()
 void Movement::removeBlock()
 {
 	BlockPosition block = pointingOnBlock+pointingOnPlane;
-	
-	btConvexShape* s = new btBoxShape (btVector3(0.1,0.1,0.1));
-	btVector3 localInertia(0,0,0);
-	s->calculateLocalInertia(0.01,localInertia);
-	btTransform t = btTransform::getIdentity();
-	t.setOrigin(btVector3(block.x+0.375,block.y+0.375,block.z+0.375));
-	t.setRotation(btQuaternion(btVector3(0,0,1),position.orientationHorizontal*(M_PI/180)));
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.01,new btDefaultMotionState(t),s,localInertia);
-	MovingObject* o = new MovingObject(rbInfo);
-	o->applyCentralImpulse(btVector3(sin((rand()%360-180)*(M_PI/180))*0.005,
-									 sin((rand()%360-180)*(M_PI/180))*0.005,
-									 sin(rand()%90*(M_PI/180))*0.005
-	));
-	o->tex = c->map->getBlock(block);
-	c->map->objects.push_back(o);
-	dynamicsWorld->addRigidBody(o);
-	
-	if(c->map->objects.size() > maxMovingObjects) {
-		o = c->map->objects.front();
-		dynamicsWorld->removeRigidBody(o);
-		delete o;
-		c->map->objects.pop_front();
+
+	if(!sandboxMode){
+		btConvexShape* s = new btBoxShape (btVector3(0.1,0.1,0.1));
+		btVector3 localInertia(0,0,0);
+		s->calculateLocalInertia(0.01,localInertia);
+		btTransform t = btTransform::getIdentity();
+		t.setOrigin(btVector3(block.x+0.375,block.y+0.375,block.z+0.375));
+		t.setRotation(btQuaternion(btVector3(0,0,1),position.orientationHorizontal*(M_PI/180)));
+		btRigidBody::btRigidBodyConstructionInfo rbInfo(0.01,new btDefaultMotionState(t),s,localInertia);
+		MovingObject* o = new MovingObject(rbInfo);
+		o->applyCentralImpulse(btVector3(sin((rand()%360-180)*(M_PI/180))*0.005,
+										sin((rand()%360-180)*(M_PI/180))*0.005,
+										sin(rand()%90*(M_PI/180))*0.005
+		));
+		o->tex = c->map->getBlock(block);
+		c->map->objects.push_back(o);
+		dynamicsWorld->addRigidBody(o);
+
+		if(c->map->objects.size() > maxMovingObjects) {
+			o = c->map->objects.front();
+			dynamicsWorld->removeRigidBody(o);
+			delete o;
+			c->map->objects.pop_front();
+		}
 	}
 
 	try{
