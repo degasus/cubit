@@ -4,7 +4,7 @@ project (cubit)
 find_package( SDL )
 find_package( SDL_mixer )
 find_package( SDL_image )
-find_package( SDL_ttf )
+find_package( FTGL )
 find_package( OpenGL )
 find_package( Boost COMPONENTS program_options filesystem system )
 #find_package( PkgConfig )
@@ -99,8 +99,8 @@ endif(MINGW)
 
 add_executable(cubit main.cpp controller.cpp map.cpp movement.cpp net.cpp ui.cpp renderer.cpp GLDebugDrawer.cpp logo/cubit.rc)
 
-include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${SDLTTF_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${LZO_INCLUDE_DIR} ${BULLET_INCLUDE_DIR})
-target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${SDLTTF_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE_LIBRARIES} ${LZO_LIBRARIES} ${BULLET_LIBRARIES})
+include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${LZO_INCLUDE_DIR} ${BULLET_INCLUDE_DIR})
+target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${FTGL_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE_LIBRARIES} ${LZO_LIBRARIES} ${BULLET_LIBRARIES})
 
 
 

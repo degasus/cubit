@@ -139,6 +139,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 
 		//Movement
 		("enableFX", po::value<bool>()->default_value(1), "enable sound FX")
+		("sandboxMode", po::value<bool>()->default_value(0), "run in sandbox mode")
 		
 		//Collision
 		("maxMovingObjects", po::value<int>()->default_value(250), "maximum of moving objects in the world")
