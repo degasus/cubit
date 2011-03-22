@@ -3,7 +3,6 @@
 #include <iostream>
 #include <SDL_mixer.h>
 #include <SDL_image.h>
-#include <SDL_ttf.h>
 #include <FTGL/ftgl.h>
 
 #include "controller.h"
@@ -158,7 +157,7 @@ void UInterface::initWindow()
 
 }
 
-Uint32 GameLoopTimer(Uint32 interval, void* param)
+Uint32 GameLoopTimer(Uint32 interval#include <SDL_ttf.h>, void* param)
 {
     // Create a user event to call the game loop.
     SDL_Event event;
@@ -239,7 +238,7 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	if(code == k_duck){
 		ae.name = ActionEvent::PRESS_DUCK;
 	}
-	if(code == k_throw){
+	if(code == k_throw){#include <SDL_ttf.h>
 		ae.name = ActionEvent::PRESS_THROW_BLOCK;
 	}
 	if(code == k_fly){
@@ -296,7 +295,7 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	}
 	if(code == k_left){
 		ae.name = ActionEvent::RELEASE_LEFT;
-	}
+	}#include <SDL_ttf.h>
 	if(code == k_right){
 		ae.name = ActionEvent::RELEASE_RIGHT;
 	}
@@ -329,7 +328,7 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 }
 
 void UInterface::renderText(double x, double y, char* Text, int size = 20)
-{
+{#include <SDL_ttf.h>
 	// Set the font size
 	font->FaceSize(size);
 	font->Render(Text, -1, FTPoint(FTGL_DOUBLE(y), FTGL_DOUBLE(y)));

@@ -10,7 +10,6 @@ class UInterface;
 
 #include "renderer.h"
 #include "map.h"
-#include <SDL_ttf.h>
 #include <FTGL/ftgl.h>
 
 /**

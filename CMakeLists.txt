@@ -10,6 +10,8 @@ find_package( Boost COMPONENTS program_options filesystem system )
 #find_package( PkgConfig )
 #pkg_check_modules(PKG REQUIRED sqlite3 bullet)
 
+find_package( Freetype )
+
 FIND_PATH(LZO_INCLUDE_DIR lzo/lzo1x.h
 	HINTS
 	$ENV{LZODIR}
@@ -99,8 +101,8 @@ endif(MINGW)
 
 add_executable(cubit main.cpp controller.cpp map.cpp movement.cpp net.cpp ui.cpp renderer.cpp GLDebugDrawer.cpp logo/cubit.rc)
 
-include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${LZO_INCLUDE_DIR} ${BULLET_INCLUDE_DIR})
-target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${FTGL_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE_LIBRARIES} ${LZO_LIBRARIES} ${BULLET_LIBRARIES})
+include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${LZO_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIR_freetype2} ${BULLET_INCLUDE_DIR})
+target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${FTGL_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE_LIBRARIES} ${LZO_LIBRARIES} ${FREETYPE_LIBRARIES} ${BULLET_LIBRARIES})
 
 
 
