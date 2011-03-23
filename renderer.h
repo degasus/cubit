@@ -24,6 +24,7 @@ public:
 	 *
 	 */
 	Renderer(Controller *controller);
+	~Renderer();
 	
 	void init();
 
@@ -43,7 +44,6 @@ private:
 	void generateViewPort(PlayerPosition pos);
 
 	Matrix<double,3,3> viewPort;
-	
 	
 	int areasPerFrame;
 	int areasRendered;
@@ -65,6 +65,8 @@ private:
 
 	bool highlightWholePlane;
 	int textureFilterMethod;
+  
+	GLuint polygon_gllist;
 	 
 };
 
