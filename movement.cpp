@@ -40,14 +40,11 @@ Movement::Movement(Controller* controller)
 	stepProgress = 0;
 	selectedMaterial = 1;
 	movDebug = 0;
-	
-	for(int i = 1; i < NUMBER_OF_MATERIALS; i++){
-		inventory[i] = 0;
-	}
 }
 
 Movement::~Movement(){
 	savePosition();
+	saveInventory();
 }
 
 void Movement::config(const boost::program_options::variables_map& c){
@@ -81,6 +78,11 @@ void Movement::config(const boost::program_options::variables_map& c){
 		position.orientationHorizontal = 0.0;
 		position.orientationVertical = 0.0;
 	}
+	
+	if(!loadInventory())
+		for(int i = 1; i < NUMBER_OF_MATERIALS; i++){
+			inventory[i] = 0;
+		}
 }
 
 void Movement::init()
@@ -223,6 +225,34 @@ bool Movement::loadPosition()
 	}
 	i.close();
 
+	return success;
+}
+
+
+void Movement::saveInventory() {
+	std::ofstream of;
+	of.open((workingDirectory / "inventory.dat").file_string().c_str());
+	
+	for(int i = 1; i < NUMBER_OF_MATERIALS; i++){
+		of << inventory[i] << std::endl;
+	}
+	
+	of.close();
+}
+
+bool Movement::loadInventory()
+{
+	std::ifstream i;
+	bool success = false;
+	i.open((workingDirectory / "inventory.dat").file_string().c_str());
+	if (i.is_open()) {
+		for(int i = 1; i < NUMBER_OF_MATERIALS; i++){
+			i >> inventory[i];
+		}
+		success = true;
+	}
+	i.close();
+	
 	return success;
 }
 
@@ -624,17 +654,18 @@ void Movement::buildBlock()
 		if(pos[i].block() == pointingOnBlock)
 			noBuild = true;
 	}
+	if(!sandboxMode)
+		if(inventory[selectedMaterial] == 0)
+			noBuild = true;
 	if(!noBuild){
 		try{
-			
 			if(!sandboxMode){
-				if(inventory[selectedMaterial] <= 1){
+				inventory[selectedMaterial]--;
+				c->map->setBlock(pointingOnBlock, selectedMaterial);
+				
+				if(inventory[selectedMaterial] <= 0){
 					inventory[selectedMaterial] = 0;
 					selectedMaterial = getNextAvailableMaterial(selectedMaterial);
-				}
-				else {
-					inventory[selectedMaterial]--;
-					c->map->setBlock(pointingOnBlock, selectedMaterial);
 				}
 			}
 			else
