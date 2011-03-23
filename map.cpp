@@ -90,13 +90,29 @@ void Map::randomArea(Area* a) {
 		height += sin( ((2*M_PI)/180) * ((int)((y)) % 180 )) * 8;
 		height += -sin( ((2*M_PI)/180) * ((int)((x)/2.5) % 180 )) * 25;
 		height += -cos( ((2*M_PI)/180) * ((int)((y)/5) % 180 )) * 50;
-		if(z <  height) {
-			Material mat = 1 + ((z/3) % 3 + 3) % 3;
-			assert(mat >= 0 && mat < NUMBER_OF_MATERIALS);
-			a->m[a->getPos(BlockPosition::create(x,y,z))] = mat;
+		if(z <  height - 10){
+			a->m[a->getPos(BlockPosition::create(x,y,z))] = 1 + ((z) % NUMBER_OF_MATERIALS + NUMBER_OF_MATERIALS) % NUMBER_OF_MATERIALS;
 		}
-		else
-			a->m[a->getPos(BlockPosition::create(x,y,z))] = 0;
+		else if(z <  height - 4){
+			a->m[a->getPos(BlockPosition::create(x,y,z))] = 8; //stone
+		}
+		else if(z <  height - 1 - std::rand() % 1){
+			if (z >= -65)
+				a->m[a->getPos(BlockPosition::create(x,y,z))] = 12; // mud
+			else
+				a->m[a->getPos(BlockPosition::create(x,y,z))] = 10; //sand
+		}
+		else if(z <  height){
+			if(z >= 60 - std::rand() % 2)
+				a->m[a->getPos(BlockPosition::create(x,y,z))] = 82; //snow
+			else if (z >= -65 - std::rand() % 2)
+				a->m[a->getPos(BlockPosition::create(x,y,z))] = 1; //grass
+			else
+				a->m[a->getPos(BlockPosition::create(x,y,z))] = 10; //sand
+		}
+		else{
+			a->m[a->getPos(BlockPosition::create(x,y,z))] = 0; //air
+		}
 	}
 }
 

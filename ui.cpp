@@ -581,6 +581,10 @@ void UInterface::drawHUD() {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT1);
 	glEnable(GL_LIGHT2);
+	glLoadIdentity();
+	glColor4f(0.0f, 0.0f, 0.0f, 0.9f);
+	renderText(20, screenY-40, c->movement->getPosition().to_string().c_str());
+	
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 
 	glDisable(GL_FOG);
