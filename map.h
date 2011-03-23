@@ -18,7 +18,7 @@ class Area;
 class BlockPosition;
 
 // including Air == 0
-const int NUMBER_OF_MATERIALS = 108;
+const int NUMBER_OF_MATERIALS = 109;
 
 // must be a pow of two 
 const int AREASIZE_X = 32;
