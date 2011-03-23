@@ -39,6 +39,9 @@ public:
 	int screenY;
 
 private:
+	//Meta
+	bool sandboxMode;
+	
 	void initWindow();
 	
 	void handleUserEvents(SDL_UserEvent e);
@@ -103,8 +106,8 @@ private:
 	bool musicPlaying;
 
 	//Text
-	FTPixmapFont *font;
-	void renderText(double x, double y, char* text, int size);
+	FTTextureFont *font;
+	void renderText(double x, double y, const char* text, int size);
 };
 
 

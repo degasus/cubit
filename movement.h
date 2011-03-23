@@ -2,6 +2,7 @@
 #include <boost/filesystem.hpp>
 #include <SDL_mixer.h>
 #include <cmath>
+#include <map>
 #include <LinearMath/btAlignedObjectArray.h>
 #include <btBulletDynamicsCommon.h>
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
@@ -227,6 +228,12 @@ public:
 	Mix_Chunk *step;
 	Mix_Chunk *putBlock;
 	bool enableFX;
+	
+	//Inventory
+	int getNextAvailableMaterial(int startMat);
+	int getLastAvailableMaterial(int startMat);
+	int getCountInInventory(int mat);
+	std::map<int,int> inventory;
 
 	//BulletPhysics
 	btDefaultCollisionConfiguration* collisionConfiguration;
