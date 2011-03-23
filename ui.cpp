@@ -250,23 +250,13 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	}
 	if(code == k_nextMat){
 		ae.name = ActionEvent::SELECT_MATERIAL;
-		nextMat = c->movement->getSelectedMaterial();
-		if(nextMat >= NUMBER_OF_MATERIALS-1)
-			nextMat = 1;
-		else
-			nextMat++;
-		ae.iValue = nextMat;
+		ae.iValue = c->movement->getNextAvailableMaterial(c->movement->getSelectedMaterial());
 	}
 	if(code == k_lastMat){
 		ae.name = ActionEvent::SELECT_MATERIAL;
-		nextMat = c->movement->getSelectedMaterial();
-		if(nextMat <= 1)
-			nextMat = NUMBER_OF_MATERIALS-1;
-		else
-			nextMat--;
-		ae.iValue = nextMat;
+		ae.iValue = c->movement->getLastAvailableMaterial(c->movement->getSelectedMaterial());
 	}
-	if(code == k_selMat){
+	if(code == k_selMat && sandboxMode){
 		ae.name = ActionEvent::SELECT_MATERIAL;
 		BlockPosition bp;
 		DIRECTION dir;
