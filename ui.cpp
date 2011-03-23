@@ -429,9 +429,9 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 	}
 }
 
-double a = -10.0;
-
 void UInterface::drawHUD() {
+	int cubeSize = 50;
+	
 	glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
 	glLoadIdentity();					// Reset The Projection Matrix,
 	glTranslatef(-1,-1,-1);
@@ -440,13 +440,12 @@ void UInterface::drawHUD() {
 	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 	glLoadIdentity();					// Reset The Projection Matrix
 	
+	GLfloat LightPosition[] = { screenX, cubeSize*5, cubeSize*(-10.0f), 1.0f };
+	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
+	
 	glDisable(GL_FOG);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glBindTexture( GL_TEXTURE_2D, c->renderer->texture[1] );
-
-	GLfloat LightPosition[] = { screenX/2, 10, -1000.0f, 1.0f };
-	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
-	glEnable(GL_LIGHT1);
 
 	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
@@ -499,8 +498,6 @@ void UInterface::drawHUD() {
 		lastMaterial = selectedMaterial;
 	}
 
-	int cubeSize = 50;
-
 	double fading = 0;
 	int numberOfHUDcubes = 7;
 	if(fadingProgress != 0){
@@ -533,24 +530,20 @@ void UInterface::drawHUD() {
 		float curCubeSize = cubeSize*(std::sqrt((-(pos+fading)*(pos+fading)+17)/17.0));
 		glLoadIdentity();
 		glTranslatef((screenX/2) + (pos+fading) * cubeSize * 2,curCubeSize + cubeSize*0.1,0.0);
-		glScalef(curCubeSize,curCubeSize,curCubeSize);
+		glScalef(curCubeSize,curCubeSize,0);
 		glPushMatrix();
+		GLfloat LightPosition[] = { screenX, cubeSize*5, cubeSize*(-10.0f), 1.0f };
+		glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
+		glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT1);
+		glDisable(GL_LIGHT2);
 		glRotatef(cubeTurn[mat], 0.0, 1.0, 0.0);
 		glRotatef(35.264389683, 1.0, 0.0, 0.0);
 		glRotatef(45, 0.0, 0.0, 1.0);
 		glTranslatef(-0.5, -0.5, -0.5);
 
 		glBindTexture( GL_TEXTURE_2D, c->renderer->texture[mat] );
-		if(selectedMaterial == mat){
-			//glDisable(GL_BLEND);
-			glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
-			glEnable(GL_LIGHTING);
-			glEnable(GL_LIGHT1);
-		}
-		else{
-			glColor4f(0.3f, 0.3f, 0.3f, 0.5f);
-			glDisable(GL_LIGHTING);
-		}
 		glBegin(GL_QUADS);
 			for(int dir=0; dir < DIRECTION_COUNT; dir++) {
 				glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer
@@ -589,7 +582,6 @@ void UInterface::drawHUD() {
 
 	glDisable(GL_FOG);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	a = 20;
 	
 	glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
 	glLoadIdentity();					// Reset The Projection Matrix

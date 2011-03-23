@@ -124,6 +124,9 @@ public:
 
 	bool loadPosition();
 	void savePosition();
+	
+	bool loadInventory();
+	void saveInventory();
 
 	//handle ActionEvents like pressing a key
 	void performAction(ActionEvent event);
