@@ -91,7 +91,7 @@ void Map::randomArea(Area* a) {
 		height += -sin( ((2*M_PI)/180) * ((int)((x)/2.5) % 180 )) * 25;
 		height += -cos( ((2*M_PI)/180) * ((int)((y)/5) % 180 )) * 50;
 		if(z <  height - 10){
-			a->m[a->getPos(BlockPosition::create(x,y,z))] = 1 + ((z) % NUMBER_OF_MATERIALS + NUMBER_OF_MATERIALS) % NUMBER_OF_MATERIALS;
+			a->m[a->getPos(BlockPosition::create(x,y,z))] = 1 + ((z) % (NUMBER_OF_MATERIALS-1) + (NUMBER_OF_MATERIALS-1)) % (NUMBER_OF_MATERIALS-1);
 		}
 		else if(z <  height - 4){
 			a->m[a->getPos(BlockPosition::create(x,y,z))] = 8; //stone
@@ -113,6 +113,10 @@ void Map::randomArea(Area* a) {
 		else{
 			a->m[a->getPos(BlockPosition::create(x,y,z))] = 0; //air
 		}
+		
+		assert(a->m[a->getPos(BlockPosition::create(x,y,z))] >= 0);
+		assert(a->m[a->getPos(BlockPosition::create(x,y,z))] < NUMBER_OF_MATERIALS);
+		
 	}
 }
 
