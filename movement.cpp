@@ -79,10 +79,11 @@ void Movement::config(const boost::program_options::variables_map& c){
 		position.orientationVertical = 0.0;
 	}
 	
-	if(!loadInventory())
+	if(!loadInventory()){
 		for(int i = 1; i < NUMBER_OF_MATERIALS; i++){
 			inventory[i] = 0;
 		}
+	}
 }
 
 void Movement::init()
@@ -246,10 +247,11 @@ bool Movement::loadInventory()
 	bool success = false;
 	i.open((workingDirectory / "inventory.dat").file_string().c_str());
 	if (i.is_open()) {
-		for(int i = 1; i < NUMBER_OF_MATERIALS; i++){
-			i >> inventory[i];
+		for(int j = 1; j < NUMBER_OF_MATERIALS; j++){
+			i >> inventory[j];
 		}
 		success = true;
+		selectedMaterial = getNextAvailableMaterial(selectedMaterial);
 	}
 	i.close();
 	
@@ -687,6 +689,8 @@ void Movement::removeBlock()
 	if(!sandboxMode){
 		//Update inventory
 		inventory[c->map->getBlock(block)]++;
+		if(inventory[selectedMaterial] == 0)
+			selectedMaterial = getNextAvailableMaterial(selectedMaterial);
 		
 		//Create small movable
 		/*btConvexShape* s = new btBoxShape (btVector3(0.1,0.1,0.1));
