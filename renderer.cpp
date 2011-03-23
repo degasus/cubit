@@ -22,6 +22,10 @@ Renderer::Renderer(Controller* controller)
 	areasRendered = 0;
 }
 
+Renderer::~Renderer() {
+	glDeleteLists(polygon_gllist, DIRECTION_COUNT);
+}
+
 void Renderer::config(const boost::program_options::variables_map& c)
 {
 	bgColor[0] 			= c["bgColorR"].as<float>();
@@ -159,6 +163,30 @@ void Renderer::init()
 		if ( surface ) {
 			SDL_FreeSurface( surface );
 		}
+		
+		// GL Lists for the polygons
+		polygon_gllist = glGenLists(DIRECTION_COUNT);
+		for(int i=0; i<DIRECTION_COUNT; i++) {
+			glNewList(polygon_gllist + i,GL_COMPILE);
+			
+			glBegin( GL_QUADS );
+			glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);
+			// Normal Pointing Towards Viewer
+			for(int point=0; point < POINTS_PER_POLYGON; point++) {
+				glTexCoord2f(
+					TEXTUR_POSITION_OF_DIRECTION[i][point][0],
+					TEXTUR_POSITION_OF_DIRECTION[i][point][1]
+				);
+				glVertex3f(
+					POINTS_OF_DIRECTION[i][point][0],
+					POINTS_OF_DIRECTION[i][point][1],
+					POINTS_OF_DIRECTION[i][point][2]
+				);
+			}
+			glEnd();
+			glEndList();
+		}
+		
 	}
 	/*
 	 
@@ -376,6 +404,11 @@ void Renderer::renderArea(Area* area, bool show)
 			}
 			glNewList(area->gllist,GL_COMPILE);
 			
+			int diff_oldx = 0;
+			int diff_oldy = 0;
+			int diff_oldz = 0;
+      
+      
 			for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
 				bool texture_used = 0;
 				for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
@@ -390,6 +423,15 @@ void Renderer::renderArea(Area* area, bool show)
 					int diffx = it->pos.x-area->pos.x;
 					int diffy = it->pos.y-area->pos.y;
 					int diffz = it->pos.z-area->pos.z;
+          
+          
+					//glTranslatef(diffx-diff_oldx, diffy-diff_oldy, diffz-diff_oldz);
+					//glCallList(polygon_gllist + it->d);
+          
+					diff_oldx = diffx;
+					diff_oldy = diffy;
+					diff_oldz = diffz;
+          
 					
 					glNormal3f( NORMAL_OF_DIRECTION[it->d][0], NORMAL_OF_DIRECTION[it->d][1], NORMAL_OF_DIRECTION[it->d][2]);                                     // Normal Pointing Towards Viewer
 					for(int point=0; point < POINTS_PER_POLYGON; point++) {
@@ -426,6 +468,7 @@ void Renderer::renderArea(Area* area, bool show)
 				if(texture_used)
 					glEnd();
 			}
+//			glTranslatef(-diff_oldx, -diff_oldy, -diff_oldz);
 			glEndList();
 			
 			area->shape = new btBvhTriangleMeshShape(area->mesh,1);
