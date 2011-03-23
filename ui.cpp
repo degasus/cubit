@@ -3,7 +3,6 @@
 #include <iostream>
 #include <SDL_mixer.h>
 #include <SDL_image.h>
-#include <SDL_ttf.h>
 #include <FTGL/ftgl.h>
 
 #include "controller.h"
@@ -55,11 +54,14 @@ void UInterface::init()
 	}
 
 	// Create a pixmap font from a TrueType file.
-	font = new FTPixmapFont("freefont-ttf/sfd/FreeSans.ttf");
+	font = new FTTextureFont("freefont-ttf/sfd/FreeSans.ttf");
 
 	// If something went wrong, bail out.
 	if(font->Error())
 		printf("Unable to open Font!\n");
+	
+	// Set the font size
+	font->FaceSize(20);
 
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 	if(enableAntiAliasing){
@@ -84,8 +86,9 @@ void UInterface::init()
 
 void UInterface::config(const boost::program_options::variables_map &c)
 {
+	sandboxMode	= c["sandboxMode"].as<bool>();
+	
 	noFullX 		= c["noFullX"].as<int>();
-
 	noFullY 		= c["noFullY"].as<int>();
 	isFullscreen 	= c["fullscreen"].as<bool>();
 	if(!isFullscreen) {
@@ -328,11 +331,9 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 		c->movement->performAction(ae);
 }
 
-void UInterface::renderText(double x, double y, char* Text, int size = 20)
+void UInterface::renderText(double x, double y, const char* Text, int size = 20)
 {
-	// Set the font size
-	font->FaceSize(size);
-	font->Render(Text, -1, FTPoint(FTGL_DOUBLE(y), FTGL_DOUBLE(y)));
+	font->Render(Text, -1, FTPoint(FTGL_DOUBLE(x), FTGL_DOUBLE(y)));
 }
 
 void UInterface::handleUserEvents(SDL_UserEvent e)
@@ -385,7 +386,7 @@ void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 	if(catchMouse) {
 		ActionEvent ae;
 		ae.name = ActionEvent::NONE;
-		Material nextMat = 0;
+		int nextMat = 0;
 
 		switch(e.button){
 			case SDL_BUTTON_RIGHT:
@@ -396,21 +397,11 @@ void UInterface::handleMouseUPEvents(SDL_MouseButtonEvent e)
 				break;
 			case SDL_BUTTON_WHEELUP:
 				ae.name = ActionEvent::SELECT_MATERIAL;
-				nextMat = c->movement->getSelectedMaterial();
-				if(nextMat >= NUMBER_OF_MATERIALS-1)
-					nextMat = 1;
-				else
-					nextMat++;
-				ae.iValue = nextMat;
+				ae.iValue = c->movement->getNextAvailableMaterial(c->movement->getSelectedMaterial());
 				break;
 			case SDL_BUTTON_WHEELDOWN:
 				ae.name = ActionEvent::SELECT_MATERIAL;
-				nextMat = c->movement->getSelectedMaterial();
-				if(nextMat <= 1)
-					nextMat = NUMBER_OF_MATERIALS-1;
-				else
-					nextMat--;
-				ae.iValue = nextMat;
+				ae.iValue = c->movement->getLastAvailableMaterial(c->movement->getSelectedMaterial());
 				break;
 		}
 
@@ -441,40 +432,41 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 double a = -10.0;
 
 void UInterface::drawHUD() {
-	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
+	glLoadIdentity();					// Reset The Projection Matrix,
+	glTranslatef(-1,-1,-1);
+	glScalef(2.0/screenX, 2.0/screenY, 0);
+	
+	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
+	glLoadIdentity();					// Reset The Projection Matrix
+	
 	glDisable(GL_FOG);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glScalef(-1,1,1);
-	glRotatef(90.0,0.0f,0.0f,1.0f);
-	glRotatef(90.0,0.0f,1.0f,0.0f);
 	glBindTexture( GL_TEXTURE_2D, c->renderer->texture[1] );
 
-	GLfloat LightPosition[] = { -200.0f, 200.0f, 300.0f, 1.0f };
+	GLfloat LightPosition[] = { screenX/2, 10, -1000.0f, 1.0f };
 	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
 	glEnable(GL_LIGHT1);
-
-	glDisable(GL_LIGHT2);
 
 	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 	glEnable(GL_BLEND);
 
-	glTranslatef(6.0f,0.0f,0.0f);
-	float lineWidth = 0.012f;
-	float lineLength = 0.25f;
+	int lineWidth = 3;
+	int lineLength = 50;
 
 	glBegin(GL_QUADS);						// Draw A Quad
-		glVertex3f(0.0f,  lineWidth/2, -lineLength/2);				// Top Left
-		glVertex3f(0.0f,  lineWidth/2,  lineLength/2);				// Top Right
-		glVertex3f(0.0f, -lineWidth/2,  lineLength/2);				// Bottom Right
-		glVertex3f(0.0f, -lineWidth/2, -lineLength/2);				// Bottom Left
+		glVertex3f( lineWidth/2+screenX/2, -lineLength/2+screenY/2, 0.0f);				// Top Left
+		glVertex3f( lineWidth/2+screenX/2,  lineLength/2+screenY/2, 0.0f);				// Top Right
+		glVertex3f(-lineWidth/2+screenX/2,  lineLength/2+screenY/2, 0.0f);				// Bottom Right
+		glVertex3f(-lineWidth/2+screenX/2, -lineLength/2+screenY/2, 0.0f);				// Bottom Left
 	glEnd();
 
 	glBegin(GL_QUADS);						// Draw A Quad
-		glVertex3f(0.0f,  lineLength/2, -lineWidth/2);				// Top Left
-		glVertex3f(0.0f,  lineLength/2,  lineWidth/2);				// Top Right
-		glVertex3f(0.0f, -lineLength/2,  lineWidth/2);				// Bottom Right
-		glVertex3f(0.0f, -lineLength/2, -lineWidth/2);				// Bottom Left
+		glVertex3f( lineLength/2+screenX/2, -lineWidth/2+screenY/2, 0.0f);				// Top Left
+		glVertex3f( lineLength/2+screenX/2,  lineWidth/2+screenY/2, 0.0f);				// Top Right
+		glVertex3f(-lineLength/2+screenX/2,  lineWidth/2+screenY/2, 0.0f);				// Bottom Right
+		glVertex3f(-lineLength/2+screenX/2, -lineWidth/2+screenY/2, 0.0f);				// Bottom Left
 	glEnd();
 	
 	glDisable(GL_BLEND);
@@ -507,43 +499,53 @@ void UInterface::drawHUD() {
 		lastMaterial = selectedMaterial;
 	}
 
+	int cubeSize = 50;
+
 	double fading = 0;
 	int numberOfHUDcubes = 7;
 	if(fadingProgress != 0){
 		numberOfHUDcubes += 1;
 	}
 
-	fading = sin(fadingProgress*M_PI/180)*2+2;
+	fading = sin(fadingProgress*M_PI/180);
+	
+	int startMatSBMode = selectedMaterial;
+	
+	if(!sandboxMode){
+		for(int i = 0; i < numberOfHUDcubes/2; i++){
+			startMatSBMode = c->movement->getLastAvailableMaterial(startMatSBMode);
+		}
+	}
 
 	for(int pos = -(numberOfHUDcubes/2); pos <= numberOfHUDcubes/2; pos++){
-		if(numberOfHUDcubes % 2 == 0){
-			if(pos == numberOfHUDcubes/2 && fadingProgress > 0)
-				continue;
-			if(pos == -numberOfHUDcubes/2 && fadingProgress < 0)
-				continue;
+		int mat = 1;
+		if(sandboxMode){
+			mat = selectedMaterial+pos;
+			while(mat < 1)
+				mat = NUMBER_OF_MATERIALS + mat - 1;
+			while(mat > (NUMBER_OF_MATERIALS - 1))
+				mat = mat - NUMBER_OF_MATERIALS + 1;
 		}
-		int mat = selectedMaterial+pos;
-		while(mat < 1)
-			mat = NUMBER_OF_MATERIALS + mat - 1;
-		while(mat > (NUMBER_OF_MATERIALS - 1))
-			mat = mat - NUMBER_OF_MATERIALS + 1;
-
+		else{			
+			mat = startMatSBMode;
+		}
+		
+		float curCubeSize = cubeSize*(std::sqrt((-(pos+fading)*(pos+fading)+17)/17.0));
 		glLoadIdentity();
-		glScalef(-1,1,1);
-		glRotatef(90.0,0.0f,0.0f,1.0f);
-		glRotatef(90.0,0.0f,1.0f,0.0f);
-
-		glTranslatef(18.0f,-1.5f+pos*2.0+fading,-6.0f);
-		glRotatef(cubeTurn[mat], 0.0, 0.0, 1.0);
-		glRotatef(35.264389683, 0.0, 1.0, 0.0);
-		glRotatef(45, 1.0, 0.0, 0.0);
+		glTranslatef((screenX/2) + (pos+fading) * cubeSize * 2,curCubeSize + cubeSize*0.1,0.0);
+		glScalef(curCubeSize,curCubeSize,curCubeSize);
+		glPushMatrix();
+		glRotatef(cubeTurn[mat], 0.0, 1.0, 0.0);
+		glRotatef(35.264389683, 1.0, 0.0, 0.0);
+		glRotatef(45, 0.0, 0.0, 1.0);
 		glTranslatef(-0.5, -0.5, -0.5);
 
 		glBindTexture( GL_TEXTURE_2D, c->renderer->texture[mat] );
-		if(c->movement->getSelectedMaterial() == mat){
+		if(selectedMaterial == mat){
 			//glDisable(GL_BLEND);
 			glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
 			glEnable(GL_LIGHTING);
+			glEnable(GL_LIGHT1);
 		}
 		else{
 			glColor4f(0.3f, 0.3f, 0.3f, 0.5f);
@@ -558,17 +560,22 @@ void UInterface::drawHUD() {
 						TEXTUR_POSITION_OF_DIRECTION[dir][point][1]
 					);
 					glVertex3f(
-						POINTS_OF_DIRECTION[dir][point][0],
-								POINTS_OF_DIRECTION[dir][point][1],
-								POINTS_OF_DIRECTION[dir][point][2]
+								POINTS_OF_DIRECTION[dir][point][0],
+								  POINTS_OF_DIRECTION[dir][point][1],
+								  POINTS_OF_DIRECTION[dir][point][2]
 					);
 				}
 			}
 		glEnd();
+		
+		if(!sandboxMode){
+			glPopMatrix();
+			glScalef(1.0/cubeSize,1.0/cubeSize,1.0/cubeSize);
+			glColor4f(0.0f, 0.0f, 0.0f, 0.9f);
+			renderText(-cubeSize*0.8,-cubeSize*0.8, boost::lexical_cast<std::string>( c->movement->getCountInInventory(mat) ).c_str() );
+			startMatSBMode = c->movement->getNextAvailableMaterial(startMatSBMode);
+		}
 	}
-
-	glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
-	renderText(50, 50, "Hallo Test");
 
 	glDisable(GL_BLEND);	
 	glEnable(GL_LIGHTING);
@@ -576,13 +583,16 @@ void UInterface::drawHUD() {
 	glEnable(GL_LIGHT2);
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 
-	glLoadIdentity();
 	glDisable(GL_FOG);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glScalef(-1,1,1);
-	glRotatef(90.0,0.0f,0.0f,1.0f);
-	glRotatef(90.0,0.0f,1.0f,0.0f);
 	a = 20;
-	//renderText(font, a, a, a, (std::string)"test");
-	//std::cout << a << std::endl;
+	
+	glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
+	glLoadIdentity();					// Reset The Projection Matrix
+	
+	// Calculate The Aspect Ratio Of The Window
+	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, visualRange * AREASIZE_X);
+	
+	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
+	glLoadIdentity();					// Reset The Projection Matrix
 }
