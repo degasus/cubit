@@ -362,7 +362,6 @@ void Movement::performAction(ActionEvent event)
 			removeBlockPressed = true;
 			calcPointingOn();
 			if(isPointingOn && removeBlockPressed){
-				removeBlock();
 				lastBuild = 0;
 			}
 			break;
@@ -682,6 +681,12 @@ void Movement::buildBlock()
 	}
 }
 
+void movableNearCallback(btBroadphasePair& collisionPair,
+						  btCollisionDispatcher& dp, const btDispatcherInfo& dispatchInfo) {
+	
+	dp.defaultNearCallback(collisionPair, dp, dispatchInfo);
+}
+
 void Movement::removeBlock()
 {
 	BlockPosition block = pointingOnBlock+pointingOnPlane;
@@ -706,6 +711,8 @@ void Movement::removeBlock()
 										sin(rand()%90*(M_PI/180))*0.005
 		));
 		o->tex = c->map->getBlock(block);
+		
+		dispatcher->setNearCallback(&movableNearCallback);
 		c->map->objects.push_back(o);
 		dynamicsWorld->addRigidBody(o);
 
