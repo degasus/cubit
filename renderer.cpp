@@ -344,12 +344,18 @@ void Renderer::renderArea(Area* area, bool show)
 		glTranslatef(area->pos.x,area->pos.y,area->pos.z);
 	}
 	
-	if(area->needupdate && (areasRendered <= areasPerFrame)) {
+	bool generate_bullet = (c->movement->getPosition() - area->pos) < 50*50;
+	bool delete_bullet = (c->movement->getPosition() - area->pos) > 60*60;
+	
+	if(area->bullet_generated && delete_bullet)
+		area->delete_collision(c->movement->dynamicsWorld);
+	
+	if((area->needupdate || (!area->bullet_generated && generate_bullet)) && (areasRendered <= areasPerFrame)) {
 		areasRendered++;
-		
 		
 		area->delete_collision(c->movement->dynamicsWorld);
 		
+		area->bullet_generated = generate_bullet;
 		area->needupdate = 0;
 		
 		std::vector<polygon> polys[NUMBER_OF_MATERIALS];
@@ -395,8 +401,8 @@ void Renderer::renderArea(Area* area, bool show)
 		} 
 		if(polys_count) {	
 			
-			area->mesh = new btTriangleMesh();
-	//		mesh.preallocateIndices(polys_count*(POINTS_PER_POLYGON-2));
+			if(generate_bullet)
+				area->mesh = new btTriangleMesh();
 			
 			if(!area->gllist_generated) {
 				area->gllist_generated = 1;
@@ -445,24 +451,26 @@ void Renderer::renderArea(Area* area, bool show)
 							POINTS_OF_DIRECTION[it->d][point][2]+diffz
 						);
 					}
-					for(int point=2; point < POINTS_PER_POLYGON; point++) {
-						area->mesh->addTriangle(
-							btVector3(
-								POINTS_OF_DIRECTION[it->d][0][0]+diffx,
-								POINTS_OF_DIRECTION[it->d][0][1]+diffy,
-								POINTS_OF_DIRECTION[it->d][0][2]+diffz
-							),
-							btVector3(
-								POINTS_OF_DIRECTION[it->d][point][0]+diffx,
-								POINTS_OF_DIRECTION[it->d][point][1]+diffy,
-								POINTS_OF_DIRECTION[it->d][point][2]+diffz
-							),
-							btVector3(
-								POINTS_OF_DIRECTION[it->d][point-1][0]+diffx,
-								POINTS_OF_DIRECTION[it->d][point-1][1]+diffy,
-								POINTS_OF_DIRECTION[it->d][point-1][2]+diffz
-							)							
-						);
+					if(generate_bullet) {
+						for(int point=2; point < POINTS_PER_POLYGON; point++) {
+							area->mesh->addTriangle(
+								btVector3(
+									POINTS_OF_DIRECTION[it->d][0][0]+diffx,
+									POINTS_OF_DIRECTION[it->d][0][1]+diffy,
+									POINTS_OF_DIRECTION[it->d][0][2]+diffz
+								),
+								btVector3(
+									POINTS_OF_DIRECTION[it->d][point][0]+diffx,
+									POINTS_OF_DIRECTION[it->d][point][1]+diffy,
+									POINTS_OF_DIRECTION[it->d][point][2]+diffz
+								),
+								btVector3(
+									POINTS_OF_DIRECTION[it->d][point-1][0]+diffx,
+									POINTS_OF_DIRECTION[it->d][point-1][1]+diffy,
+									POINTS_OF_DIRECTION[it->d][point-1][2]+diffz
+								)							
+							);
+						}
 					}
 				}
 				if(texture_used)
@@ -471,19 +479,21 @@ void Renderer::renderArea(Area* area, bool show)
 //			glTranslatef(-diff_oldx, -diff_oldy, -diff_oldz);
 			glEndList();
 			
-			area->shape = new btBvhTriangleMeshShape(area->mesh,1);
-			//area->shape = new btConvexTriangleMeshShape(area->mesh);
+			if(generate_bullet) {
+				area->shape = new btBvhTriangleMeshShape(area->mesh,1);
+				//area->shape = new btConvexTriangleMeshShape(area->mesh);
+				
+				///create a few basic rigid bodies			
+				btTransform groundTransform;
+				groundTransform.setIdentity();
+				groundTransform.setOrigin(btVector3(area->pos.x,area->pos.y,area->pos.z));
 			
-			///create a few basic rigid bodies			
-			btTransform groundTransform;
-			groundTransform.setIdentity();
-			groundTransform.setOrigin(btVector3(area->pos.x,area->pos.y,area->pos.z));
-		
-			area->motion = new btDefaultMotionState(groundTransform);
-			area->rigid = new btRigidBody(0,area->motion,area->shape,btVector3(0,0,0));
-			
-			//add the body to the dynamics world
-			c->movement->dynamicsWorld->addRigidBody(area->rigid);
+				area->motion = new btDefaultMotionState(groundTransform);
+				area->rigid = new btRigidBody(0,area->motion,area->shape,btVector3(0,0,0));
+				
+				//add the body to the dynamics world
+				c->movement->dynamicsWorld->addRigidBody(area->rigid);
+			}
 			
 		} else {
 			if(area->gllist_generated)
@@ -593,6 +603,8 @@ void Renderer::render(PlayerPosition pos)
 	if(areasRendered<0) areasRendered = 0;
 	areasRendered -= areasPerFrame;
 
+	int i=0;
+	
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 //		if(a->pos != areapos) continue;
@@ -600,7 +612,9 @@ void Renderer::render(PlayerPosition pos)
 		if(a->state == Area::STATE_READY && (inview || areasRendered < 0)) {
 			renderArea(a, inview);
 		}
+		i++;
 	}
+	//std::cout << "anzahl geränderte areas: " << i << std::endl;
 	
 	renderObjects();
 	
