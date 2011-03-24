@@ -178,6 +178,7 @@ public:
 	// for saving the GL-List
 	GLuint gllist;
 	bool gllist_generated;
+	bool bullet_generated;
 	bool needupdate;
 	
 	bool needstore;
@@ -205,6 +206,8 @@ public:
 		if(shape) delete shape; shape = 0;
 		if(motion) delete motion; motion = 0;
 		if(rigid) delete rigid; rigid = 0;
+		
+		bullet_generated = 0;
 	}
 	
 	enum AreaState {

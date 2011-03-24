@@ -471,6 +471,7 @@ Area::Area(BlockPosition p)
 	
 	pos = p;
 	gllist_generated = 0;
+	bullet_generated = 0;
 	needupdate = 1;
 	needstore = 0;
 	

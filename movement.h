@@ -56,6 +56,15 @@ struct PlayerPosition{
 			
 		return oss.str();
 	}
+	
+	/**
+	 * returns the square of the distance between this and the other position
+	 */
+	inline double operator-(const BlockPosition& pos2) {
+		return (x-pos2.x-AREASIZE_X/2)*(x-pos2.x-AREASIZE_X/2)
+		      +(y-pos2.y-AREASIZE_Y/2)*(y-pos2.y-AREASIZE_Y/2)
+			  +(z-pos2.z-AREASIZE_Z/2)*(z-pos2.z-AREASIZE_Z/2);
+	}
 };
 
 struct ActionEvent {
