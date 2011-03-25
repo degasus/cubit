@@ -594,14 +594,7 @@ void Movement::calcNewSpeed()
 void Movement::calcBuilding(){
 	lastBuild++;
 	if(isPointingOn && buildBlockPressed){
-		glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
-		glLoadIdentity();					// Reset The Projection Matrix,
-		glTranslatef(-1,-1,-1);
-		glScalef(2.0/(c->ui->screenX), 2.0/(c->ui->screenY), 0);
-		
-		glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
-		glLoadIdentity();					// Reset The Projection Matrix
-		c->ui->renderText(10,10,boost::lexical_cast<std::string>("lalalalalalaal" + lastBuild).c_str());
+		//c->ui->renderText(10,10,boost::lexical_cast<std::string>("lalalalalalaal" + lastBuild).c_str());
 		if(lastBuild >= 10 || fastPressed){
 			buildBlock();
 			lastBuild = 0;
