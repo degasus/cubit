@@ -256,7 +256,7 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 		ae.name = ActionEvent::SELECT_MATERIAL;
 		ae.iValue = c->movement->getLastAvailableMaterial(c->movement->getSelectedMaterial());
 	}
-	if(code == k_selMat && sandboxMode){
+	if(code == k_selMat){
 		ae.name = ActionEvent::SELECT_MATERIAL;
 		BlockPosition bp;
 		DIRECTION dir;
@@ -430,6 +430,8 @@ void UInterface::drawHUD() {
 	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 	glLoadIdentity();					// Reset The Projection Matrix
 	
+	
+	//Lighting fou
 	GLfloat LightPosition[] = { screenX, screenY, 100, 1.0f };
 	glLightfv(GL_LIGHT2, GL_POSITION, LightPosition);
 	GLfloat LightAmbient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
@@ -445,8 +447,8 @@ void UInterface::drawHUD() {
 	glLightfv(GL_LIGHT3, GL_AMBIENT, LightAmbient3);
 	GLfloat LightDiffuse[]  = { 0.4f, 0.4f, 0.4f, 1.0f };	
 	glLightfv(GL_LIGHT3, GL_DIFFUSE,  LightDiffuse);
-	
 	glDisable(GL_LIGHT3);
+	
 	
 	glDisable(GL_FOG);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -456,8 +458,6 @@ void UInterface::drawHUD() {
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 	glEnable(GL_BLEND);
 	
-	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
-	glLoadIdentity();					// Reset The Projection Matrix
 	int lineWidth = 3;
 	int lineLength = 50;
 
@@ -488,19 +488,11 @@ void UInterface::drawHUD() {
 	else if(fadingProgress < 0)
 		fadingProgress += 10;
 
-	if(lastMaterial == 1 && selectedMaterial == NUMBER_OF_MATERIALS-1){
-		fadingProgress = -90;
-		lastMaterial = selectedMaterial;
-	}
-	else if(lastMaterial == NUMBER_OF_MATERIALS-1 && selectedMaterial == 1){
+	if((lastMaterial == c->movement->getLastAvailableMaterial(selectedMaterial))){
 		fadingProgress = 90;
 		lastMaterial = selectedMaterial;
 	}
-	if((lastMaterial < selectedMaterial)){
-		fadingProgress = 90;
-		lastMaterial = selectedMaterial;
-	}
-	else if((lastMaterial > selectedMaterial)){
+	else if((lastMaterial == c->movement->getNextAvailableMaterial(selectedMaterial))){
 		fadingProgress = -90;
 		lastMaterial = selectedMaterial;
 	}

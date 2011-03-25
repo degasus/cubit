@@ -411,7 +411,9 @@ void Movement::performAction(ActionEvent event)
 			}
 			break;
 		case ActionEvent::SELECT_MATERIAL:
-			selectedMaterial = Material(event.iValue);
+			if(sandboxMode || getCountInInventory(event.iValue) > 0) {
+				selectedMaterial = Material(event.iValue);
+			}
 			break;
 		default:
 			break;
