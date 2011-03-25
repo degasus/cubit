@@ -33,6 +33,10 @@ public:
 	
 	void run();
 	
+	//Text
+	FTTextureFont *font;
+	void renderText(double x, double y, const char* text);
+	
 	//Frame conditions
 	//current frame size
 	int screenX;
@@ -104,10 +108,6 @@ private:
 	//Music
 	Mix_Music *ingameMusic;
 	bool musicPlaying;
-
-	//Text
-	FTTextureFont *font;
-	void renderText(double x, double y, const char* text, int size);
 };
 
 

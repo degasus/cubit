@@ -661,6 +661,7 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 	
 	glEnd();
 	glDisable(GL_BLEND);
+	
 	glEnable(GL_DEPTH_TEST);
 	
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);

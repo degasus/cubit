@@ -125,7 +125,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("normalMovementSpeed", po::value<double>()->default_value(0.1), "speed when moving normally")
 		("fastSpeedMultiplier", po::value<double>()->default_value(5.72341), "speed multiplier when moving fast")
 		("maxFallingSpeed", po::value<double>()->default_value(-0.99), "fastest reachable speed on falling")
-		("turningSpeed", po::value<double>()->default_value(0.2), "speed factor for turning (\"mouse speed\")")
+		("turningSpeed", po::value<double>()->default_value(0.04), "speed factor for turning (\"mouse speed\")")
 		("jumpSpeed", po::value<double>()->default_value(0.215), "initial speed when jumping")
 #ifdef _WIN32
 		("workingDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("PROGRAMFILES")) / "Cubit"), "Folder for saving areas")

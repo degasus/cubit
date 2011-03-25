@@ -321,7 +321,7 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 		c->movement->performAction(ae);
 }
 
-void UInterface::renderText(double x, double y, const char* Text, int size = 20)
+void UInterface::renderText(double x, double y, const char* Text)
 {
 	font->Render(Text, -1, FTPoint(FTGL_DOUBLE(x), FTGL_DOUBLE(y)));
 }
@@ -430,8 +430,23 @@ void UInterface::drawHUD() {
 	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 	glLoadIdentity();					// Reset The Projection Matrix
 	
-	GLfloat LightPosition[] = { screenX, cubeSize*5, cubeSize*(-10.0f), 1.0f };
-	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
+	GLfloat LightPosition[] = { screenX, screenY, 100, 1.0f };
+	glLightfv(GL_LIGHT2, GL_POSITION, LightPosition);
+	GLfloat LightAmbient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	glLightfv(GL_LIGHT2, GL_AMBIENT, LightAmbient);
+	
+	glEnable(GL_LIGHTING);
+	glDisable(GL_LIGHT1);
+	glEnable(GL_LIGHT2);
+	
+	GLfloat LightPosition3[] = { screenX, screenY, 100, 1.0f };
+	glLightfv(GL_LIGHT3, GL_POSITION, LightPosition);
+	GLfloat LightAmbient3[] = { 0.4f, 0.4f, 0.4f, 1.0f };
+	glLightfv(GL_LIGHT3, GL_AMBIENT, LightAmbient3);
+	GLfloat LightDiffuse[]  = { 0.4f, 0.4f, 0.4f, 1.0f };	
+	glLightfv(GL_LIGHT3, GL_DIFFUSE,  LightDiffuse);
+	
+	glDisable(GL_LIGHT3);
 	
 	glDisable(GL_FOG);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -440,7 +455,9 @@ void UInterface::drawHUD() {
 	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 	glEnable(GL_BLEND);
-
+	
+	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
+	glLoadIdentity();					// Reset The Projection Matrix
 	int lineWidth = 3;
 	int lineLength = 50;
 
@@ -517,17 +534,21 @@ void UInterface::drawHUD() {
 			mat = startMatSBMode;
 		}
 		
+		if(mat == selectedMaterial){
+			glDisable(GL_LIGHT3);
+			glEnable(GL_LIGHT2);
+		}
+		else{
+			glDisable(GL_LIGHT2);
+			glEnable(GL_LIGHT3);
+		}
+		
 		float curCubeSize = cubeSize*(std::sqrt((-(pos+fading)*(pos+fading)+17)/17.0));
 		glLoadIdentity();
 		glTranslatef((screenX/2) + (pos+fading) * cubeSize * 2,curCubeSize + cubeSize*0.1,0.0);
-		glScalef(curCubeSize,curCubeSize,0);
+		glScalef(curCubeSize,curCubeSize,-0.05f);
 		glPushMatrix();
-		GLfloat LightPosition[] = { screenX, cubeSize*5, cubeSize*(-10.0f), 1.0f };
-		glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
-		glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT1);
-		glDisable(GL_LIGHT2);
+		
 		glRotatef(cubeTurn[mat], 0.0, 1.0, 0.0);
 		glRotatef(35.264389683, 1.0, 0.0, 0.0);
 		glRotatef(45, 0.0, 0.0, 1.0);
@@ -552,6 +573,8 @@ void UInterface::drawHUD() {
 		glEnd();
 		
 		if(!sandboxMode){
+			glDisable(GL_LIGHT3);
+			glEnable(GL_LIGHT2);
 			glPopMatrix();
 			glScalef(1.0/cubeSize,1.0/cubeSize,1.0/cubeSize);
 			glColor4f(0.0f, 0.0f, 0.0f, 0.9f);
@@ -560,13 +583,13 @@ void UInterface::drawHUD() {
 		}
 	}
 
+	glLoadIdentity();
+	renderText(20, screenY-40, c->movement->getPosition().to_string().c_str());
+	
 	glDisable(GL_BLEND);	
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT1);
 	glEnable(GL_LIGHT2);
-	glLoadIdentity();
-	glColor4f(0.0f, 0.0f, 0.0f, 0.9f);
-	renderText(20, screenY-40, c->movement->getPosition().to_string().c_str());
 	
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 
