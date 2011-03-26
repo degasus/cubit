@@ -419,6 +419,8 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 	}
 }
 
+//float a = -10.0;
+
 void UInterface::drawHUD() {
 	int cubeSize = 50;
 	
@@ -441,7 +443,6 @@ void UInterface::drawHUD() {
 	glDisable(GL_LIGHT1);
 	glEnable(GL_LIGHT2);
 	
-	GLfloat LightPosition3[] = { screenX, screenY, 100, 1.0f };
 	glLightfv(GL_LIGHT3, GL_POSITION, LightPosition);
 	GLfloat LightAmbient3[] = { 0.4f, 0.4f, 0.4f, 1.0f };
 	glLightfv(GL_LIGHT3, GL_AMBIENT, LightAmbient3);
@@ -512,7 +513,10 @@ void UInterface::drawHUD() {
 			startMatSBMode = c->movement->getLastAvailableMaterial(startMatSBMode);
 		}
 	}
-
+	
+	///////////////////////////
+	// render the HUD cubes
+	///////////////////////////
 	for(int pos = -(numberOfHUDcubes/2); pos <= numberOfHUDcubes/2; pos++){
 		int mat = 1;
 		if(sandboxMode){
@@ -575,13 +579,45 @@ void UInterface::drawHUD() {
 		}
 	}
 
-	glLoadIdentity();
-	renderText(20, screenY-40, c->movement->getPosition().to_string().c_str());
+	///////////////////////////////////
+	//print some Text
+	///////////////////////////////////
 	
+	//a += 0.1f;
+	
+	glDisable(GL_LIGHT1);
+	glDisable(GL_LIGHT2);
+	glDisable(GL_LIGHT3);
+	glEnable(GL_LIGHT4);
+	
+	GLfloat LightPosition4[] = { screenX/2, screenY/2, 1000, 1.0f };
+	glLightfv(GL_LIGHT4, GL_POSITION, LightPosition4);
+	GLfloat LightAmbient4[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	glLightfv(GL_LIGHT4, GL_AMBIENT, LightAmbient4);
+	GLfloat LightDiffuse4[]  = { 0.5f, 0.5f, 0.5f, 1.0f };	
+	glLightfv(GL_LIGHT4, GL_DIFFUSE,  LightDiffuse4);
+	
+	
+	glLoadIdentity();
+	
+	renderText(20, screenY-40, c->movement->getPosition().to_string().c_str());
+	//renderText(20, screenY-80, boost::lexical_cast<std::string>(a).c_str());
+	
+	int progress = c->movement->getCurrentRemoveProgress();
+	if(progress > 0){
+		std::string output = boost::lexical_cast<std::string>(progress) + "%";
+		renderText(20, 20, output.c_str());
+	}
+	
+	/////////////////////////////
+	//reset the view
+	////////////////////////////
 	glDisable(GL_BLEND);	
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT1);
 	glEnable(GL_LIGHT2);
+	glDisable(GL_LIGHT3);
+	glDisable(GL_LIGHT4);
 	
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 

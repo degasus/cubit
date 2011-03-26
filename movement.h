@@ -188,17 +188,22 @@ public:
 	double personSizeDucked;
 
 	//Pointing on
+	BlockPosition lastPointingOnBlock;
 	BlockPosition pointingOnBlock;
 	DIRECTION pointingOnPlane;
+	DIRECTION lastPointingOnPlane;
 	double pointingDistance;
 	bool isPointingOn;
 
 	//Building
 	int lastBuild;
+	int lastRemove;
+	int normalMaxRemove;
 	int lastThrow;
 	void buildBlock();
 	void removeBlock();
 	void throwBlock();
+	int getCurrentRemoveProgress();
 	
 	//Movement settings
 	float slowMovementSpeed;

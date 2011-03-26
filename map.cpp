@@ -98,7 +98,7 @@ void Map::randomArea(Area* a) {
 		}
 		else if(z <  height - 1 - std::rand() % 1){
 			if (z >= -65)
-				a->m[a->getPos(BlockPosition::create(x,y,z))] = 12; // mud
+				a->m[a->getPos(BlockPosition::create(x,y,z))] = 12; //mud
 			else
 				a->m[a->getPos(BlockPosition::create(x,y,z))] = 10; //sand
 		}

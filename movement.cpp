@@ -36,7 +36,9 @@ Movement::Movement(Controller* controller)
 	moveFast = false;
 	isPointingOn = false;
 	enableFly = false;
-	lastBuild = 20;
+	lastBuild = 0;
+	lastRemove = 0;
+	normalMaxRemove = 10;
 	stepProgress = 0;
 	selectedMaterial = 1;
 	movDebug = 0;
@@ -362,7 +364,7 @@ void Movement::performAction(ActionEvent event)
 			removeBlockPressed = true;
 			calcPointingOn();
 			if(isPointingOn && removeBlockPressed){
-				lastBuild = 0;
+				lastRemove = 0;
 			}
 			break;
 		case ActionEvent::RELEASE_REMOVE_BLOCK:
@@ -467,16 +469,18 @@ void Movement::calcDuckingAndSteps(){
 }
 
 void Movement::calcPointingOn(){
+	lastPointingOnBlock = pointingOnBlock;
+	lastPointingOnPlane = pointingOnPlane;
 	PlayerPosition lastPos = position;
 	pointingOnBlock = position.block();
-	BlockPosition lastPointingOnBlock = pointingOnBlock;
+	BlockPosition internalLastPointingOnBlock = pointingOnBlock;
 	
 	double distanceQ = 0;
 	int counter = 0;
 	try{
 		while(c->map->getBlock(pointingOnBlock) == 0 && distanceQ <= pointingDistance*pointingDistance && counter <= pointingDistance*3+2){
 			counter++;
-			lastPointingOnBlock = pointingOnBlock;
+			internalLastPointingOnBlock = pointingOnBlock;
 			
 			pointingOnPlane = calcPointingOnInBlock(&lastPos, pointingOnBlock);
 			pointingOnBlock = pointingOnBlock + pointingOnPlane;
@@ -494,7 +498,7 @@ void Movement::calcPointingOn(){
 		else
 			isPointingOn = true;
 
-		pointingOnBlock = lastPointingOnBlock;
+		pointingOnBlock = internalLastPointingOnBlock;
 	} catch(NotLoadedException e){
 		isPointingOn = false;
 	}
@@ -594,18 +598,30 @@ void Movement::calcNewSpeed()
 }
 
 void Movement::calcBuilding(){
-	lastBuild++;
 	if(isPointingOn && buildBlockPressed){
-		//c->ui->renderText(10,10,boost::lexical_cast<std::string>("lalalalalalaal" + lastBuild).c_str());
+		lastBuild++;
 		if(lastBuild >= 10 || fastPressed){
 			buildBlock();
 			lastBuild = 0;
 		}
 	}
-	if((lastBuild >= 10 || fastPressed) && isPointingOn && removeBlockPressed){
-		removeBlock();
-		lastBuild = 0;
+	
+	if(isPointingOn && removeBlockPressed){
+		if(lastPointingOnBlock+lastPointingOnPlane != pointingOnBlock+pointingOnPlane)
+			lastRemove = 0;
+		lastRemove++;
+		if(lastRemove >= normalMaxRemove || fastPressed){
+			removeBlock();
+			lastRemove = 0;
+		}
 	}
+}
+
+int Movement::getCurrentRemoveProgress() {
+	if(isPointingOn && removeBlockPressed)
+		return (float(lastRemove)/float(normalMaxRemove))*100;
+	else
+		return 0;
 }
 
 void Movement::buildBlock()
