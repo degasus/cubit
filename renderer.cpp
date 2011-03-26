@@ -643,6 +643,8 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 	glDisable(GL_LIGHTING);
 	glBindTexture( GL_TEXTURE_2D, texture[1] );
 	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+	
+	std::cout << direct << std::endl;
 
 	if(highlightWholePlane)
 		glDisable(GL_DEPTH_TEST);
