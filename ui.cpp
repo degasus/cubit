@@ -491,12 +491,11 @@ void UInterface::drawHUD() {
 
 	if((lastMaterial == c->movement->getLastAvailableMaterial(selectedMaterial))){
 		fadingProgress = 90;
-		lastMaterial = selectedMaterial;
 	}
 	else if((lastMaterial == c->movement->getNextAvailableMaterial(selectedMaterial))){
 		fadingProgress = -90;
-		lastMaterial = selectedMaterial;
 	}
+	lastMaterial = selectedMaterial;
 
 	double fading = 0;
 	int numberOfHUDcubes = 7;
