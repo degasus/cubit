@@ -438,10 +438,6 @@ Material Movement::getSelectedMaterial(){
 }
 
 bool Movement::getPointingOn(BlockPosition* block, DIRECTION* plane){
-	std::cout << "isPointingOn: " << isPointingOn << std::endl;
-	std::cout << "pointingOnBlock: " << pointingOnBlock.to_string() << std::endl; 
-	std::cout << "pointingOnPlane: " << pointingOnPlane << std::endl; 
-	
 	if(isPointingOn){
 		*block = pointingOnBlock;
 		*plane = pointingOnPlane;
