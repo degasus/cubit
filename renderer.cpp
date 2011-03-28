@@ -384,8 +384,8 @@ void Renderer::renderArea(Area* area, bool show)
 					else 
 						next_m = 1;
 					
-
-					if(!next_m) {
+					// MAterial 99 = water
+					if(!next_m || (next_m == 99 && now != next_m )) {
 						polygon p;
 						p.pos = pos;
 						p.d = (DIRECTION)dir;
@@ -423,6 +423,10 @@ void Renderer::renderArea(Area* area, bool show)
 					if(!texture_used) {
 						texture_used = 1;
 						glBindTexture( GL_TEXTURE_2D, texture[i] );
+						if(i == 99){
+							glDisable(GL_CULL_FACE);
+							glEnable(GL_BLEND);
+						}
 						glBegin( GL_QUADS );
 					}
 					
@@ -451,7 +455,7 @@ void Renderer::renderArea(Area* area, bool show)
 							POINTS_OF_DIRECTION[it->d][point][2]+diffz
 						);
 					}
-					if(generate_bullet) {
+					if(generate_bullet && i != 99) {
 						for(int point=2; point < POINTS_PER_POLYGON; point++) {
 							area->mesh->addTriangle(
 								btVector3(
@@ -473,8 +477,13 @@ void Renderer::renderArea(Area* area, bool show)
 						}
 					}
 				}
-				if(texture_used)
+				if(texture_used){
 					glEnd();
+					if(i == 99){
+						glEnable(GL_CULL_FACE);
+						glDisable(GL_BLEND);
+					}
+				}
 			}
 //			glTranslatef(-diff_oldx, -diff_oldy, -diff_oldz);
 			glEndList();

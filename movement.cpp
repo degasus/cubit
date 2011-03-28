@@ -481,7 +481,7 @@ void Movement::calcPointingOn(){
 	double distanceQ = 0;
 	int counter = 0;
 	try{
-		while(c->map->getBlock(pointingOnBlock) == 0 && distanceQ <= pointingDistance*pointingDistance && counter <= pointingDistance*3+2){
+		while((c->map->getBlock(pointingOnBlock) == 0 || c->map->getBlock(pointingOnBlock) == c->map->getBlock(position.block())) && distanceQ <= pointingDistance*pointingDistance && counter <= pointingDistance*3+2){
 			counter++;
 			internalLastPointingOnBlock = pointingOnBlock;
 			
@@ -799,7 +799,8 @@ void Movement::calcElevator()
 	catch(NotLoadedException e){
 		std::cout << "not loaded" << std::endl;
 	}
-	if(feetBlock != 0){
+	//0 = air, 99 = water
+	if(feetBlock != 0 && feetBlock != 99){
 		btTransform t = ghost->getWorldTransform();
 		btVector3 org = t.getOrigin();
 		org.setZ(org.getZ()+1);
