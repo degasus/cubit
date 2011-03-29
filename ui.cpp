@@ -165,17 +165,17 @@ void UInterface::initWindow()
 
 Uint32 GameLoopTimer(Uint32 interval, void* param)
 {
-    // Create a user event to call the game loop.
-    SDL_Event event;
+		// Create a user event to call the game loop.
+		SDL_Event event;
 
-    event.type = SDL_USEREVENT;
-    event.user.code = 0;
-    event.user.data1 = 0;
-    event.user.data2 = 0;
+		event.type = SDL_USEREVENT;
+		event.user.code = 0;
+		event.user.data1 = 0;
+		event.user.data2 = 0;
 
-    SDL_PushEvent(&event);
+		SDL_PushEvent(&event);
 
-    return interval;
+		return interval;
 }
 
 

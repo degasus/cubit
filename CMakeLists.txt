@@ -36,6 +36,9 @@ INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit DESTINATION games)
 FILE(GLOB tex "${CMAKE_CURRENT_SOURCE_DIR}/tex/*" )
 INSTALL( FILES ${tex} DESTINATION share/games/cubit/tex)
 
+FILE(GLOB fonts "${CMAKE_CURRENT_SOURCE_DIR}/fonts/*" )
+INSTALL( FILES ${fonts} DESTINATION share/games/cubit/fonts)
+
 FILE(GLOB soundfx "${CMAKE_CURRENT_SOURCE_DIR}/sound/fx/*" )
 INSTALL( FILES ${soundfx} DESTINATION share/games/cubit/sound/fx)
 

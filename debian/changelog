@@ -1,4 +1,11 @@
-cubit (0.0.2) UNRELEASED; urgency=low
+cubit (0.0.3) UNRELEASED; urgency=low
+
+  New features:
+  * I hope some
+
+ -- Markus Wick <markus@selfnet.de>  Thu, 29 Mar 2011 18:32:20 +0200
+
+cubit (0.0.2) unstable; urgency=low
 
   New features:
   * pipette
