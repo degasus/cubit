@@ -496,7 +496,7 @@ void Movement::calcPointingOn(){
 
 		}
 
-		if(c->map->getBlock(pointingOnBlock) == 0)
+		if(c->map->getBlock(pointingOnBlock) == 0 || (c->map->getBlock(pointingOnBlock) == 99 && c->map->getBlock(position.block())))
 			isPointingOn = false;
 		else
 			isPointingOn = true;
