@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <iostream>
+
 #include <SDL_mixer.h>
 #include <SDL_image.h>
 #include <FTGL/ftgl.h>
@@ -65,8 +66,8 @@ void UInterface::init()
 
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 	if(enableAntiAliasing){
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+		std::cout << SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) << std::endl;
+		std::cout << SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4) << std::endl;
 	}
 
 	initWindow();
@@ -129,36 +130,37 @@ void UInterface::initWindow()
 		const SDL_VideoInfo *vi = SDL_GetVideoInfo();
 		screenX = vi->current_w;
 		screenY = vi->current_h;
-		screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_FULLSCREEN);
+		screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_FULLSCREEN );
 	} else {
 		noFullX = screenX;
 		noFullY = screenY;
-		screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE);
+		screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE );
 	}
 
 	SDL_WM_SetCaption("Cubit Alpha 0.0.3","Cubit Alpha 0.0.3");
 
 	if ( !screen ) {
 		printf("Unable to set video mode: %s\n", SDL_GetError());
-	}
-
-	if(catchMouse) {
-		SDL_ShowCursor(SDL_DISABLE);
-		SDL_WarpMouse(screenX/2, screenY/2);
+		SDL_Quit();
 	} else {
-		SDL_ShowCursor(SDL_ENABLE);
+
+		if(catchMouse) {
+			SDL_ShowCursor(SDL_DISABLE);
+			SDL_WarpMouse(screenX/2, screenY/2);
+		} else {
+			SDL_ShowCursor(SDL_ENABLE);
+		}
+
+		glViewport(0, 0, screenX, screenY);	// Reset The Current Viewport
+		glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
+		glLoadIdentity();					// Reset The Projection Matrix
+
+		// Calculate The Aspect Ratio Of The Window
+		gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, visualRange * AREASIZE_X);
+
+		glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
+		glLoadIdentity();					// Reset The Projection Matrix
 	}
-
-	glViewport(0, 0, screenX, screenY);	// Reset The Current Viewport
-	glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
-	glLoadIdentity();					// Reset The Projection Matrix
-
-	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, visualRange * AREASIZE_X);
-
-	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
-	glLoadIdentity();					// Reset The Projection Matrix
-
 }
 
 Uint32 GameLoopTimer(Uint32 interval, void* param)

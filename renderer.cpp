@@ -4,7 +4,6 @@
 #include <stack>
 #include <SDL_image.h> 
 
-
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -134,11 +133,18 @@ void Renderer::init()
 			glBindTexture( GL_TEXTURE_2D, texture[i] );
 
 			// Set the texture's stretching properties
-			if(textureFilterMethod == 3){
+			if ( textureFilterMethod >= 4 /*&& glewIsSupported( "GL_EXT_texture_filter_anisotropic" )*/ ) {
+				float maxAni;
+				glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni );
+				glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );   
+				
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			} else if(textureFilterMethod >= 3){
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 			}
-			else if(textureFilterMethod == 2){
+			else if(textureFilterMethod >= 2){
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 			}
@@ -147,7 +153,7 @@ void Renderer::init()
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 			}
 
-			if(textureFilterMethod == 3){
+			if(textureFilterMethod >= 3){
 				gluBuild2DMipmaps(GL_TEXTURE_2D, 3, surface->w, surface->h, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
 			} else {
 				glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
@@ -188,141 +194,6 @@ void Renderer::init()
 		}
 		
 	}
-	/*
-	 
-	std::string cfile;
-	int k = 1; //rand()%86;
-	std::ifstream f3;
-	f3.open((fs::path("structs") / "allfiles").file_string().c_str());
-	assert(f3.is_open());
-	
-	for(int i=0; i<=k; i++)
-		f3 >> cfile;
-	
-	glGenTextures( 1, &texture_item );
-	
-	gllist_item = glGenLists(1);
-	glNewList(gllist_item,GL_COMPILE);
-	glBindTexture( GL_TEXTURE_2D, texture_item );
-	
-	std::ifstream f((fs::path("structs") / cfile).file_string().c_str());
-	assert(f.is_open());
-	
-	std::string textur;
-	
-	for(int i=0; i<7; i++) {
-		f >> textur;
-	}
-	
-	std::ifstream f2;
-	f2.open((fs::path("texpages") / textur).file_string().c_str());
-	
-	assert(f2.is_open());
-	
-	SDL_Surface *surface2 = IMG_Load((fs::path("texpages") / textur).file_string().c_str());
-	if(!surface2) printf("SDL could not load %s: %s\n", (fs::path("texpages") / textur).file_string().c_str(), IMG_GetError());
-	
-	SDL_Surface *surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
-															  surface2->w, surface2->h, 
-															32, 0x000000ff, 0x0000ff00,0x00ff0000 , 0xff000000);
-	if(!surface) printf("SDL could not load %s: %s\n", (fs::path("texpages") / textur).file_string().c_str(), SDL_GetError());
-	SDL_BlitSurface(surface2, 0, surface, 0);
-	
-	SDL_FreeSurface(surface2);
-	
-	glBindTexture( GL_TEXTURE_2D, texture_item );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	gluBuild2DMipmaps(GL_TEXTURE_2D, 4, surface->w, surface->h, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
-	if ( surface ) SDL_FreeSurface( surface );
-	
-
-	for(int i=0; i<7; i++) {
-		f >> textur;
-	}
-	
-	int points_count;
-	f >> points_count;
-	float *points;
-	points = new float[points_count*3];
-	for(int i=0; i<points_count; i++) {
-		f >> points[i*3+0];
-		f >> points[i*3+1];
-		f >> points[i*3+2];
-		points[i*3+1]-=15;
-		points[i*3+0]/=3;
-		points[i*3+1]/=3;
-		points[i*3+2]/=3;
-	}
-	
-	f >> textur; 
-	
-	int polygons;
-	f >> polygons;
-	for(int i=0; i<polygons; i++) {
-		double farbe[4];
-		int flags;
-		int dots_count;
-		f >> flags;
-		f >> dots_count;
-		
-		//assert(flags == 200 || flags == 4200);
-		
-		
-		int   *dots = new   int[dots_count];
-		double *tex  = new double[dots_count*2];
-		
-		for(int k=0; k<dots_count; k++) {
-			f >> dots[k];
-			assert(dots[k] < points_count);
-		}
-		
-		if((flags/1000) & 4) {
-			f >> farbe[0];
-			f >> farbe[1];
-			f >> farbe[2];
-			f >> farbe[3];
-			
-			farbe[0] /= 256;
-			farbe[1] /= 256;
-			farbe[2] /= 256;
-			farbe[3] /= 256;
-			
-			glColor4f(farbe[0],farbe[1],farbe[2],farbe[3]);
-		} else {
-			glColor4f(1,1,1,1);
-			
-		}
-		
-		for(int k=0; k<dots_count; k++) {
-			f >> tex[k*2]; f >> tex[k*2+1]; 
-		}
-		
-		
-		if(dots_count == 3) 	glBegin( GL_TRIANGLES );
-		if(dots_count == 4)	glBegin( GL_QUADS );
-		else						glBegin( GL_POLYGON );
-		for(int k=0; k<dots_count; k++) {
-			glTexCoord2f(tex[k*2+0]/256,tex[k*2+1]/256);
-			glVertex3f(points[dots[k]*3+0],points[dots[k]*3+1],points[dots[k]*3+2]);
-		}
-		glEnd();
-		
-		for(int k=2; k<dots_count; k++)
-			triangles_item.addTriangle (
-				btVector3(points[dots[0]*3+0],points[dots[0]*3+1],points[dots[0]*3+2]), 
-				btVector3(points[dots[k-1]*3+0],points[dots[k-1]*3+1],points[dots[k-1]*3+2]), 
-				btVector3(points[dots[k]*3+0],points[dots[k]*3+1],points[dots[k]*3+2]));
-	
-		delete [] dots;
-		delete [] tex;
-	}
-	
-	delete [] points;
-
-	f.close();
-	glEndList();
-	*/
 }
 
 

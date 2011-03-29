@@ -3,18 +3,18 @@ project (cubit)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
 
-find_package( SDL )
-find_package( SDL_mixer )
-find_package( SDL_image )
-find_package( Freetype )
-find_package( OpenGL )
+find_package( SDL REQUIRED )
+find_package( SDL_mixer REQUIRED )
+find_package( SDL_image REQUIRED )
+find_package( Freetype REQUIRED )
+find_package( OpenGL REQUIRED )
 find_package( Boost COMPONENTS program_options filesystem system )
 
 # local modules
-find_package( LZO )
-find_package( Sqlite3 )
-find_package( Bullet )
-find_package( FTGL )
+find_package( LZO REQUIRED )
+find_package( Sqlite3 REQUIRED )
+find_package( Bullet REQUIRED )
+find_package( FTGL REQUIRED )
 
 
 
