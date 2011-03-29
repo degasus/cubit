@@ -326,10 +326,11 @@ void Renderer::init()
 }
 
 
-
+float a = 0.0f;
 
 void Renderer::renderArea(Area* area, bool show)
 {
+	std::cout << a << std::endl;
 	if(area->empty) {
 		area->needupdate = 0;
 		if(area->gllist_generated)
@@ -426,6 +427,9 @@ void Renderer::renderArea(Area* area, bool show)
 						if(i == 99){
 							glDisable(GL_CULL_FACE);
 							glEnable(GL_BLEND);
+							//glDisable(GL_LIGHTING);
+							glBlendFunc(GL_ONE, GL_SRC_COLOR);
+							//glColor4f(0.5f, 0.5f, 0.5f, 0.1f);
 						}
 						glBegin( GL_QUADS );
 					}
@@ -481,6 +485,7 @@ void Renderer::renderArea(Area* area, bool show)
 					glEnd();
 					if(i == 99){
 						glEnable(GL_CULL_FACE);
+						//glEnable(GL_LIGHTING);
 						glDisable(GL_BLEND);
 					}
 				}
@@ -581,6 +586,7 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 void Renderer::render(PlayerPosition pos)
 {
 	// Clear the screen before drawing
+	a += 0.01f;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
 	glLoadIdentity();							// Reset The View
 	if(enableFog)
@@ -613,7 +619,7 @@ void Renderer::render(PlayerPosition pos)
 	areasRendered -= areasPerFrame;
 
 	int i=0;
-	
+	glColor4f(1,1,1,0.5);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 //		if(a->pos != areapos) continue;
