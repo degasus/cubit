@@ -8,7 +8,7 @@ Homepage: http://cubit-project.com/
 
 Package: cubit
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, cubit-data (= ${source:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, cubit-data (= ${source:Version}), ttf-freefont
 Recommends: cubit-music
 Description: first person role game in a world of cubes
  Cubit is a game in which you walk around in a world that

@@ -55,7 +55,7 @@ void UInterface::init()
 	}
 
 	// Create a pixmap font from a TrueType file.
-	font = new FTTextureFont("fonts/FreeSans.ttf");
+	font = new FTTextureFont("/usr/share/fonts/truetype/freefont/FreeSans.ttf");
 
 	// If something went wrong, bail out.
 	if(font->Error())
