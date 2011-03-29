@@ -1,94 +1,22 @@
 cmake_minimum_required (VERSION 2.6)
 project (cubit)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
+
 find_package( SDL )
 find_package( SDL_mixer )
 find_package( SDL_image )
-find_package( FTGL )
 find_package( Freetype )
 find_package( OpenGL )
 find_package( Boost COMPONENTS program_options filesystem system )
-#find_package( PkgConfig )
-#pkg_check_modules(PKG REQUIRED sqlite3 bullet)
 
-FIND_PATH(LZO_INCLUDE_DIR lzo/lzo1x.h
-	HINTS
-	$ENV{LZODIR}
-	PATH_SUFFIXES include
-	PATHS
-	/usr/include/lzo/
-	/usr/local/include/lzo/
-)
+# local modules
+find_package( LZO )
+find_package( Sqlite3 )
+find_package( Bullet )
+find_package( FTGL )
 
-FIND_LIBRARY(LZO_LIBRARIES NAMES lzo2
-	HINTS
-	$ENV{LZODIR}
-	PATH_SUFFIXES lib
-	PATHS
-	/usr/include/lzo/
-	/usr/local/include/lzo/
-)
 
-FIND_PATH(SQLITE_INCLUDE_DIR sqlite3.h
-	HINTS
-	$ENV{SQLITEDIR}
-	PATH_SUFFIXES include
-	PATHS
-	/usr/include/
-	/usr/local/include/
-)
-
-FIND_LIBRARY(SQLITE_LIBRARIES NAMES sqlite3
-	HINTS
-	$ENV{SQLITEDIR}
-	PATH_SUFFIXES lib
-	PATHS
-	/usr/include/
-	/usr/local/include/
-)
-
-FIND_PATH(BULLET_INCLUDE_DIR btBulletDynamicsCommon.h
-	HINTS
-	$ENV{BULLETDIR}
-	PATH_SUFFIXES include/bullet
-	PATHS
-	/usr/include/
-	/usr/local/include/
-)
-
-FIND_LIBRARY(BULLET_LIBRARIES_SOFTBODY NAMES BulletSoftBody BulletDynamics BulletCollision LinearMath
-	HINTS
-	$ENV{BULLETDIR}
-	PATH_SUFFIXES lib
-	PATHS
-	/usr/include/
-	/usr/local/include/
-)
-FIND_LIBRARY(BULLET_LIBRARIES_DYNAMICS NAMES BulletDynamics 
-	HINTS
-	$ENV{BULLETDIR}
-	PATH_SUFFIXES lib
-	PATHS
-	/usr/include/
-	/usr/local/include/
-)
-FIND_LIBRARY(BULLET_LIBRARIES_COLLISION NAMES BulletCollision
-	HINTS
-	$ENV{BULLETDIR}
-	PATH_SUFFIXES lib
-	PATHS
-	/usr/include/
-	/usr/local/include/
-)
-FIND_LIBRARY(BULLET_LIBRARIES_MATH NAMES LinearMath
-	HINTS
-	$ENV{BULLETDIR}
-	PATH_SUFFIXES lib
-	PATHS
-	/usr/include/
-	/usr/local/include/
-)
-SET(BULLET_LIBRARIES "${BULLET_LIBRARIES_SOFTBODY};${BULLET_LIBRARIES_DYNAMICS};${BULLET_LIBRARIES_COLLISION};${BULLET_LIBRARIES_MATH}")
 
 ADD_DEFINITIONS(-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 
@@ -101,7 +29,7 @@ endif(MINGW)
 add_executable(cubit main.cpp controller.cpp map.cpp movement.cpp net.cpp ui.cpp renderer.cpp GLDebugDrawer.cpp logo/cubit.rc)
 
 include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${LZO_INCLUDE_DIR} ${BULLET_INCLUDE_DIR})
-target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${FTGL_LIBRARY} ${FREETYPE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE_LIBRARIES} ${LZO_LIBRARIES} ${BULLET_LIBRARIES})
+target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${FTGL_LIBRARY} ${FREETYPE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${LZO_LIBRARIES} ${BULLET_LIBRARIES})
 
 INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit DESTINATION games)
 
