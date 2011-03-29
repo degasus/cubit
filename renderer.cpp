@@ -253,7 +253,7 @@ void Renderer::renderArea(Area* area, bool show)
 						next_m = 1;
 					
 					// MAterial 99 = water
-					if(!next_m || (next_m == 99 && now != next_m )) {
+					if(!next_m || (next_m == 99 && now != next_m ) || (now == 99 && next_m != now)) {
 						polygon p;
 						p.pos = pos;
 						p.d = (DIRECTION)dir;
@@ -546,10 +546,8 @@ void Renderer::render(PlayerPosition pos)
 
 	
 	glEnable(GL_BLEND);
-	//glDisable(GL_CULL_FACE);
-	//glBlendFunc(GL_ONE, GL_SRC_COLOR);
+	glDisable(GL_CULL_FACE);
 	glBlendFunc(GL_ZERO, GL_ONE);
-				
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		bool inview = areaInViewport(a->pos, pos);
@@ -560,12 +558,8 @@ void Renderer::render(PlayerPosition pos)
 			glPopMatrix();
 		}
 	}
-	//glEnable(GL_CULL_FACE);
-	
-	glDisable(GL_CULL_FACE);
+	glDepthFunc(GL_EQUAL);	
 	glBlendFunc(GL_ONE, GL_SRC_COLOR);
-	//glBlendFunc(GL_ZERO, GL_ONE);
-				
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		bool inview = areaInViewport(a->pos, pos);
@@ -578,7 +572,7 @@ void Renderer::render(PlayerPosition pos)
 	}
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
-	
+	glDepthFunc(GL_LESS);	
 	
 	renderObjects();
 	
