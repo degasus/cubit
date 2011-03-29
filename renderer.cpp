@@ -293,10 +293,10 @@ void Renderer::renderArea(Area* area, bool show)
 						texture_used = 1;
 						glBindTexture( GL_TEXTURE_2D, texture[i] );
 						if(i == 99){
-							glDisable(GL_CULL_FACE);
+							//glDisable(GL_CULL_FACE);
 							glEnable(GL_BLEND);
 							//glDisable(GL_LIGHTING);
-							glBlendFunc(GL_ONE, GL_SRC_COLOR);
+							glBlendFunc(GL_ZERO, GL_ONE);
 							//glColor4f(0.5f, 0.5f, 0.5f, 0.1f);
 						}
 						glBegin( GL_QUADS );
@@ -351,11 +351,11 @@ void Renderer::renderArea(Area* area, bool show)
 				}
 				if(texture_used){
 					glEnd();
-	/*				if(i == 99){
-						glEnable(GL_CULL_FACE);
+					if(i == 99){
+						//glEnable(GL_CULL_FACE);
 						//glEnable(GL_LIGHTING);
 						glDisable(GL_BLEND);
-					} */
+					} 
 				}
 			}
 //			glTranslatef(-diff_oldx, -diff_oldy, -diff_oldz);
@@ -390,12 +390,6 @@ void Renderer::renderArea(Area* area, bool show)
 				
 				glBindTexture( GL_TEXTURE_2D, texture[i] );
 
-				glDisable(GL_CULL_FACE);
-				glEnable(GL_BLEND);
-				//glDisable(GL_LIGHTING);
-				glBlendFunc(GL_ONE, GL_SRC_COLOR);
-				//glColor4f(0.5f, 0.5f, 0.5f, 0.1f);
-
 				glBegin( GL_QUADS );
 						
 				for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
@@ -418,9 +412,6 @@ void Renderer::renderArea(Area* area, bool show)
 					}
 				}
 				glEnd();
-				glEnable(GL_CULL_FACE);
-				//glEnable(GL_LIGHTING);
-				glDisable(GL_BLEND);
 	//			glTranslatef(-diff_oldx, -diff_oldy, -diff_oldz);
 				glEndList();
 				
@@ -552,7 +543,13 @@ void Renderer::render(PlayerPosition pos)
 		i++;
 	}
 	//std::cout << "anzahl geränderte areas: " << i << std::endl;
+
 	
+	glEnable(GL_BLEND);
+	//glDisable(GL_CULL_FACE);
+	//glBlendFunc(GL_ONE, GL_SRC_COLOR);
+	glBlendFunc(GL_ZERO, GL_ONE);
+				
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		bool inview = areaInViewport(a->pos, pos);
@@ -563,7 +560,25 @@ void Renderer::render(PlayerPosition pos)
 			glPopMatrix();
 		}
 	}
-			
+	//glEnable(GL_CULL_FACE);
+	
+	glDisable(GL_CULL_FACE);
+	glBlendFunc(GL_ONE, GL_SRC_COLOR);
+	//glBlendFunc(GL_ZERO, GL_ONE);
+				
+	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
+		Area* a = *it;
+		bool inview = areaInViewport(a->pos, pos);
+		if(a->state == Area::STATE_READY && inview && a->gllist_has_blend) {
+			glPushMatrix();
+			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
+			glCallList(a->gllist_blend);
+			glPopMatrix();
+		}
+	}
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	
 	
 	renderObjects();
 	
