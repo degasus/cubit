@@ -196,12 +196,8 @@ void Renderer::init()
 	}
 }
 
-
-float a = 0.0f;
-
 void Renderer::renderArea(Area* area, bool show)
 {
-	std::cout << a << std::endl;
 	if(area->empty) {
 		area->needupdate = 0;
 		if(area->gllist_generated)
@@ -457,7 +453,6 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 void Renderer::render(PlayerPosition pos)
 {
 	// Clear the screen before drawing
-	a += 0.01f;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
 	glLoadIdentity();							// Reset The View
 	if(enableFog)
