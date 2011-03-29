@@ -284,6 +284,7 @@ void Renderer::renderArea(Area* area, bool show)
       
       
 			for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
+				if(i==99) continue;
 				bool texture_used = 0;
 				for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
 					
@@ -350,11 +351,11 @@ void Renderer::renderArea(Area* area, bool show)
 				}
 				if(texture_used){
 					glEnd();
-					if(i == 99){
+	/*				if(i == 99){
 						glEnable(GL_CULL_FACE);
 						//glEnable(GL_LIGHTING);
 						glDisable(GL_BLEND);
-					}
+					} */
 				}
 			}
 //			glTranslatef(-diff_oldx, -diff_oldy, -diff_oldz);
@@ -376,17 +377,72 @@ void Renderer::renderArea(Area* area, bool show)
 				c->movement->dynamicsWorld->addRigidBody(area->rigid);
 			}
 			
+			int i = 99;
+				
+			if( polys[i].begin() != polys[i].end()) {
+				
+				if(!area->gllist_has_blend) {
+					area->gllist_has_blend = 1;
+					area->gllist_blend = glGenLists(1);
+				}
+				glNewList(area->gllist_blend,GL_COMPILE);      
+		
+				
+				glBindTexture( GL_TEXTURE_2D, texture[i] );
+
+				glDisable(GL_CULL_FACE);
+				glEnable(GL_BLEND);
+				//glDisable(GL_LIGHTING);
+				glBlendFunc(GL_ONE, GL_SRC_COLOR);
+				//glColor4f(0.5f, 0.5f, 0.5f, 0.1f);
+
+				glBegin( GL_QUADS );
+						
+				for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
+					
+					int diffx = it->pos.x-area->pos.x;
+					int diffy = it->pos.y-area->pos.y;
+					int diffz = it->pos.z-area->pos.z;
+						
+					glNormal3f( NORMAL_OF_DIRECTION[it->d][0], NORMAL_OF_DIRECTION[it->d][1], NORMAL_OF_DIRECTION[it->d][2]);                                     // Normal Pointing Towards Viewer
+					for(int point=0; point < POINTS_PER_POLYGON; point++) {
+						glTexCoord2f(
+							TEXTUR_POSITION_OF_DIRECTION[it->d][point][0],
+							TEXTUR_POSITION_OF_DIRECTION[it->d][point][1]
+						);
+						glVertex3f(
+							POINTS_OF_DIRECTION[it->d][point][0]+diffx,
+							POINTS_OF_DIRECTION[it->d][point][1]+diffy,
+							POINTS_OF_DIRECTION[it->d][point][2]+diffz
+						);
+					}
+				}
+				glEnd();
+				glEnable(GL_CULL_FACE);
+				//glEnable(GL_LIGHTING);
+				glDisable(GL_BLEND);
+	//			glTranslatef(-diff_oldx, -diff_oldy, -diff_oldz);
+				glEndList();
+				
+			}
 		} else {
-			if(area->gllist_generated)
+			if(area->gllist_generated) {
 				glDeleteLists(area->gllist,1);
+				if(area->gllist_has_blend)
+					glDeleteLists(area->gllist_blend,1);
+			}
 			area->gllist_generated = 0;
+			area->gllist_has_blend = 0;
 			area->gllist = 0;
+			area->gllist_blend = 0;
 			area->delete_collision(c->movement->dynamicsWorld);
 		}
 	}
 	if(area->gllist_generated) {
 		if(show) {
 			glCallList(area->gllist);
+			//if(area->gllist_has_blend)
+			//	glCallList(area->gllist_blend);
 		}
 	} else {
 		// do nothing
@@ -496,6 +552,18 @@ void Renderer::render(PlayerPosition pos)
 		i++;
 	}
 	//std::cout << "anzahl geränderte areas: " << i << std::endl;
+	
+	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
+		Area* a = *it;
+		bool inview = areaInViewport(a->pos, pos);
+		if(a->state == Area::STATE_READY && inview && a->gllist_has_blend) {
+			glPushMatrix();
+			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
+			glCallList(a->gllist_blend);
+			glPopMatrix();
+		}
+	}
+			
 	
 	renderObjects();
 	

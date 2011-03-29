@@ -471,6 +471,7 @@ Area::Area(BlockPosition p)
 	
 	pos = p;
 	gllist_generated = 0;
+	gllist_has_blend = 0;
 	bullet_generated = 0;
 	needupdate = 1;
 	needstore = 0;
@@ -491,6 +492,7 @@ Area::Area(BlockPosition p)
 	state = STATE_NEW;
 
 	gllist = 0;
+	gllist_blend = 0;
 	
 	mesh = 0;
 	shape = 0;

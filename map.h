@@ -177,7 +177,10 @@ public:
 	
 	// for saving the GL-List
 	GLuint gllist;
+	GLuint gllist_blend;
+	
 	bool gllist_generated;
+	bool gllist_has_blend;
 	bool bullet_generated;
 	bool needupdate;
 	
@@ -299,10 +302,16 @@ public:
 	}
 	
 	inline void deconfigure() {
-		if(gllist_generated)
+		if(gllist_generated) {
 			glDeleteLists(gllist,1);
+			if(gllist_has_blend) {
+				glDeleteLists(gllist_blend,1);
+			}
+		}
 		gllist_generated = 0;
+		gllist_has_blend = 0;
 		gllist = 0;
+		gllist_blend = 0;
 		
 	//	if(colShape) delete colShape;
 	//	colShape = 0;
