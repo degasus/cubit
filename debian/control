@@ -2,13 +2,13 @@ Source: cubit
 Section: universe/games
 Priority: extra
 Maintainer: Markus Wick <markus@selfnet.de>
-Build-Depends: debhelper (>=7.0.50~), cmake, quilt, libsdl1.2-dev, libsdl-mixer1.2-dev, libsdl-image1.2-dev, libboost-program-options-dev, libboost-filesystem-dev, libsqlite3-dev, libbullet-dev, liblzo2-dev
+Build-Depends: debhelper (>=7.0.50~), cmake, quilt, libsdl1.2-dev, libsdl-mixer1.2-dev, libsdl-image1.2-dev, libboost-program-options-dev, libboost-filesystem-dev, libsqlite3-dev, libbullet-dev, liblzo2-dev, libftgl-dev
 Standards-Version: 3.9.1.0
 Homepage: http://cubit-project.com/
 
 Package: cubit
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, cubit-data (= ${source:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, cubit-data (= ${source:Version}), ttf-freefont
 Recommends: cubit-music
 Description: first person role game in a world of cubes
  Cubit is a game in which you walk around in a world that
