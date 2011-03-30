@@ -253,7 +253,7 @@ void Renderer::renderArea(Area* area, bool show)
 						next_m = 1;
 					
 					// MAterial 99 = water
-					if(!next_m || (next_m == 99 && now != next_m ) || (now == 99 && next_m != now)) {
+					if(!next_m || (next_m == 99 && now != next_m )) {
 						polygon p;
 						p.pos = pos;
 						p.d = (DIRECTION)dir;
@@ -572,7 +572,7 @@ void Renderer::render(PlayerPosition pos)
 	}
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
-	glDepthFunc(GL_LESS);	
+	glDepthFunc(GL_LEQUAL);	
 	
 	renderObjects();
 	
