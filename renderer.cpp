@@ -273,7 +273,7 @@ void Renderer::renderArea(Area* area, bool show)
 			area->vbo_generated = 1;
 			glGenBuffers(NUMBER_OF_MATERIALS, area->vbo); 
       
-			for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
+			for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
 				if(polys[i].empty()) continue;
 				
 				int size = polys[i].size()*8*POINTS_PER_POLYGON;
@@ -358,7 +358,7 @@ void Renderer::renderArea(Area* area, bool show)
 	}
 	if(area->vbo_generated) {
 		if(show) {
-			for(int i=0; i<NUMBER_OF_MATERIALS; i++) if(area->vbo_created[i]) {
+			for(int i=1; i<NUMBER_OF_MATERIALS; i++) if(area->vbo_created[i] && i != 99) {
 				glBindTexture( GL_TEXTURE_2D, texture[i] );
 				glBindBufferARB(GL_ARRAY_BUFFER, area->vbo[i]);
 				glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, 0);
@@ -481,10 +481,13 @@ void Renderer::render(PlayerPosition pos)
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		bool inview = areaInViewport(a->pos, pos);
-		if(a->state == Area::STATE_READY && inview && a->gllist_has_blend) {
+		if(a->state == Area::STATE_READY && inview && a->vbo_created[99]) {
 			glPushMatrix();
 			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
-			glCallList(a->gllist_blend);
+			glBindTexture( GL_TEXTURE_2D, texture[99] );
+			glBindBufferARB(GL_ARRAY_BUFFER, a->vbo[99]);
+			glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, 0);
+			glDrawArrays(GL_QUADS, 0, a->vbo_created[99]);
 			glPopMatrix();
 		}
 	}
@@ -493,10 +496,13 @@ void Renderer::render(PlayerPosition pos)
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		bool inview = areaInViewport(a->pos, pos);
-		if(a->state == Area::STATE_READY && inview && a->gllist_has_blend) {
+		if(a->state == Area::STATE_READY && inview && a->vbo_created[99]) {
 			glPushMatrix();
 			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
-			glCallList(a->gllist_blend);
+			glBindTexture( GL_TEXTURE_2D, texture[99] );
+			glBindBufferARB(GL_ARRAY_BUFFER, a->vbo[99]);
+			glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, 0);
+			glDrawArrays(GL_QUADS, 0, a->vbo_created[99]);
 			glPopMatrix();
 		}
 	}
