@@ -270,13 +270,8 @@ void Renderer::renderArea(Area* area, bool show)
 			if(generate_bullet)
 				area->mesh = new btTriangleMesh();
 			
-			area->gllist_generated = 1;
-			area->gllist = glGenLists(1);
-
 			area->vbo_generated = 1;
-			glGenBuffers(NUMBER_OF_MATERIALS, area->vbo);
-			
-			glNewList(area->gllist,GL_COMPILE);      
+			glGenBuffers(NUMBER_OF_MATERIALS, area->vbo); 
       
 			for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
 				if(polys[i].empty()) continue;
@@ -289,9 +284,6 @@ void Renderer::renderArea(Area* area, bool show)
 				//GL_T2F_N3F_V3F;
 				GLfloat *vbopointer = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 				int vbocounter = 0;
-				
-				glBindTexture( GL_TEXTURE_2D, texture[i] );
-				glBegin( GL_QUADS );
 				
 				for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
 					
@@ -317,20 +309,8 @@ void Renderer::renderArea(Area* area, bool show)
 						
 						vbocounter+=8;
 					}
-/*          					
-					glNormal3f( NORMAL_OF_DIRECTION[it->d][0], NORMAL_OF_DIRECTION[it->d][1], NORMAL_OF_DIRECTION[it->d][2]);                                     // Normal Pointing Towards Viewer
-					for(int point=0; point < POINTS_PER_POLYGON; point++) {
-						glTexCoord2f(
-							TEXTUR_POSITION_OF_DIRECTION[it->d][point][0],
-							TEXTUR_POSITION_OF_DIRECTION[it->d][point][1]
-						);
-						glVertex3f(
-							POINTS_OF_DIRECTION[it->d][point][0]+diffx,
-							POINTS_OF_DIRECTION[it->d][point][1]+diffy,
-							POINTS_OF_DIRECTION[it->d][point][2]+diffz
-						);
-					}
-*/					if(generate_bullet && i != 99) {
+
+					if(generate_bullet && i != 99) {
 						for(int point=2; point < POINTS_PER_POLYGON; point++) {
 							area->mesh->addTriangle(
 								btVector3(
@@ -352,10 +332,8 @@ void Renderer::renderArea(Area* area, bool show)
 						}
 					}
 				}
+				glUnmapBufferARB(GL_ARRAY_BUFFER);
 			}
-			glEnd();
-			glEndList();
-			glUnmapBufferARB(GL_ARRAY_BUFFER);
 			
 			if(generate_bullet) {
 				area->shape = new btBvhTriangleMeshShape(area->mesh,1);
@@ -378,12 +356,8 @@ void Renderer::renderArea(Area* area, bool show)
 			area->delete_collision(c->movement->dynamicsWorld);
 		}
 	}
-	if(area->gllist_generated) {
+	if(area->vbo_generated) {
 		if(show) {
-			//glCallList(area->gllist);
-			//if(area->gllist_has_blend)
-			//	glCallList(area->gllist_blend);
-			
 			for(int i=0; i<NUMBER_OF_MATERIALS; i++) if(area->vbo_created[i]) {
 				glBindTexture( GL_TEXTURE_2D, texture[i] );
 				glBindBufferARB(GL_ARRAY_BUFFER, area->vbo[i]);
