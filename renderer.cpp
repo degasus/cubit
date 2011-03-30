@@ -200,11 +200,8 @@ void Renderer::renderArea(Area* area, bool show)
 {
 	if(area->empty) {
 		area->needupdate = 0;
-		if(area->gllist_generated)
-			glDeleteLists(area->gllist,1);
+		area->delete_opengl();
 		area->delete_collision(c->movement->dynamicsWorld);
-		area->gllist = 0;
-		area->gllist_generated = 0;
 		return;
 	}
 	if(show) {
@@ -221,6 +218,7 @@ void Renderer::renderArea(Area* area, bool show)
 	if((area->needupdate || (!area->bullet_generated && generate_bullet)) && (areasRendered <= areasPerFrame)) {
 		areasRendered++;
 		
+		area->delete_opengl();
 		area->delete_collision(c->movement->dynamicsWorld);
 		
 		area->bullet_generated = generate_bullet;
@@ -272,49 +270,54 @@ void Renderer::renderArea(Area* area, bool show)
 			if(generate_bullet)
 				area->mesh = new btTriangleMesh();
 			
-			if(!area->gllist_generated) {
-				area->gllist_generated = 1;
-				area->gllist = glGenLists(1);
-			}
-			glNewList(area->gllist,GL_COMPILE);
+			area->gllist_generated = 1;
+			area->gllist = glGenLists(1);
+
+			area->vbo_generated = 1;
+			glGenBuffers(NUMBER_OF_MATERIALS, area->vbo);
 			
-			int diff_oldx = 0;
-			int diff_oldy = 0;
-			int diff_oldz = 0;
-      
+			glNewList(area->gllist,GL_COMPILE);      
       
 			for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
-				if(i==99) continue;
-				bool texture_used = 0;
+				if(polys[i].empty()) continue;
+				
+				int size = polys[i].size()*8*POINTS_PER_POLYGON;
+				area->vbo_created[i] = size;
+				glBindBufferARB(GL_ARRAY_BUFFER, area->vbo[i]);
+				glEnableClientState(GL_VERTEX_ARRAY);
+				glBufferDataARB(GL_ARRAY_BUFFER, size*sizeof(GLfloat), 0, GL_STATIC_DRAW);
+				//GL_T2F_N3F_V3F;
+				GLfloat *vbopointer = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+				int vbocounter = 0;
+				
+				glBindTexture( GL_TEXTURE_2D, texture[i] );
+				glBegin( GL_QUADS );
+				
 				for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
-					
-					// switch texture
-					if(!texture_used) {
-						texture_used = 1;
-						glBindTexture( GL_TEXTURE_2D, texture[i] );
-						if(i == 99){
-							//glDisable(GL_CULL_FACE);
-							glEnable(GL_BLEND);
-							//glDisable(GL_LIGHTING);
-							glBlendFunc(GL_ZERO, GL_ONE);
-							//glColor4f(0.5f, 0.5f, 0.5f, 0.1f);
-						}
-						glBegin( GL_QUADS );
-					}
 					
 					int diffx = it->pos.x-area->pos.x;
 					int diffy = it->pos.y-area->pos.y;
 					int diffz = it->pos.z-area->pos.z;
-          
-          
-					//glTranslatef(diffx-diff_oldx, diffy-diff_oldy, diffz-diff_oldz);
-					//glCallList(polygon_gllist + it->d);
-          
-					diff_oldx = diffx;
-					diff_oldy = diffy;
-					diff_oldz = diffz;
-          
-					
+					for(int point=0; point < POINTS_PER_POLYGON; point++) {
+						//assert(vbocounter < size);
+						
+						// texture
+						vbopointer[vbocounter+0] = TEXTUR_POSITION_OF_DIRECTION[it->d][point][0];
+						vbopointer[vbocounter+1] = TEXTUR_POSITION_OF_DIRECTION[it->d][point][1];
+						
+						// normale
+						vbopointer[vbocounter+2] = NORMAL_OF_DIRECTION[it->d][0];
+						vbopointer[vbocounter+3] = NORMAL_OF_DIRECTION[it->d][1];
+						vbopointer[vbocounter+4] = NORMAL_OF_DIRECTION[it->d][2];
+						
+						// vertex
+						vbopointer[vbocounter+5] = POINTS_OF_DIRECTION[it->d][point][0]+diffx;
+						vbopointer[vbocounter+6] = POINTS_OF_DIRECTION[it->d][point][1]+diffy;
+						vbopointer[vbocounter+7] = POINTS_OF_DIRECTION[it->d][point][2]+diffz;
+						
+						vbocounter+=8;
+					}
+/*          					
 					glNormal3f( NORMAL_OF_DIRECTION[it->d][0], NORMAL_OF_DIRECTION[it->d][1], NORMAL_OF_DIRECTION[it->d][2]);                                     // Normal Pointing Towards Viewer
 					for(int point=0; point < POINTS_PER_POLYGON; point++) {
 						glTexCoord2f(
@@ -327,7 +330,7 @@ void Renderer::renderArea(Area* area, bool show)
 							POINTS_OF_DIRECTION[it->d][point][2]+diffz
 						);
 					}
-					if(generate_bullet && i != 99) {
+*/					if(generate_bullet && i != 99) {
 						for(int point=2; point < POINTS_PER_POLYGON; point++) {
 							area->mesh->addTriangle(
 								btVector3(
@@ -349,17 +352,10 @@ void Renderer::renderArea(Area* area, bool show)
 						}
 					}
 				}
-				if(texture_used){
-					glEnd();
-					if(i == 99){
-						//glEnable(GL_CULL_FACE);
-						//glEnable(GL_LIGHTING);
-						glDisable(GL_BLEND);
-					} 
-				}
 			}
-//			glTranslatef(-diff_oldx, -diff_oldy, -diff_oldz);
+			glEnd();
 			glEndList();
+			glUnmapBufferARB(GL_ARRAY_BUFFER);
 			
 			if(generate_bullet) {
 				area->shape = new btBvhTriangleMeshShape(area->mesh,1);
@@ -377,63 +373,23 @@ void Renderer::renderArea(Area* area, bool show)
 				c->movement->dynamicsWorld->addRigidBody(area->rigid);
 			}
 			
-			int i = 99;
-				
-			if( polys[i].begin() != polys[i].end()) {
-				
-				if(!area->gllist_has_blend) {
-					area->gllist_has_blend = 1;
-					area->gllist_blend = glGenLists(1);
-				}
-				glNewList(area->gllist_blend,GL_COMPILE);      
-		
-				
-				glBindTexture( GL_TEXTURE_2D, texture[i] );
-
-				glBegin( GL_QUADS );
-						
-				for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
-					
-					int diffx = it->pos.x-area->pos.x;
-					int diffy = it->pos.y-area->pos.y;
-					int diffz = it->pos.z-area->pos.z;
-						
-					glNormal3f( NORMAL_OF_DIRECTION[it->d][0], NORMAL_OF_DIRECTION[it->d][1], NORMAL_OF_DIRECTION[it->d][2]);                                     // Normal Pointing Towards Viewer
-					for(int point=0; point < POINTS_PER_POLYGON; point++) {
-						glTexCoord2f(
-							TEXTUR_POSITION_OF_DIRECTION[it->d][point][0],
-							TEXTUR_POSITION_OF_DIRECTION[it->d][point][1]
-						);
-						glVertex3f(
-							POINTS_OF_DIRECTION[it->d][point][0]+diffx,
-							POINTS_OF_DIRECTION[it->d][point][1]+diffy,
-							POINTS_OF_DIRECTION[it->d][point][2]+diffz
-						);
-					}
-				}
-				glEnd();
-	//			glTranslatef(-diff_oldx, -diff_oldy, -diff_oldz);
-				glEndList();
-				
-			}
 		} else {
-			if(area->gllist_generated) {
-				glDeleteLists(area->gllist,1);
-				if(area->gllist_has_blend)
-					glDeleteLists(area->gllist_blend,1);
-			}
-			area->gllist_generated = 0;
-			area->gllist_has_blend = 0;
-			area->gllist = 0;
-			area->gllist_blend = 0;
+			area->delete_opengl();
 			area->delete_collision(c->movement->dynamicsWorld);
 		}
 	}
 	if(area->gllist_generated) {
 		if(show) {
-			glCallList(area->gllist);
+			//glCallList(area->gllist);
 			//if(area->gllist_has_blend)
 			//	glCallList(area->gllist_blend);
+			
+			for(int i=0; i<NUMBER_OF_MATERIALS; i++) if(area->vbo_created[i]) {
+				glBindTexture( GL_TEXTURE_2D, texture[i] );
+				glBindBufferARB(GL_ARRAY_BUFFER, area->vbo[i]);
+				glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, 0);
+				glDrawArrays(GL_QUADS, 0, area->vbo_created[i]);
+			}
 		}
 	} else {
 		// do nothing

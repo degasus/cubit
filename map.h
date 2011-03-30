@@ -2,10 +2,10 @@
 #include <queue>
 #include <list>
 #include <cstdio>
-
 #include <boost/program_options.hpp>
 #include <SDL_opengl.h>
 #include <SDL_thread.h>
+
 
 #ifndef _MAP_H_
 #define _MAP_H_
@@ -177,10 +177,13 @@ public:
 	
 	// for saving the GL-List
 	GLuint gllist;
+	GLuint vbo[NUMBER_OF_MATERIALS];
 	GLuint gllist_blend;
 	
 	bool gllist_generated;
-	bool gllist_has_blend;
+	int vbo_created[NUMBER_OF_MATERIALS];
+	bool vbo_generated;
+	bool gllist_has_blend; 
 	bool bullet_generated;
 	bool needupdate;
 	
@@ -211,6 +214,27 @@ public:
 		if(rigid) delete rigid; rigid = 0;
 		
 		bullet_generated = 0;
+	}
+	
+	inline void delete_opengl() {
+		if(gllist_generated) {
+			glDeleteLists(gllist,1);
+			if(gllist_has_blend) {
+				glDeleteLists(gllist_blend,1);
+			}
+		}
+		if(vbo_generated) {
+			glDeleteBuffers(NUMBER_OF_MATERIALS,vbo);
+		}
+		gllist_generated = 0;
+		gllist_has_blend = 0;
+		vbo_generated = 0;
+		for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
+			vbo[i] = 0;
+			vbo_created[i] = 0;
+		}
+		gllist = 0;
+		gllist_blend = 0;
 	}
 	
 	enum AreaState {
@@ -302,16 +326,8 @@ public:
 	}
 	
 	inline void deconfigure() {
-		if(gllist_generated) {
-			glDeleteLists(gllist,1);
-			if(gllist_has_blend) {
-				glDeleteLists(gllist_blend,1);
-			}
-		}
-		gllist_generated = 0;
-		gllist_has_blend = 0;
-		gllist = 0;
-		gllist_blend = 0;
+		delete_opengl();
+		
 		
 	//	if(colShape) delete colShape;
 	//	colShape = 0;

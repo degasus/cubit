@@ -472,6 +472,7 @@ Area::Area(BlockPosition p)
 	pos = p;
 	gllist_generated = 0;
 	gllist_has_blend = 0;
+	vbo_generated = 0;
 	bullet_generated = 0;
 	needupdate = 1;
 	needstore = 0;
@@ -493,7 +494,10 @@ Area::Area(BlockPosition p)
 
 	gllist = 0;
 	gllist_blend = 0;
-	
+	for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
+		vbo[i] = 0;
+		vbo_created[i] = 0;
+	}
 	mesh = 0;
 	shape = 0;
 	motion = 0;

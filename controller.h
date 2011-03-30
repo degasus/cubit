@@ -1,6 +1,5 @@
 #include <boost/program_options.hpp>
 #include <sqlite3.h>
-
 #ifndef _CONTROLLER_H_
 #define _CONTROLLER_H_
 
