@@ -101,7 +101,7 @@ void Renderer::init()
 	glHint(GL_FOG_HINT, GL_FASTEST); 
 	glFogf(GL_FOG_START, visualRange*fogStartFactor*AREASIZE_X);
 	glFogf(GL_FOG_END, visualRange*AREASIZE_X);
-	if(enableFog)
+	if(enableFog && visualRange > 0)
 		glEnable(GL_FOG);					// Enables GL_FOG
 
 
@@ -271,7 +271,7 @@ void Renderer::renderArea(Area* area, bool show)
 				area->mesh = new btTriangleMesh();
 			
 			area->vbo_generated = 1;
-			glGenBuffers(NUMBER_OF_MATERIALS, area->vbo); 
+			glGenBuffersARB(NUMBER_OF_MATERIALS, area->vbo); 
       
 			for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
 				if(polys[i].empty()) continue;
@@ -279,7 +279,7 @@ void Renderer::renderArea(Area* area, bool show)
 				int size = polys[i].size()*8*POINTS_PER_POLYGON;
 				area->vbo_created[i] = size;
 				glBindBufferARB(GL_ARRAY_BUFFER, area->vbo[i]);
-				glEnableClientState(GL_VERTEX_ARRAY);
+				//glEnableClientState(GL_VERTEX_ARRAY);
 				glBufferDataARB(GL_ARRAY_BUFFER, size*sizeof(GLfloat), 0, GL_STATIC_DRAW);
 				//GL_T2F_N3F_V3F;
 				GLfloat *vbopointer = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);

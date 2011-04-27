@@ -224,7 +224,7 @@ public:
 			}
 		}
 		if(vbo_generated) {
-			glDeleteBuffers(NUMBER_OF_MATERIALS,vbo);
+			glDeleteBuffersARB(NUMBER_OF_MATERIALS,vbo);
 		}
 		gllist_generated = 0;
 		gllist_has_blend = 0;
