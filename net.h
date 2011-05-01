@@ -6,13 +6,31 @@ class AreaChangedEvent;
 
 #include "map.h"
 
+#ifdef _WIN32
+/* Headerfiles für Windows */
+#include <winsock.h>
+#include <io.h>
+
+#else
+/* Headerfiles für Unix/Linux */
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <stdlib.h>
+#include <string.h>
+#define closesocket(s) close(s)
+#endif
+
+#define PORT 1337
+
 /**
  * This class manages the network connection between the clients and the server.
  */
 class Net {
 public:
 	// log into the given server
-	Net(char* server, void* profile);
+	Net(char* server/*, void* profile*/);
 
 	// log off
 	~Net();
@@ -26,7 +44,13 @@ public:
 
 
 private:
-
+	struct sockaddr_in server;
+	struct hostent *host_info;
+	unsigned long addr;
+	int sock;
+	
+	void sendToServer(char* str);
+	char* readFromServer();
 };
 
 class AreaChangedEvent {
