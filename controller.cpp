@@ -61,7 +61,7 @@ void Controller::init() {
 	fs::create_directory( vm["workingDirectory"].as<fs::path>() );
 	
 	// init SQL
-	if(sqlite3_open((vm["workingDirectory"].as<fs::path>() / "cubit.db").file_string().c_str(), &database) != SQLITE_OK)
+	if(sqlite3_open((vm["workingDirectory"].as<fs::path>() / "cubit.db").string().c_str(), &database) != SQLITE_OK)
 	// Es ist ein Fehler aufgetreten!
 	std::cout << "Fehler beim Öffnen: " << sqlite3_errmsg(database) << std::endl;
 	
@@ -175,7 +175,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		po::notify(vm);
 		
 		//config file
-		std::ifstream i((vm["workingDirectory"].as<fs::path>() / "cubit.conf").file_string().c_str());
+		std::ifstream i((vm["workingDirectory"].as<fs::path>() / "cubit.conf").string().c_str());
 		if (i.is_open()) {
 			po::store(po::parse_config_file(i, cmdline_options), vm);
 		}

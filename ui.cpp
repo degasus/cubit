@@ -75,10 +75,10 @@ void UInterface::init()
 	fs::path filename = fs::path("sound") / "music" / "forest.ogg";
 
 	//load music
-	if(!((ingameMusic = Mix_LoadMUS((dataDirectory / filename).file_string().c_str()))||
-		(ingameMusic = Mix_LoadMUS((workingDirectory / filename).file_string().c_str())) ||
-		(ingameMusic = Mix_LoadMUS((localDirectory / filename).file_string().c_str())) ||
-		(ingameMusic = Mix_LoadMUS((filename).file_string().c_str())))
+	if(!((ingameMusic = Mix_LoadMUS((dataDirectory / filename).string().c_str()))||
+		(ingameMusic = Mix_LoadMUS((workingDirectory / filename).string().c_str())) ||
+		(ingameMusic = Mix_LoadMUS((localDirectory / filename).string().c_str())) ||
+		(ingameMusic = Mix_LoadMUS((filename).string().c_str())))
 	) {
 		std::cout << "Could not find the music file " << filename << " Error: " << Mix_GetError() <<  std::endl;
 	}

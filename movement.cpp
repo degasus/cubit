@@ -99,10 +99,10 @@ void Movement::init()
 	
 	fs::path filename = fs::path("sound") / "fx" / "nutfall.wav";
 	//load and start music
-	if((putBlock = Mix_LoadWAV((dataDirectory / filename).file_string().c_str()))||
-		(putBlock = Mix_LoadWAV((workingDirectory / filename).file_string().c_str())) ||
-		(putBlock = Mix_LoadWAV((localDirectory / filename).file_string().c_str())) ||
-		(putBlock = Mix_LoadWAV((filename).file_string().c_str())) 
+	if((putBlock = Mix_LoadWAV((dataDirectory / filename).string().c_str()))||
+		(putBlock = Mix_LoadWAV((workingDirectory / filename).string().c_str())) ||
+		(putBlock = Mix_LoadWAV((localDirectory / filename).string().c_str())) ||
+		(putBlock = Mix_LoadWAV((filename).string().c_str())) 
 	) {
 	} else {
 		std::cout << "Could not find the sound file " << filename <<  std::endl;
@@ -212,7 +212,7 @@ void Movement::calcCharacter()
 
 void Movement::savePosition() {
 	std::ofstream of;
-	of.open((workingDirectory / "position.dat").file_string().c_str());
+	of.open((workingDirectory / "position.dat").string().c_str());
 	
 	of << position.x << std::endl << position.y << std::endl << position.z << std::endl;
 	of << position.orientationHorizontal << std::endl << position.orientationVertical << std::endl;
@@ -224,7 +224,7 @@ bool Movement::loadPosition()
 {
 	std::ifstream i;
 	bool success = false;
-	i.open((workingDirectory / "position.dat").file_string().c_str());
+	i.open((workingDirectory / "position.dat").string().c_str());
 	if (i.is_open()) {
 		i >> position.x >> position.y >> position.z >> position.orientationHorizontal >> position.orientationVertical;
 		success = true;
@@ -237,7 +237,7 @@ bool Movement::loadPosition()
 
 void Movement::saveInventory() {
 	std::ofstream of;
-	of.open((workingDirectory / "inventory.dat").file_string().c_str());
+	of.open((workingDirectory / "inventory.dat").string().c_str());
 	
 	for(int i = 1; i < NUMBER_OF_MATERIALS; i++){
 		of << inventory[i] << std::endl;
@@ -250,7 +250,7 @@ bool Movement::loadInventory()
 {
 	std::ifstream i;
 	bool success = false;
-	i.open((workingDirectory / "inventory.dat").file_string().c_str());
+	i.open((workingDirectory / "inventory.dat").string().c_str());
 	if (i.is_open()) {
 		for(int j = 1; j < NUMBER_OF_MATERIALS; j++){
 			i >> inventory[j];

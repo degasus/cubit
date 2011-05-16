@@ -125,20 +125,20 @@ void Renderer::init()
 		
 		fs::path filename = fs::path("tex") / (std::string("tex-") + boost::lexical_cast<std::string>(i) + ".jpg");
 		
-		if ( 	(surface = IMG_Load((dataDirectory / filename).file_string().c_str())) ||
-				(surface = IMG_Load((workingDirectory / filename).file_string().c_str())) ||
-				(surface = IMG_Load((localDirectory / filename).file_string().c_str())) ||
-				(surface = IMG_Load(filename.file_string().c_str()))
+		if ( 	(surface = IMG_Load((dataDirectory / filename).string().c_str())) ||
+				(surface = IMG_Load((workingDirectory / filename).string().c_str())) ||
+				(surface = IMG_Load((localDirectory / filename).string().c_str())) ||
+				(surface = IMG_Load(filename.string().c_str()))
 		) {
 
 			// Check that the image's width is a power of 2
 			if ( (surface->w & (surface->w - 1)) != 0 ) {
-				printf("warning: %s's width is not a power of 2\n", filename.file_string().c_str());
+				printf("warning: %s's width is not a power of 2\n", filename.string().c_str());
 			}
 
 			// Also check if the height is a power of 2
 			if ( (surface->h & (surface->h - 1)) != 0 ) {
-				printf("warning: %s's height is not a power of 2\n", filename.file_string().c_str());
+				printf("warning: %s's height is not a power of 2\n", filename.string().c_str());
 			}
 
 			// Bind the texture object
@@ -173,7 +173,7 @@ void Renderer::init()
 				
 		}
 		else {
-			printf("SDL could not load %s: %s\n", filename.file_string().c_str(), IMG_GetError());
+			printf("SDL could not load %s: %s\n", filename.string().c_str(), IMG_GetError());
 			SDL_Quit();
 		}
 
