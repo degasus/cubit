@@ -266,6 +266,7 @@ void Renderer::renderArea(Area* area, bool show)
 			area->empty = 1;
 		} 
 		if(polys_count) {	
+			bool has_mesh = 0;
 			
 			if(generate_bullet)
 				area->mesh = new btTriangleMesh();
@@ -312,6 +313,7 @@ void Renderer::renderArea(Area* area, bool show)
 
 					if(generate_bullet && i != 99) {
 						for(int point=2; point < POINTS_PER_POLYGON; point++) {
+							has_mesh = 1;
 							area->mesh->addTriangle(
 								btVector3(
 									POINTS_OF_DIRECTION[it->d][0][0]+diffx,
@@ -335,7 +337,7 @@ void Renderer::renderArea(Area* area, bool show)
 				glUnmapBufferARB(GL_ARRAY_BUFFER);
 			}
 			
-			if(generate_bullet) {
+			if(generate_bullet && has_mesh) {
 				area->shape = new btBvhTriangleMeshShape(area->mesh,1);
 				//area->shape = new btConvexTriangleMeshShape(area->mesh);
 				
