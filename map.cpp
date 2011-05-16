@@ -91,6 +91,7 @@ void Map::randomArea(Area* a) {
 		height += -sin( ((2*M_PI)/180) * ((int)((x)/2.5) % 180 )) * 25;
 		height += -cos( ((2*M_PI)/180) * ((int)((y)/5) % 180 )) * 50;
 		Material m;
+		
 		if(z <  height - 10){
 			m = 1 + ((z) % (NUMBER_OF_MATERIALS-1) + (NUMBER_OF_MATERIALS-1)) % (NUMBER_OF_MATERIALS-1);
 			if(m==99) m++; // no water
@@ -114,6 +115,8 @@ void Map::randomArea(Area* a) {
 		} else{
 			m = 0; //air
 		}
+		
+		
 		a->m[a->getPos(BlockPosition::create(x,y,z))] = m;
 		
 		assert(a->m[a->getPos(BlockPosition::create(x,y,z))] >= 0);

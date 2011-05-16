@@ -65,8 +65,6 @@ private:
 
 	bool highlightWholePlane;
 	int textureFilterMethod;
-  
-	GLuint polygon_gllist;
 	 
 };
 
