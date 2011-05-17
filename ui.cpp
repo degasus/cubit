@@ -156,7 +156,7 @@ void UInterface::initWindow()
 		glLoadIdentity();					// Reset The Projection Matrix
 
 		// Calculate The Aspect Ratio Of The Window
-		gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
+		gluPerspective(60.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
 
 		glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 		glLoadIdentity();					// Reset The Projection Matrix
@@ -629,7 +629,7 @@ void UInterface::drawHUD() {
 	glLoadIdentity();					// Reset The Projection Matrix
 	
 	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
+	gluPerspective(60.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
 	
 	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 	glLoadIdentity();					// Reset The Projection Matrix
