@@ -12,6 +12,7 @@ find_package( Boost COMPONENTS program_options filesystem system )
 
 # local modules
 find_package( LZO REQUIRED )
+find_package( ZLIB REQUIRED )
 find_package( Sqlite3 REQUIRED )
 find_package( Bullet REQUIRED )
 find_package( FTGL REQUIRED )
@@ -28,9 +29,11 @@ if(MINGW)
 endif(MINGW)
 
 add_executable(cubit main.cpp controller.cpp map.cpp movement.cpp ui.cpp renderer.cpp GLDebugDrawer.cpp logo/cubit.rc)
+add_executable(converter converter.cpp)
 
-include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${LZO_INCLUDE_DIR} ${BULLET_INCLUDE_DIR})
+include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${LZO_INCLUDE_DIR} ${BULLET_INCLUDE_DIR} ${ZLIB_INCLUDE_DIRS})
 target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${FTGL_LIBRARY} ${FREETYPE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${LZO_LIBRARIES} ${BULLET_LIBRARIES})
+target_link_libraries (converter ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${LZO_LIBRARIES} ${ZLIB_LIBRARIES})
 
 INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit DESTINATION games)
 

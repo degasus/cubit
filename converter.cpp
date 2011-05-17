@@ -4,10 +4,14 @@
 #include <vector>
 #include <assert.h>
 
+#include <boost/filesystem.hpp>
 #include <sqlite3.h>
+
 #include "lzo/lzoconf.h"
 #include "lzo/lzo1x.h"
 #include "zlib.h"
+
+namespace fs = boost::filesystem;
 
 
 void parse_file(const char* f) {
@@ -24,7 +28,8 @@ void parse_file(const char* f) {
 	// init SQL
 	sqlite3* database;
 	sqlite3_stmt *saveArea;
-	if(sqlite3_open("/home/markus/.cubit/cubit.db", &database) != SQLITE_OK)
+	fs::path home = fs::path(std::getenv("HOME"));
+	if(sqlite3_open((home / ".cubit" / "cubit.db").string().c_str(), &database) != SQLITE_OK)
 		// Es ist ein Fehler aufgetreten!
 		std::cout << "Fehler beim Öffnen: " << sqlite3_errmsg(database) << std::endl;
 	
@@ -146,15 +151,30 @@ void parse_file(const char* f) {
 			}
 		}
 		if(save) {
-			//std::cout << "found " << x << " " << y << " " << z << std::endl;
+			int blocks = 0;
+			int full = 1;
+			int empty = 1;
+			
+			for(int p=0; p<32*32*32; p++) {
+				if(area[p]) {
+					empty = 0;
+					blocks++;
+				} else {
+					full = 0;
+				}
+			}
 			
 			sqlite3_bind_int(saveArea, 1, glob_x + x*32);
 			sqlite3_bind_int(saveArea, 2, glob_y + y*32);
 			sqlite3_bind_int(saveArea, 3, glob_z + z*32);
-			sqlite3_bind_int(saveArea, 4, 0);
+			sqlite3_bind_int(saveArea, 4, empty);
 			sqlite3_bind_int(saveArea, 5, 1);
-			sqlite3_bind_int(saveArea, 6, 0);
-			sqlite3_bind_int(saveArea, 7, -1);
+			sqlite3_bind_int(saveArea, 6, full);
+			sqlite3_bind_int(saveArea, 7, blocks);
+			
+			if(empty)
+				sqlite3_bind_null(saveArea, 8);
+			else {
 			
 			unsigned char wrkmem[LZO1X_1_MEM_COMPRESS];
 			unsigned char lzobuffer[32*32*32 + 32*32*32 / 16 + 64 + 3];
@@ -166,26 +186,11 @@ void parse_file(const char* f) {
 				sqlite3_bind_blob(saveArea, 8, (const void*) lzobuffer, buffer_usage, SQLITE_STATIC);
 			else
 				sqlite3_bind_blob(saveArea, 8, (const void*) area, 32*32*32, SQLITE_STATIC);
-
+			}
 			sqlite3_step(saveArea);
 			sqlite3_reset(saveArea);
 		}
 	}
-	/*			
-	
-
-
-          #s = lzo(s)
-          conn.execute('INSERT OR REPLACE INTO area (posx, posy, posz, empty, revision, full, blocks, data) 
-          VALUES (?,?,?,?,?,?,?,?)',
-          (gpos[0]+x*32, gpos[1]+y*32, gpos[2]+z*32, 0, 1, 0, -1, sqlite3.Binary(s)))
-          #print '%d x %d x %d found' % (gpos[0]+x*32, gpos[1]+y*32, gpos[2]+z*32)
-          #print len(s)
-          conn.commit()
-        except IndexError, e:
-          pass
-	
-	*/
 		
 	delete [] buffer;
 	sqlite3_exec(database, "COMMIT",  0,0,0);
