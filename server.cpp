@@ -44,6 +44,11 @@ Server::Server() {
 	listen( sock, 5);
 }
 
+Server::run()
+{
+	
+}
+
 int main( int argc, char **argv)
 {
 	Server::Server() *s = new Server::Server();

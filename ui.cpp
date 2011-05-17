@@ -569,10 +569,10 @@ void UInterface::drawHUD() {
 			}
 		glEnd();
 		
+		glPopMatrix();
 		if(!sandboxMode){
 			glDisable(GL_LIGHT3);
 			glEnable(GL_LIGHT2);
-			glPopMatrix();
 			glScalef(1.0/cubeSize,1.0/cubeSize,1.0/cubeSize);
 			glColor4f(0.0f, 0.0f, 0.0f, 0.9f);
 			renderText(-cubeSize*0.8,-cubeSize*0.8, boost::lexical_cast<std::string>( c->movement->getCountInInventory(mat) ).c_str() );

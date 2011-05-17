@@ -238,10 +238,10 @@ void Renderer::renderArea(Area* area, bool show)
 					else if(area->next[dir] && area->next[dir]->state == Area::STATE_READY)
 						next_m = area->next[dir]->get(next);
 					else 
-						next_m = 1;
+						next_m = now;
 					
-					// MAterial 99 = water
-					if(!next_m || (next_m == 99 && now != next_m )) {
+					// MAterial 9 = water
+					if(!next_m || (next_m == 9 && now != next_m )) {
 						polygon p;
 						p.pos = pos;
 						p.d = (DIRECTION)dir;
@@ -310,7 +310,7 @@ void Renderer::renderArea(Area* area, bool show)
 						vbocounter+=8;
 					}
 
-					if(generate_bullet && i != 99) {
+					if(generate_bullet && i != 9) {
 						for(int point=2; point < POINTS_PER_POLYGON; point++) {
 							has_mesh = 1;
 							area->mesh->addTriangle(
@@ -373,7 +373,7 @@ void Renderer::renderArea(Area* area, bool show)
 	if(area->vbo_generated) {
 		if(show) {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, area->vbo[0]);
-			for(int i=1; i<NUMBER_OF_MATERIALS; i++) if(area->vbo_created[i] && i != 99) {
+			for(int i=1; i<NUMBER_OF_MATERIALS; i++) if(area->vbo_created[i] && i != 9) {
 				glBindTexture( GL_TEXTURE_2D, texture[i] );
 				getGlError();
 				
@@ -513,13 +513,13 @@ void Renderer::render(PlayerPosition pos)
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		bool inview = areaInViewport(a->pos, pos);
-		if(a->state == Area::STATE_READY && inview && a->vbo_created[99]) {
+		if(a->state == Area::STATE_READY && inview && a->vbo_created[9]) {
 			glPushMatrix();
 			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
-			glBindTexture( GL_TEXTURE_2D, texture[99] );
-			glBindBuffer(GL_ARRAY_BUFFER, a->vbo[99]);
+			glBindTexture( GL_TEXTURE_2D, texture[9] );
+			glBindBuffer(GL_ARRAY_BUFFER, a->vbo[9]);
 			glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, 0);
-			glDrawArrays(GL_QUADS, 0, a->vbo_created[99]);
+			glDrawArrays(GL_QUADS, 0, a->vbo_created[9]);
 			glPopMatrix();
 		}
 	}
@@ -528,13 +528,13 @@ void Renderer::render(PlayerPosition pos)
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		bool inview = areaInViewport(a->pos, pos);
-		if(a->state == Area::STATE_READY && inview && a->vbo_created[99]) {
+		if(a->state == Area::STATE_READY && inview && a->vbo_created[9]) {
 			glPushMatrix();
 			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
-			glBindTexture( GL_TEXTURE_2D, texture[99] );
-			glBindBuffer(GL_ARRAY_BUFFER, a->vbo[99]);
+			glBindTexture( GL_TEXTURE_2D, texture[9] );
+			glBindBuffer(GL_ARRAY_BUFFER, a->vbo[9]);
 			glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, 0);
-			glDrawArrays(GL_QUADS, 0, a->vbo_created[99]);
+			glDrawArrays(GL_QUADS, 0, a->vbo_created[9]);
 			glPopMatrix();
 		}
 	}

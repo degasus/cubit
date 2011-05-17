@@ -94,7 +94,7 @@ void Map::randomArea(Area* a) {
 		
 		if(z <  height - 10){
 			m = 1 + ((z) % (NUMBER_OF_MATERIALS-1) + (NUMBER_OF_MATERIALS-1)) % (NUMBER_OF_MATERIALS-1);
-			if(m==99) m++; // no water
+			if(m==9) m++; // no water
 		}
 		else if(z <  height - 4){
 			m = 8; //stone
@@ -247,13 +247,15 @@ void Map::setPosition(PlayerPosition pos)
 			a->state = Area::STATE_LOAD;
 			to_load.push(a);
 		}
-		dijsktra_queue.push(a);
-		a->dijsktra_distance = 0;
+		if(a->state == Area::STATE_LOADED) {
+			dijsktra_queue.push(a);
+			a->dijsktra_distance = 0;
+		}
 	}
 	
 	for(int k=std::max(to_load.size(), to_save.size()); k<areasPerFrameLoading && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
-		if(a->state == Area::STATE_READY) {
+		if(a->state == Area::STATE_READY || a->state == Area::STATE_LOADED_BUT_NOT_FOUND) {
 			dijsktra_queue.pop();
 			if(!a->full) {
 				for(int i=0; i<DIRECTION_COUNT; i++) {
@@ -286,18 +288,22 @@ void Map::setPosition(PlayerPosition pos)
 	} 
 	
 	while(!loaded.empty()) {
+		
 		Area* a = loaded.front();
 		loaded.pop();
 		
-		areas[a->pos] = a;
-		a->state = Area::STATE_READY;
+		if(a->state == Area::STATE_LOADED){
 		
-		for(int i=0; i<DIRECTION_COUNT; i++)
-			if(a->next[i])
-				a->next[i]->needupdate = 1;
-		
-		if(!a->empty)
-			areas_with_gllist.insert(a);
+			areas[a->pos] = a;
+				a->state = Area::STATE_READY;
+			
+			for(int i=0; i<DIRECTION_COUNT; i++)
+				if(a->next[i])
+					a->next[i]->needupdate = 1;
+			
+			if(!a->empty)
+				areas_with_gllist.insert(a);
+			}
 	}
 	
 	/*
@@ -329,7 +335,7 @@ void Map::blockChangedEvent(BlockPosition pos, Material m){
 
 }
 
-void Map::store(Area *a) {
+void Map::store(Area *a) { 
 	int full = a->full;
 	for(int i=DIRECTION_COUNT-1; i>=0; i--) 
 		full = full<<1 | a->dir_full[i];
@@ -358,7 +364,7 @@ void Map::store(Area *a) {
 	}
 	sqlite3_step(saveArea);
 	sqlite3_reset(saveArea);
-	SDL_UnlockMutex(c->sql_mutex);
+	SDL_UnlockMutex(c->sql_mutex); 
 }
 
 void Map::load(Area *a) {
@@ -366,7 +372,8 @@ void Map::load(Area *a) {
 	sqlite3_bind_int(loadArea, 1, a->pos.x);
 	sqlite3_bind_int(loadArea, 2, a->pos.y);
 	sqlite3_bind_int(loadArea, 3, a->pos.z);
-	if (sqlite3_step(loadArea) == SQLITE_ROW) {
+	int step = sqlite3_step(loadArea);
+	if (step == SQLITE_ROW) {
 		a->empty = sqlite3_column_int(loadArea, 0);
 		a->revision = sqlite3_column_int(loadArea, 1);
 		int full = sqlite3_column_int(loadArea, 2);
@@ -387,20 +394,31 @@ void Map::load(Area *a) {
 				lzo_uint length = 0;
 				int r = lzo1x_decompress((unsigned char*)sqlite3_column_blob(loadArea, 4), bytes, a->m,&length,0);
 			}
-				
+			for (int i = 0; i < 32*32*32; i++) {
+				if (a->m[i] > 108)
+					a->m[i] = 0;	
+			}
 		}
 		a->state = Area::STATE_LOADED;
 		sqlite3_reset(loadArea);
 		SDL_UnlockMutex(c->sql_mutex);
 		if(a->blocks < 0)
 			recalc(a);
-	} else {
-		//a->state = Area::STATE_LOADED_BUT_NOT_FOUND;
-		a->state = Area::STATE_LOADED;
+	} else if (step == SQLITE_DONE) {
+		a->state = Area::STATE_LOADED_BUT_NOT_FOUND;
+		//a->state = Area::STATE_LOADED;
 		sqlite3_reset(loadArea);
 		SDL_UnlockMutex(c->sql_mutex);
-		randomArea(a);
-		recalc(a);
+		//randomArea(a);
+		//recalc(a);
+	} else  {
+		std::cout << step << std::endl;
+		a->state = Area::STATE_LOADED_BUT_NOT_FOUND;
+		//a->state = Area::STATE_LOADED;
+		sqlite3_reset(loadArea);
+		SDL_UnlockMutex(c->sql_mutex);
+		//randomArea(a);
+		//recalc(a);
 	}
 }
 

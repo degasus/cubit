@@ -496,7 +496,7 @@ void Movement::calcPointingOn(){
 
 		}
 
-		if(c->map->getBlock(pointingOnBlock) == 0 || (c->map->getBlock(pointingOnBlock) == 99 && c->map->getBlock(position.block())))
+		if(c->map->getBlock(pointingOnBlock) == 0 || (c->map->getBlock(pointingOnBlock) == 9 && c->map->getBlock(position.block())))
 			isPointingOn = false;
 		else
 			isPointingOn = true;
@@ -799,8 +799,8 @@ void Movement::calcElevator()
 	catch(NotLoadedException e){
 		std::cout << "not loaded" << std::endl;
 	}
-	//0 = air, 99 = water
-	if(feetBlock != 0 && feetBlock != 99){
+	//0 = air, 9 = water
+	if(feetBlock != 0 && feetBlock != 9){
 		btTransform t = ghost->getWorldTransform();
 		btVector3 org = t.getOrigin();
 		org.setZ(org.getZ()+1);
