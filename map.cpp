@@ -97,22 +97,24 @@ void Map::randomArea(Area* a) {
 			if(m==9) m++; // no water
 		}
 		else if(z <  height - 4){
-			m = 8; //stone
+			m = 1; //stone
 		}
 		else if(z <  height - 1 - std::rand() % 1){
 			if (z >= -65)
-				m = 12; //mud
+				m = 3; //mud
 			else
-				m = 10; //sand
+				m = 12; //sand
 		}
 		else if(z <  height){
 			if(z >= 60 - std::rand() % 2)
 				m = 82; //snow
 			else if (z >= -65 - std::rand() % 2)
-				m = 1; //grass
+				m = 2; //grass
 			else
-				m = 10; //sand
-		} else{
+				m = 12; //sand
+		} else if(z < -70) {
+			m = 9; // water
+		} else {
 			m = 0; //air
 		}
 		
@@ -148,6 +150,10 @@ void Map::read_from_harddisk() {
 		empty = 1;
 		Area* tosave;
 		
+		SDL_LockMutex(c->sql_mutex);
+		sqlite3_exec(c->database, "BEGIN",  0,0,0);
+		SDL_UnlockMutex(c->sql_mutex);
+		
 		do {
 			SDL_LockMutex(queue_mutex);
 /*			if(!empty) {
@@ -167,6 +173,9 @@ void Map::read_from_harddisk() {
 			}
 			
 		} while(!empty);
+		SDL_LockMutex(c->sql_mutex);
+		sqlite3_exec(c->database, "Commit",  0,0,0);
+		SDL_UnlockMutex(c->sql_mutex);
 		
 		SDL_Delay (10);
 	}
@@ -233,12 +242,12 @@ void Map::setPosition(PlayerPosition pos)
 	
 	BlockPosition p = pos.block().area();
 	
-	if(!inital_loaded) {
+	if(!inital_loaded || lastpos != p) {
 		inital_loaded = 1;
-		lastpos = p;
 		while(!dijsktra_queue.empty())
 			dijsktra_queue.pop();
 	}
+	lastpos = p;
 	
 	if(dijsktra_queue.empty()) {
 		dijsktra_wert++;
@@ -255,7 +264,7 @@ void Map::setPosition(PlayerPosition pos)
 	
 	for(int k=std::max(to_load.size(), to_save.size()); k<areasPerFrameLoading && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
-		if(a->state == Area::STATE_READY || a->state == Area::STATE_LOADED_BUT_NOT_FOUND) {
+		if(a->state == Area::STATE_READY /*|| a->state == Area::STATE_LOADED_BUT_NOT_FOUND*/) {
 			dijsktra_queue.pop();
 			if(!a->full) {
 				for(int i=0; i<DIRECTION_COUNT; i++) {
@@ -405,14 +414,14 @@ void Map::load(Area *a) {
 		if(a->blocks < 0)
 			recalc(a);
 	} else if (step == SQLITE_DONE) {
-		a->state = Area::STATE_LOADED_BUT_NOT_FOUND;
-		//a->state = Area::STATE_LOADED;
+		//a->state = Area::STATE_LOADED_BUT_NOT_FOUND;
+		a->state = Area::STATE_LOADED;
 		sqlite3_reset(loadArea);
 		SDL_UnlockMutex(c->sql_mutex);
-		//randomArea(a);
-		//recalc(a);
+		randomArea(a);
+		recalc(a);
 	} else  {
-		std::cout << step << std::endl;
+		std::cout << "SQLITE ERROR" << std::endl;
 		a->state = Area::STATE_LOADED_BUT_NOT_FOUND;
 		//a->state = Area::STATE_LOADED;
 		sqlite3_reset(loadArea);
