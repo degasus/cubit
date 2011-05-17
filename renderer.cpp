@@ -15,6 +15,7 @@
 using namespace std;
 namespace fs = boost::filesystem;
 
+#define USE_VBO
 
 void getGlError() { 
 	/*
@@ -275,14 +276,11 @@ void Renderer::renderArea(Area* area, bool show)
 					max_counts = size;
 				
 				area->vbo_created[i] = size;
+#ifdef USE_VBO 
 				glBindBuffer(GL_ARRAY_BUFFER, area->vbo[i]);
 				getGlError();
-				//glBufferData(GL_ARRAY_BUFFER, size*sizeof(GLfloat), 0, GL_STATIC_DRAW);
-				//getGlError();
-				//GL_T2F_N3F_V3F;
-				//GLfloat *vbopointer = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-				//getGlError();
-				GLfloat *vbopointer = new GLfloat[size];
+#endif
+				area->vbopointer[i] = new GLfloat[size];
 				int vbocounter = 0;
 				
 				for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
@@ -294,18 +292,18 @@ void Renderer::renderArea(Area* area, bool show)
 						//assert(vbocounter < size);
 						
 						// texture
-						vbopointer[vbocounter+0] = TEXTUR_POSITION_OF_DIRECTION[it->d][point][0];
-						vbopointer[vbocounter+1] = TEXTUR_POSITION_OF_DIRECTION[it->d][point][1];
+						area->vbopointer[i][vbocounter+0] = TEXTUR_POSITION_OF_DIRECTION[it->d][point][0];
+						area->vbopointer[i][vbocounter+1] = TEXTUR_POSITION_OF_DIRECTION[it->d][point][1];
 						
 						// normale
-						vbopointer[vbocounter+2] = NORMAL_OF_DIRECTION[it->d][0];
-						vbopointer[vbocounter+3] = NORMAL_OF_DIRECTION[it->d][1];
-						vbopointer[vbocounter+4] = NORMAL_OF_DIRECTION[it->d][2];
+						area->vbopointer[i][vbocounter+2] = NORMAL_OF_DIRECTION[it->d][0];
+						area->vbopointer[i][vbocounter+3] = NORMAL_OF_DIRECTION[it->d][1];
+						area->vbopointer[i][vbocounter+4] = NORMAL_OF_DIRECTION[it->d][2];
 						
 						// vertex
-						vbopointer[vbocounter+5] = POINTS_OF_DIRECTION[it->d][point][0]+diffx;
-						vbopointer[vbocounter+6] = POINTS_OF_DIRECTION[it->d][point][1]+diffy;
-						vbopointer[vbocounter+7] = POINTS_OF_DIRECTION[it->d][point][2]+diffz;
+						area->vbopointer[i][vbocounter+5] = POINTS_OF_DIRECTION[it->d][point][0]+diffx;
+						area->vbopointer[i][vbocounter+6] = POINTS_OF_DIRECTION[it->d][point][1]+diffy;
+						area->vbopointer[i][vbocounter+7] = POINTS_OF_DIRECTION[it->d][point][2]+diffz;
 						
 						vbocounter+=8;
 					}
@@ -333,13 +331,14 @@ void Renderer::renderArea(Area* area, bool show)
 						}
 					}
 				}
-				glBufferData(GL_ARRAY_BUFFER, size*sizeof(GLfloat), vbopointer, GL_STATIC_DRAW);
+#ifdef USE_VBO
+				glBufferData(GL_ARRAY_BUFFER, size*sizeof(GLfloat), area->vbopointer[i], GL_STATIC_DRAW);
 				getGlError();
-				delete [] vbopointer;
-				//glUnmapBuffer(GL_ARRAY_BUFFER);
-				//getGlError();
+				delete [] area->vbopointer[i];
+				area->vbopointer[i] = 0;
+#endif
 			}
-			
+			/*
 			ushort* index = new ushort[max_counts];
 			for(int i=0; i<max_counts; i++)
 				index[i] = i;
@@ -348,7 +347,7 @@ void Renderer::renderArea(Area* area, bool show)
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, max_counts*sizeof(ushort), index, GL_STATIC_DRAW);
 			
 			delete [] index;
-			
+			*/
 			if(generate_bullet && has_mesh) {
 				area->shape = new btBvhTriangleMeshShape(area->mesh,1);
 				//area->shape = new btConvexTriangleMeshShape(area->mesh);
@@ -372,12 +371,9 @@ void Renderer::renderArea(Area* area, bool show)
 	}
 	if(area->vbo_generated) {
 		if(show) {
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, area->vbo[0]);
+			//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, area->vbo[0]);
 			for(int i=1; i<NUMBER_OF_MATERIALS; i++) if(area->vbo_created[i] && i != 9) {
 				glBindTexture( GL_TEXTURE_2D, texture[i] );
-				getGlError();
-				
-				glBindBuffer(GL_ARRAY_BUFFER, area->vbo[i]);
 				getGlError();
 				
 				glEnableClientState(GL_VERTEX_ARRAY);
@@ -385,15 +381,22 @@ void Renderer::renderArea(Area* area, bool show)
 				glEnableClientState(GL_TEXTURE_COORD_ARRAY);				
 				getGlError();
 				
-				//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, 0);
-				
-				glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, 0);
-				glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, (char*)NULL + 2 * sizeof(GL_FLOAT));
-				glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, (char*)NULL + 5 * sizeof(GL_FLOAT));
+#ifdef USE_VBO
+				glBindBuffer(GL_ARRAY_BUFFER, area->vbo[i]);
 				getGlError();
 				
-				//glDrawArrays(GL_QUADS, 0, area->vbo_created[i]);
-				glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
+				GLfloat* startpointer = 0;				
+#else
+				GLfloat* startpointer = area->vbopointer[i];
+#endif
+				//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
+				glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
+				glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
+				glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
+
+				getGlError();
+				glDrawArrays(GL_QUADS, 0, area->vbo_created[i]/8);
+				//glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
 				getGlError();
 			}
 		}
@@ -516,10 +519,21 @@ void Renderer::render(PlayerPosition pos)
 		if(a->state == Area::STATE_READY && inview && a->vbo_created[9]) {
 			glPushMatrix();
 			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
-			glBindTexture( GL_TEXTURE_2D, texture[9] );
+			glBindTexture( GL_TEXTURE_2D, texture[9] );				
+#ifdef USE_VBO
 			glBindBuffer(GL_ARRAY_BUFFER, a->vbo[9]);
-			glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, 0);
-			glDrawArrays(GL_QUADS, 0, a->vbo_created[9]);
+			getGlError();
+			
+			GLfloat* startpointer = 0;				
+#else
+			GLfloat* startpointer = a->vbopointer[9];
+#endif
+			//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
+			glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
+			glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
+			glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
+
+			glDrawArrays(GL_QUADS, 0, a->vbo_created[9]/8);
 			glPopMatrix();
 		}
 	}
@@ -531,10 +545,21 @@ void Renderer::render(PlayerPosition pos)
 		if(a->state == Area::STATE_READY && inview && a->vbo_created[9]) {
 			glPushMatrix();
 			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
-			glBindTexture( GL_TEXTURE_2D, texture[9] );
+			glBindTexture( GL_TEXTURE_2D, texture[9] );				
+#ifdef USE_VBO
 			glBindBuffer(GL_ARRAY_BUFFER, a->vbo[9]);
-			glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, 0);
-			glDrawArrays(GL_QUADS, 0, a->vbo_created[9]);
+			getGlError();
+			
+			GLfloat* startpointer = 0;				
+#else
+			GLfloat* startpointer = a->vbopointer[9];
+#endif
+			//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
+			glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
+			glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
+			glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
+
+			glDrawArrays(GL_QUADS, 0, a->vbo_created[9]/8);
 			glPopMatrix();
 		}
 	}

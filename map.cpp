@@ -520,6 +520,7 @@ Area::Area(BlockPosition p)
 	for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
 		vbo[i] = 0;
 		vbo_created[i] = 0;
+		vbopointer[i] = 0;
 	}
 	mesh = 0;
 	shape = 0;

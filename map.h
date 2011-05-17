@@ -179,6 +179,7 @@ public:
 	GLuint gllist;
 	GLuint vbo[NUMBER_OF_MATERIALS];
 	GLuint gllist_blend;
+	GLfloat* vbopointer[NUMBER_OF_MATERIALS];
 	
 	bool gllist_generated;
 	int vbo_created[NUMBER_OF_MATERIALS];
@@ -232,6 +233,10 @@ public:
 		for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
 			vbo[i] = 0;
 			vbo_created[i] = 0;
+			if(vbopointer[i]) {
+				delete [] vbopointer[i];
+				vbopointer[i] = 0;
+			}
 		}
 		gllist = 0;
 		gllist_blend = 0;
