@@ -111,6 +111,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("areasPerFrameLoading", po::value<int>()->default_value(20), "set the maximal from hard disk loaded areas per frame")
 		
 		("destroyAreaFaktor", po::value<double>()->default_value(2), "distance for destroying areas")
+		("generateRandom", po::value<bool>()->default_value(1), "should unknown areas be created")
 
 		("storeMaps", po::value<bool>()->default_value(1), "should maps be saved and loaded from harddisk")
 	

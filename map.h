@@ -470,7 +470,7 @@ private:
 	
 	BlockPosition lastpos;
 	bool inital_loaded;
-	
+	bool generate_random;
 	
 	int dijsktra_wert;
 	std::queue<Area*> dijsktra_queue;

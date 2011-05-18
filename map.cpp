@@ -68,6 +68,7 @@ void Map::config(const boost::program_options::variables_map& c)
 	storeMaps = c["storeMaps"].as<bool>();
 	areasPerFrameLoading = c["areasPerFrameLoading"].as<int>();
 	loadRange = c["visualRange"].as<int>()*2;
+	generate_random = c["generateRandom"].as<bool>();
 }
 
 int threaded_read_from_harddisk(void* param) {
@@ -256,21 +257,27 @@ void Map::setPosition(PlayerPosition pos)
 			a->state = Area::STATE_LOAD;
 			to_load.push(a);
 		}
-		if(a->state == Area::STATE_LOADED) {
+		if(a->state == Area::STATE_READY) {
 			dijsktra_queue.push(a);
 			a->dijsktra_distance = 0;
 		}
 	}
-	
+	//std::cout << "load: " << to_load.size() << ", store: " << to_save.size() << ", queue: " << dijsktra_queue.size() << std::endl;
+		
 	for(int k=std::max(to_load.size(), to_save.size()); k<areasPerFrameLoading && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
-		if(a->state == Area::STATE_READY /*|| a->state == Area::STATE_LOADED_BUT_NOT_FOUND*/) {
+		
+		// not available, so delete it
+		if(a->state == Area::STATE_LOADED_BUT_NOT_FOUND) {
+			dijsktra_queue.pop();
+			
+		} else if(a->state == Area::STATE_READY) {
 			dijsktra_queue.pop();
 			if(!a->full) {
 				for(int i=0; i<DIRECTION_COUNT; i++) {
 					Area* b = a->next[i];
 					if(!b && a->dijsktra_distance < loadRange) b = getOrCreate(a->pos*DIRECTION(i));
-					if(b && b->dijsktra != dijsktra_wert) {
+					if(b && (b->dijsktra != dijsktra_wert || b->dijsktra_distance > a->dijsktra_distance+1)) {
 						b->dijsktra_distance = a->dijsktra_distance+1;
 						b->dijsktra = dijsktra_wert;
 						dijsktra_queue.push(b);
@@ -281,7 +288,9 @@ void Map::setPosition(PlayerPosition pos)
 					}
 				}
 			}	
-		} else k = areasPerFrameLoading;
+		} else {
+			dijsktra_queue.push(a);
+		}
 		
 		if(a->dijsktra_distance > deleteRange && a->state == Area::STATE_READY) {
 			a->deconfigure();
@@ -414,12 +423,17 @@ void Map::load(Area *a) {
 		if(a->blocks < 0)
 			recalc(a);
 	} else if (step == SQLITE_DONE) {
-		//a->state = Area::STATE_LOADED_BUT_NOT_FOUND;
-		a->state = Area::STATE_LOADED;
 		sqlite3_reset(loadArea);
 		SDL_UnlockMutex(c->sql_mutex);
-		randomArea(a);
-		recalc(a);
+		
+		if(generate_random) {
+			a->state = Area::STATE_LOADED;
+			randomArea(a);
+			recalc(a);
+		} else {
+			a->state = Area::STATE_LOADED_BUT_NOT_FOUND;
+		}
+		
 	} else  {
 		std::cout << "SQLITE ERROR" << std::endl;
 		a->state = Area::STATE_LOADED_BUT_NOT_FOUND;
