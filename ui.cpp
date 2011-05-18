@@ -103,7 +103,8 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	localDirectory = c["localDirectory"].as<fs::path>();
 	
 	visualRange = c["visualRange"].as<int>();
-
+	angleOfVision = c["angleOfVision"].as<double>();
+	
 	k_forward		= c["k_forward"].as<int>();
 	k_backwards		= c["k_backwards"].as<int>();
 	k_left			= c["k_left"].as<int>();
@@ -156,7 +157,7 @@ void UInterface::initWindow()
 		glLoadIdentity();					// Reset The Projection Matrix
 
 		// Calculate The Aspect Ratio Of The Window
-		gluPerspective(60.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
+		gluPerspective(angleOfVision, (GLfloat) screenX / (GLfloat) screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
 
 		glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 		glLoadIdentity();					// Reset The Projection Matrix
@@ -350,7 +351,7 @@ void UInterface::handleUserEvents(SDL_UserEvent e)
 		drawHUD();
 
 		SDL_GL_SwapBuffers();
-	} else std::cout << "Droping Frame" << std::endl;
+	} else std::cout << "Dropping Frame" << std::endl;
 }
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
@@ -629,7 +630,7 @@ void UInterface::drawHUD() {
 	glLoadIdentity();					// Reset The Projection Matrix
 	
 	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(60.0f, (GLfloat) screenX / (GLfloat) screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
+	gluPerspective(angleOfVision, (GLfloat) screenX / (GLfloat) screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
 	
 	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
 	glLoadIdentity();					// Reset The Projection Matrix

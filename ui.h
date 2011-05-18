@@ -61,7 +61,8 @@ private:
 	boost::filesystem::path localDirectory;
 	
 	int visualRange;
-
+	double angleOfVision;
+	
 	//default frame size on no fullscreen
 	int noFullX;
 	int noFullY;

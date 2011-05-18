@@ -11,6 +11,8 @@
 #include "map.h"
 
 #include "matrix.h"
+#include "debs/cubit-0.0.3/map.h"
+#include <lzo/lzoconf.h>
 
 using namespace std;
 namespace fs = boost::filesystem;
@@ -180,7 +182,7 @@ void Renderer::init()
 				for(int c=0; c<3; c++) 
 					pixels[c + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = p[c + x*3 + y*3*64];
 				
-				pixels[3 + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = 0;
+				pixels[3 + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = 255;
 				
 			}
 				
@@ -208,7 +210,8 @@ void Renderer::init()
 		
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	} else if(textureFilterMethod >= 3){
+	} 
+	else if(textureFilterMethod >= 3){
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	}
@@ -230,26 +233,40 @@ void Renderer::init()
 	delete [] pixels;
 }
 
+
 void Renderer::renderArea(Area* area, bool show)
 {
+
 	if(area->empty) {
 		area->needupdate = 0;
 		area->delete_opengl();
 		area->delete_collision(c->movement->dynamicsWorld);
 		return;
 	}
-	if(show) {
-		glPushMatrix();
-		glTranslatef(area->pos.x,area->pos.y,area->pos.z);
-	}
 	
 	bool generate_bullet = (c->movement->getPosition() - area->pos) < 50*50;
 	bool delete_bullet = (c->movement->getPosition() - area->pos) > 60*60;
 	
-	if(area->bullet_generated && delete_bullet)
+	if(area->bullet_generated && delete_bullet) {
 		area->delete_collision(c->movement->dynamicsWorld);
+	}
 	
 	if((area->needupdate || (!area->bullet_generated && generate_bullet)) && (areasRendered <= areasPerFrame)) {
+
+		// only update, if the other blocks are loaded
+		for(int d=0; d<DIRECTION_COUNT; d++) {
+			if(area->next[d]) {
+				switch(area->next[d]->state) {				
+					case Area::STATE_READY:			
+					case Area::STATE_LOADED_BUT_NOT_FOUND:
+						break;
+					default:
+						return;
+					
+				}
+			} else return;
+		}
+
 		areasRendered++;
 		
 		area->delete_opengl();
@@ -289,7 +306,12 @@ void Renderer::renderArea(Area* area, bool show)
 						polygon p;
 						p.pos = pos;
 						p.d = (DIRECTION)dir;
-						polys[now].push_back(p);
+						p.m = now;
+						if(now == 9) {
+							polys[now].push_back(p);
+						} else {
+							polys[0].push_back(p);
+						}
 						polys_count++;
 					}
 				}
@@ -310,7 +332,7 @@ void Renderer::renderArea(Area* area, bool show)
 			
 			int max_counts = 0;
       
-			for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
+			for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
 				if(polys[i].empty()) continue;
 				
 				int size = polys[i].size()*8*POINTS_PER_POLYGON;
@@ -335,8 +357,8 @@ void Renderer::renderArea(Area* area, bool show)
 						//assert(vbocounter < size);
 						
 						// texture
-						area->vbopointer[i][vbocounter+0] = (TEXTUR_POSITION_OF_DIRECTION[it->d][point][0]+i%16)/16.0;
-						area->vbopointer[i][vbocounter+1] = (TEXTUR_POSITION_OF_DIRECTION[it->d][point][1]+i/16)/16.0;
+						area->vbopointer[i][vbocounter+0] = (TEXTUR_POSITION_OF_DIRECTION[it->d][point][0]+it->m%16)/16.0;
+						area->vbopointer[i][vbocounter+1] = (TEXTUR_POSITION_OF_DIRECTION[it->d][point][1]+it->m/16)/16.0;
 						
 						// normale
 						area->vbopointer[i][vbocounter+2] = NORMAL_OF_DIRECTION[it->d][0];
@@ -412,41 +434,6 @@ void Renderer::renderArea(Area* area, bool show)
 			area->delete_collision(c->movement->dynamicsWorld);
 		}
 	}
-	if(area->vbo_generated) {
-		if(show) {
-			//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, area->vbo[0]);
-			for(int i=1; i<NUMBER_OF_MATERIALS; i++) if(area->vbo_created[i] && i != 9) {
-				getGlError();
-				
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glEnableClientState(GL_NORMAL_ARRAY);
-				glEnableClientState(GL_TEXTURE_COORD_ARRAY);				
-				getGlError();
-				
-#ifdef USE_VBO
-				glBindBuffer(GL_ARRAY_BUFFER, area->vbo[i]);
-				getGlError();
-				
-				GLfloat* startpointer = 0;				
-#else
-				GLfloat* startpointer = area->vbopointer[i];
-#endif
-				//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
-				glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
-				glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
-				glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
-
-				getGlError();
-				glDrawArrays(GL_QUADS, 0, area->vbo_created[i]/8);
-				//glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
-				getGlError();
-			}
-		}
-	} else {
-		// do nothing
-	}
-	if(show)
-		glPopMatrix();
 }
 
 void Renderer::generateViewPort(PlayerPosition pos) {
@@ -501,7 +488,7 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 	return (erg.data[0][0] > - AREASIZE_X/2*1.7321) 				// nicht hinter einem
 	    && (erg.data[0][0] < AREASIZE_X*(visualRange+0.866))	// sichtweite
 		 && (abs(erg.data[0][1])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < (double(c->ui->screenX) / c->ui->screenY)/2 )	// seitlich ausm sichtbereich
-		 && (abs(erg.data[0][2])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < 0.5 )	// seitlich ausm sichtbereich
+		 && (abs(erg.data[0][2])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < 0.5 ) // oben/unten aus dem Bildbereich
 		 ;
 }
 void Renderer::render(PlayerPosition pos)
@@ -538,7 +525,13 @@ void Renderer::render(PlayerPosition pos)
 	if(areasRendered<0) areasRendered = 0;
 	areasRendered -= areasPerFrame;
 
-	glBindTexture( GL_TEXTURE_2D, texture[0] );
+	// state for rendering vbos
+	glBindTexture( GL_TEXTURE_2D, texture[0] );				
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);				
+	getGlError();
+	
 	int i=0;
 	glColor4f(1,1,1,0.5);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
@@ -546,12 +539,48 @@ void Renderer::render(PlayerPosition pos)
 //		if(a->pos != areapos) continue;
 		bool inview = areaInViewport(a->pos, pos);
 		if(a->state == Area::STATE_READY && (inview || areasRendered < 0)) {
-			renderArea(a, inview);
+			renderArea(a, 0);
+			if(inview) {
+				glPushMatrix();
+				glTranslatef(a->pos.x,a->pos.y,a->pos.z);			
+#ifdef USE_VBO
+				glBindBuffer(GL_ARRAY_BUFFER, a->vbo[0]);
+				getGlError();
+				
+				GLfloat* startpointer = 0;				
+#else
+				GLfloat* startpointer = a->vbopointer[0];
+#endif
+				//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
+				glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
+				glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
+				glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
+
+				getGlError();
+				glDrawArrays(GL_QUADS, 0, a->vbo_created[0]/8);
+				//glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
+				getGlError();
+				
+				glPopMatrix();
+			}
 		}
 		i++;
 	}
-	//std::cout << "anzahl geränderte areas: " << i << std::endl;
 
+	BlockPosition p;
+	p.x = -32;
+	p.y = 0;
+	p.z = -64;
+	
+	Area* a = 0;
+	if(c->map->areas.find(p) != c->map->areas.end()) {
+		a = c->map->areas[p];
+		for(int i=0; i<6; i++) {
+			//std::cout << "next: " << (void*)a->next[i] << std::endl;
+		}
+	}
+	
+	//std::cout << "anzahl gerenderte areas: " << i << " " << (void*)a << " " << (a?a->state:-1) << std::endl;
 	
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);

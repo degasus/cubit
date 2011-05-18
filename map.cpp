@@ -243,36 +243,49 @@ void Map::setPosition(PlayerPosition pos)
 	
 	BlockPosition p = pos.block().area();
 	
-	if(!inital_loaded || lastpos != p) {
-		inital_loaded = 1;
+	if(lastpos != p) {
+		inital_loaded = 0;
+		lastpos = p;
+	}
+	
+	if(!inital_loaded) {
+		// reset queue
 		while(!dijsktra_queue.empty())
 			dijsktra_queue.pop();
-	}
-	lastpos = p;
-	
-	if(dijsktra_queue.empty()) {
-		dijsktra_wert++;
+		
+		// load actual position
 		Area* a = getOrCreate(p);
 		if(a->state == Area::STATE_NEW) {
 			a->state = Area::STATE_LOAD;
 			to_load.push(a);
 		}
+		// add it to queue
 		if(a->state == Area::STATE_READY) {
 			dijsktra_queue.push(a);
 			a->dijsktra_distance = 0;
+			inital_loaded = 1;
+			dijsktra_wert++;
 		}
+		std::cout << "pos: " << pos.to_string() << " " << a->state << std::endl;
 	}
 	//std::cout << "load: " << to_load.size() << ", store: " << to_save.size() << ", queue: " << dijsktra_queue.size() << std::endl;
-		
+	
+	Area *first = 0;
 	for(int k=std::max(to_load.size(), to_save.size()); k<areasPerFrameLoading && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
+	
+		// not in a cycle
+		if(first == a) {
+			break;
+		}
+		if(!first) {
+			first = a;
+		}
+		dijsktra_queue.pop();
 		
-		// not available, so delete it
-		if(a->state == Area::STATE_LOADED_BUT_NOT_FOUND) {
-			dijsktra_queue.pop();
-			
-		} else if(a->state == Area::STATE_READY) {
-			dijsktra_queue.pop();
+		switch(a->state) {		
+			// found, so go and try any direction
+			case Area::STATE_READY:
 			if(!a->full) {
 				for(int i=0; i<DIRECTION_COUNT; i++) {
 					Area* b = a->next[i];
@@ -287,9 +300,18 @@ void Map::setPosition(PlayerPosition pos)
 						}
 					}
 				}
-			}	
-		} else {
+			}
+			break;
+			
+			// wait and try it again later
+			case Area::STATE_LOAD:
+			case Area::STATE_LOADED:
 			dijsktra_queue.push(a);
+			break;
+			
+			// not available, so stop here
+			case Area::STATE_LOADED_BUT_NOT_FOUND: break;
+			default: std::cout << "state: " << a->state << std::endl;
 		}
 		
 		if(a->dijsktra_distance > deleteRange && a->state == Area::STATE_READY) {
