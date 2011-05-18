@@ -413,7 +413,7 @@ void Map::load(Area *a) {
 				int r = lzo1x_decompress((unsigned char*)sqlite3_column_blob(loadArea, 4), bytes, a->m,&length,0);
 			}
 			for (int i = 0; i < 32*32*32; i++) {
-				if (a->m[i] > 108)
+				if (a->m[i] >= NUMBER_OF_MATERIALS)
 					a->m[i] = 0;	
 			}
 		}

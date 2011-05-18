@@ -153,7 +153,8 @@ void parse_file(const char* f) {
 		if(save) {
 			int blocks = 0;
 			int full = 1;
-			int empty = 1;
+			bool empty = 1;
+			
 			
 			for(int p=0; p<32*32*32; p++) {
 				if(area[p]) {
@@ -170,7 +171,7 @@ void parse_file(const char* f) {
 			sqlite3_bind_int(saveArea, 4, empty);
 			sqlite3_bind_int(saveArea, 5, 1);
 			sqlite3_bind_int(saveArea, 6, full);
-			sqlite3_bind_int(saveArea, 7, blocks);
+			sqlite3_bind_int(saveArea, 7, -1);
 			
 			if(empty)
 				sqlite3_bind_null(saveArea, 8);
