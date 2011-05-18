@@ -49,6 +49,7 @@ private:
 	int areasRendered;
 	int maxareas;
 	bool enableFog;
+	double angleOfVision;
 	
 	boost::filesystem::path workingDirectory;
 	boost::filesystem::path dataDirectory;

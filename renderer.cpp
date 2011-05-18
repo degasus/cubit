@@ -51,6 +51,8 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	visualRange			= c["visualRange"].as<int>();
 	maxareas			= c["visualRange"].as<int>()*c["visualRange"].as<int>();
 	enableFog			= c["enableFog"].as<bool>();
+	angleOfVision 		= std::tan(c["angleOfVision"].as<double>()*(1/360.0*M_PI));
+	
 
 	workingDirectory = c["workingDirectory"].as<fs::path>();
 	dataDirectory = c["dataDirectory"].as<fs::path>();
@@ -470,7 +472,7 @@ void Renderer::generateViewPort(PlayerPosition pos) {
 }
 
 bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
-		
+	
 	Matrix<double,1,3> pos;
 	pos.data[0][0] = apos.x - ppos.x + AREASIZE_X/2;
 	pos.data[0][1] = apos.y - ppos.y + AREASIZE_Y/2;
@@ -487,8 +489,8 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 	
 	return (erg.data[0][0] > - AREASIZE_X/2*1.7321) 				// nicht hinter einem
 	    && (erg.data[0][0] < AREASIZE_X*(visualRange+0.866))	// sichtweite
-		 && (abs(erg.data[0][1])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < (double(c->ui->screenX) / c->ui->screenY)/2 )	// seitlich ausm sichtbereich
-		 && (abs(erg.data[0][2])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < 0.5 ) // oben/unten aus dem Bildbereich
+		 && (abs(erg.data[0][1])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < angleOfVision*(double(c->ui->screenX) / c->ui->screenY) )	// seitlich ausm sichtbereich
+		 && (abs(erg.data[0][2])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < angleOfVision ) // oben/unten aus dem Bildbereich
 		 ;
 }
 void Renderer::render(PlayerPosition pos)
