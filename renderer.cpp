@@ -11,7 +11,6 @@
 #include "map.h"
 
 #include "matrix.h"
-#include "debs/cubit-0.0.3/map.h"
 #include <lzo/lzoconf.h>
 
 using namespace std;
