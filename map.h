@@ -186,7 +186,7 @@ public:
 	bool gllist_has_blend; 
 	bool bullet_generated;
 	bool needupdate;
-	
+	bool show;
 	bool needstore;
 	
 	Area* next[DIRECTION_COUNT];

@@ -538,10 +538,10 @@ void Renderer::render(PlayerPosition pos)
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 //		if(a->pos != areapos) continue;
-		bool inview = areaInViewport(a->pos, pos);
-		if(a->state == Area::STATE_READY && (inview || areasRendered < 0)) {
+		a->show = areaInViewport(a->pos, pos);
+		if(a->state == Area::STATE_READY && (a->show || areasRendered < 0)) {
 			renderArea(a, 0);
-			if(inview) {
+			if(a->show) {
 				glPushMatrix();
 				glTranslatef(a->pos.x,a->pos.y,a->pos.z);			
 #ifdef USE_VBO
@@ -567,19 +567,6 @@ void Renderer::render(PlayerPosition pos)
 		}
 		i++;
 	}
-
-	BlockPosition p;
-	p.x = -32;
-	p.y = 0;
-	p.z = -64;
-	
-	Area* a = 0;
-	if(c->map->areas.find(p) != c->map->areas.end()) {
-		a = c->map->areas[p];
-		for(int i=0; i<6; i++) {
-			//std::cout << "next: " << (void*)a->next[i] << std::endl;
-		}
-	}
 	
 	//std::cout << "anzahl gerenderte areas: " << i << " " << (void*)a << " " << (a?a->state:-1) << std::endl;
 	
@@ -588,8 +575,7 @@ void Renderer::render(PlayerPosition pos)
 	glBlendFunc(GL_ZERO, GL_ONE);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
-		bool inview = areaInViewport(a->pos, pos);
-		if(a->state == Area::STATE_READY && inview && a->vbo_created[9]) {
+		if(a->state == Area::STATE_READY && a->show && a->vbo_created[9]) {
 			glPushMatrix();
 			glTranslatef(a->pos.x,a->pos.y,a->pos.z);			
 #ifdef USE_VBO
@@ -613,8 +599,7 @@ void Renderer::render(PlayerPosition pos)
 	glBlendFunc(GL_ONE, GL_SRC_COLOR);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
-		bool inview = areaInViewport(a->pos, pos);
-		if(a->state == Area::STATE_READY && inview && a->vbo_created[9]) {
+		if(a->state == Area::STATE_READY && a->show && a->vbo_created[9]) {
 			glPushMatrix();
 			glTranslatef(a->pos.x,a->pos.y,a->pos.z);			
 #ifdef USE_VBO
