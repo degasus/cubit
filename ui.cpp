@@ -455,7 +455,7 @@ void UInterface::drawHUD() {
 	
 	glDisable(GL_FOG);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glBindTexture( GL_TEXTURE_2D, c->renderer->texture[1] );
+	glBindTexture( GL_TEXTURE_2D, c->renderer->texture[0] );
 
 	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
@@ -551,14 +551,14 @@ void UInterface::drawHUD() {
 		glRotatef(45, 0.0, 0.0, 1.0);
 		glTranslatef(-0.5, -0.5, -0.5);
 
-		glBindTexture( GL_TEXTURE_2D, c->renderer->texture[mat] );
+		//glBindTexture( GL_TEXTURE_2D, c->renderer->texture[mat] );
 		glBegin(GL_QUADS);
 			for(int dir=0; dir < DIRECTION_COUNT; dir++) {
 				glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
 					glTexCoord2f(
-						TEXTUR_POSITION_OF_DIRECTION[dir][point][0],
-						TEXTUR_POSITION_OF_DIRECTION[dir][point][1]
+						(TEXTUR_POSITION_OF_DIRECTION[dir][point][0] + mat%16)/16.0,
+						(TEXTUR_POSITION_OF_DIRECTION[dir][point][1] + mat/16)/16.0
 					);
 					glVertex3f(
 								POINTS_OF_DIRECTION[dir][point][0],

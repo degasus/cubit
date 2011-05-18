@@ -119,8 +119,10 @@ void Renderer::init()
 
 
 
-
-	glGenTextures( NUMBER_OF_MATERIALS, texture );
+	
+	unsigned char* pixels = new unsigned char[1024*1024*4];
+	
+	glGenTextures( 1, texture );
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
 		SDL_Surface *surface; // Gives us the information to make the texture
 		
@@ -142,11 +144,11 @@ void Renderer::init()
 				printf("warning: %s's height is not a power of 2\n", filename.string().c_str());
 			}
 
-			// Bind the texture object
+/*			// Bind the texture object
 			glBindTexture( GL_TEXTURE_2D, texture[i] );
 
 			// Set the texture's stretching properties
-			if ( textureFilterMethod >= 4 /*&& glewIsSupported( "GL_EXT_texture_filter_anisotropic" )*/ ) {
+			if ( textureFilterMethod >= 4 ) {
 				float maxAni;
 				glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni );
 				glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );   
@@ -171,6 +173,16 @@ void Renderer::init()
 			} else {
 				glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
 			}
+*/			
+			unsigned char* p = (unsigned char*)surface->pixels;
+			for(int x=0; x<64; x++) for(int y=0; y<64; y++) {
+				
+				for(int c=0; c<3; c++) 
+					pixels[c + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = p[c + x*3 + y*3*64];
+				
+				pixels[3 + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = 0;
+				
+			}
 				
 		}
 		else {
@@ -185,6 +197,37 @@ void Renderer::init()
 		
 		
 	}
+	// Bind the texture object
+	glBindTexture( GL_TEXTURE_2D, texture[0] );
+
+	// Set the texture's stretching properties
+	if ( textureFilterMethod >= 4 /*&& glewIsSupported( "GL_EXT_texture_filter_anisotropic" )*/ ) {
+		float maxAni;
+		glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );   
+		
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	} else if(textureFilterMethod >= 3){
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	}
+	else if(textureFilterMethod >= 2){
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	}
+	else{
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+	}
+
+	if(textureFilterMethod >= 3){
+		gluBuild2DMipmaps(GL_TEXTURE_2D, 4, 1024, 1024, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	} else {
+		glTexImage2D(GL_TEXTURE_2D, 0, 4, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	}
+	
+	delete [] pixels;
 }
 
 void Renderer::renderArea(Area* area, bool show)
@@ -292,8 +335,8 @@ void Renderer::renderArea(Area* area, bool show)
 						//assert(vbocounter < size);
 						
 						// texture
-						area->vbopointer[i][vbocounter+0] = TEXTUR_POSITION_OF_DIRECTION[it->d][point][0];
-						area->vbopointer[i][vbocounter+1] = TEXTUR_POSITION_OF_DIRECTION[it->d][point][1];
+						area->vbopointer[i][vbocounter+0] = (TEXTUR_POSITION_OF_DIRECTION[it->d][point][0]+i%16)/16.0;
+						area->vbopointer[i][vbocounter+1] = (TEXTUR_POSITION_OF_DIRECTION[it->d][point][1]+i/16)/16.0;
 						
 						// normale
 						area->vbopointer[i][vbocounter+2] = NORMAL_OF_DIRECTION[it->d][0];
@@ -373,7 +416,6 @@ void Renderer::renderArea(Area* area, bool show)
 		if(show) {
 			//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, area->vbo[0]);
 			for(int i=1; i<NUMBER_OF_MATERIALS; i++) if(area->vbo_created[i] && i != 9) {
-				glBindTexture( GL_TEXTURE_2D, texture[i] );
 				getGlError();
 				
 				glEnableClientState(GL_VERTEX_ARRAY);
@@ -496,6 +538,7 @@ void Renderer::render(PlayerPosition pos)
 	if(areasRendered<0) areasRendered = 0;
 	areasRendered -= areasPerFrame;
 
+	glBindTexture( GL_TEXTURE_2D, texture[0] );
 	int i=0;
 	glColor4f(1,1,1,0.5);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
@@ -518,8 +561,7 @@ void Renderer::render(PlayerPosition pos)
 		bool inview = areaInViewport(a->pos, pos);
 		if(a->state == Area::STATE_READY && inview && a->vbo_created[9]) {
 			glPushMatrix();
-			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
-			glBindTexture( GL_TEXTURE_2D, texture[9] );				
+			glTranslatef(a->pos.x,a->pos.y,a->pos.z);			
 #ifdef USE_VBO
 			glBindBuffer(GL_ARRAY_BUFFER, a->vbo[9]);
 			getGlError();
@@ -544,8 +586,7 @@ void Renderer::render(PlayerPosition pos)
 		bool inview = areaInViewport(a->pos, pos);
 		if(a->state == Area::STATE_READY && inview && a->vbo_created[9]) {
 			glPushMatrix();
-			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
-			glBindTexture( GL_TEXTURE_2D, texture[9] );				
+			glTranslatef(a->pos.x,a->pos.y,a->pos.z);			
 #ifdef USE_VBO
 			glBindBuffer(GL_ARRAY_BUFFER, a->vbo[9]);
 			getGlError();
