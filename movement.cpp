@@ -810,8 +810,19 @@ void Movement::calcElevator()
 }
 
 void Movement::triggerNextFrame(){
+	
+	bool calc = 1;
 	try {
-		c->map->getBlock(position.block());
+		if(!c->map->getArea(position.block())->bullet_generated) {
+			calc = 0;
+			std::cout << "bullet not generated" << std::endl;
+		} 
+	} catch(NotLoadedException) {
+		std::cout << "area not loaded" << std::endl;
+		calc = 0;
+	}catch(AreaEmptyException) {}
+	
+	if(calc) {
 		calcNewSpeed();
 		calcDuckingAndSteps();
 		calcCharacter();
@@ -825,8 +836,6 @@ void Movement::triggerNextFrame(){
 		calcPointingOn();
 		calcBuilding();
 		calcElevator();
-	} catch(NotLoadedException) {
-		
 	}
 }
 
