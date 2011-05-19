@@ -13,6 +13,7 @@
 
 namespace fs = boost::filesystem;
 
+#define USE_ZLIB
 
 void parse_file(const char* f) {
 	std::ifstream file(f);
@@ -109,7 +110,7 @@ void parse_file(const char* f) {
 		strm.avail_out = 16*16*128*16;
 		strm.next_out = out;
 		
-		if(inflate(&strm, Z_NO_FLUSH) != Z_STREAM_END)
+		if(inflate(&strm, Z_FINISH) != Z_STREAM_END)
 			std::cout << "fehlerb" << std::endl;
 		have = 16*16*128*16-strm.avail_out;
 		inflateEnd(&strm);
@@ -177,17 +178,43 @@ void parse_file(const char* f) {
 				sqlite3_bind_null(saveArea, 8);
 			else {
 			
-			unsigned char wrkmem[LZO1X_1_MEM_COMPRESS];
-			unsigned char lzobuffer[32*32*32 + 32*32*32 / 16 + 64 + 3];
-			lzo_uint buffer_usage;
-			
-			int r = lzo1x_1_compress(area,32*32*32,lzobuffer,&buffer_usage,wrkmem);
-
-			if(buffer_usage < 32*32*32)
-				sqlite3_bind_blob(saveArea, 8, (const void*) lzobuffer, buffer_usage, SQLITE_STATIC);
-			else
-				sqlite3_bind_blob(saveArea, 8, (const void*) area, 32*32*32, SQLITE_STATIC);
-			}
+#ifdef USE_ZLIB
+				// deflate
+				z_stream strm;
+				unsigned char out[32*32*32];
+				int out_usage;
+				
+				/* allocate inflate state */
+				strm.zalloc = Z_NULL;
+				strm.zfree = Z_NULL;
+				strm.opaque = Z_NULL;
+				strm.avail_in = 0;
+				strm.next_in = Z_NULL;
+				if (deflateInit(&strm, -1) != Z_OK)
+					std::cout << "fehler" << std::endl;
+				
+				/* decompress until deflate stream ends or end of file */
+				strm.avail_in = 32*32*32;
+				strm.next_in = area;
+				strm.avail_out = 32*32*32;
+				strm.next_out = out;
+				
+				if(deflate(&strm, Z_FINISH) != Z_STREAM_END)
+					std::cout << "fehlerb" << std::endl;
+				out_usage = 32*32*32-strm.avail_out;
+				deflateEnd(&strm);
+#else
+				unsigned char wrkmem[LZO1X_1_MEM_COMPRESS];
+				unsigned char out[32*32*32 + 32*32*32 / 16 + 64 + 3];
+				lzo_uint out_usage;
+				
+				int r = lzo1x_1_compress(area,32*32*32,out,&out_usage,wrkmem);
+#endif
+				if(out_usage < 32*32*32)
+					sqlite3_bind_blob(saveArea, 8, (const void*) out, out_usage, SQLITE_STATIC);
+				else
+					sqlite3_bind_blob(saveArea, 8, (const void*) area, 32*32*32, SQLITE_STATIC);
+				}
 			sqlite3_step(saveArea);
 			sqlite3_reset(saveArea);
 		}

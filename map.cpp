@@ -8,14 +8,19 @@
 #include <cstdio>
 
 
+#define USE_ZLIB
 
 
 #include "controller.h"
 
 #include "map.h"
 
+#ifdef USE_ZLIB
+#include "zlib.h"
+#else
 #include "lzo/lzoconf.h"
 #include "lzo/lzo1x.h"
+#endif
 
 
 Map::Map(Controller *controller) {
@@ -31,9 +36,9 @@ Map::Map(Controller *controller) {
 	
 	dijsktra_wert = 1;
 	
-	
+#ifndef USE_ZLIB
 	lzo_init();
-
+#endif
 }
 
 Map::~Map()
@@ -397,16 +402,44 @@ void Map::store(Area *a) {
 	if(a->empty)
 		sqlite3_bind_null(saveArea, 8);
 	else {
-		unsigned char wrkmem[LZO1X_1_MEM_COMPRESS];
-		unsigned char buffer[AREASIZE + AREASIZE / 16 + 64 + 3];
-		lzo_uint buffer_usage;
+#ifdef USE_ZLIB
+		// deflate
+		z_stream strm;
+		unsigned char out[AREASIZE];
+		int out_usage;
 		
-		int r = lzo1x_1_compress(a->m,AREASIZE,buffer,&buffer_usage,wrkmem);
-
-		if(buffer_usage < AREASIZE)
-			sqlite3_bind_blob(saveArea, 8, (const void*) buffer, buffer_usage, SQLITE_STATIC);
+		/* allocate inflate state */
+		strm.zalloc = Z_NULL;
+		strm.zfree = Z_NULL;
+		strm.opaque = Z_NULL;
+		strm.avail_in = 0;
+		strm.next_in = Z_NULL;
+		if (deflateInit(&strm, -1) != Z_OK)
+			std::cout << "fehler" << std::endl;
+		
+		/* decompress until deflate stream ends or end of file */
+		strm.avail_in = AREASIZE;
+		strm.next_in = a->m;
+		strm.avail_out = AREASIZE;
+		strm.next_out = out;
+		
+		if(deflate(&strm, Z_FINISH) != Z_STREAM_END)
+			std::cout << "fehlerb" << std::endl;
+		out_usage = AREASIZE-strm.avail_out;
+		deflateEnd(&strm);
+#else
+		unsigned char wrkmem[LZO1X_1_MEM_COMPRESS];
+		unsigned char out[AREASIZE + AREASIZE / 16 + 64 + 3];
+		lzo_uint out_usage;
+		
+		int r = lzo1x_1_compress(a->m,AREASIZE,out,&out_usage,wrkmem);
+#endif
+		if(out_usage < AREASIZE)
+			sqlite3_bind_blob(saveArea, 8, (const void*) out, out_usage, SQLITE_STATIC);
 		else
 			sqlite3_bind_blob(saveArea, 8, (const void*) a->m, AREASIZE, SQLITE_STATIC);
+		
+		
 	}
 	sqlite3_step(saveArea);
 	sqlite3_reset(saveArea);
@@ -437,10 +470,34 @@ void Map::load(Area *a) {
 				a->blocks = -1;
 			}
 			else {
+#ifdef USE_ZLIB
+				// inflate
+				z_stream strm;
+				
+				/* allocate inflate state */
+				strm.zalloc = Z_NULL;
+				strm.zfree = Z_NULL;
+				strm.opaque = Z_NULL;
+				strm.avail_in = 0;
+				strm.next_in = Z_NULL;
+				if (inflateInit(&strm) != Z_OK)
+					std::cout << "fehler" << std::endl;
+				
+				/* decompress until deflate stream ends or end of file */
+				strm.avail_in = bytes;
+				strm.next_in = (unsigned char*)sqlite3_column_blob(loadArea, 4);
+				strm.avail_out = AREASIZE;
+				strm.next_out = a->m;
+				
+				if(inflate(&strm, Z_FINISH) != Z_STREAM_END)
+					std::cout << "fehlerb" << std::endl;
+				inflateEnd(&strm);
+#else	
 				lzo_uint length = 0;
 				int r = lzo1x_decompress((unsigned char*)sqlite3_column_blob(loadArea, 4), bytes, a->m,&length,0);
+#endif
 			}
-			for (int i = 0; i < 32*32*32; i++) {
+			for (int i = 0; i < AREASIZE; i++) {
 				if (a->m[i] >= NUMBER_OF_MATERIALS)
 					a->m[i] = 0;	
 			}

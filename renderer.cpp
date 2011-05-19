@@ -529,8 +529,8 @@ void Renderer::render(PlayerPosition pos)
 	areasRendered -= areasPerFrame;
 
 	// state for rendering vbos
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.3);
+	//glEnable(GL_ALPHA_TEST);
+	//glAlphaFunc(GL_GREATER, 0.3);
 	glBindTexture( GL_TEXTURE_2D, texture[0] );				
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -579,7 +579,6 @@ void Renderer::render(PlayerPosition pos)
 	
 	//std::cout << "anzahl gerenderte areas: " << i << " " << k << std::endl;
 	
-	
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
 	glBlendFunc(GL_ZERO, GL_ONE);
@@ -605,6 +604,7 @@ void Renderer::render(PlayerPosition pos)
 			glPopMatrix();
 		}
 	}
+	
 	glDepthFunc(GL_EQUAL);	
 	glBlendFunc(GL_ONE, GL_SRC_COLOR);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
@@ -641,16 +641,6 @@ void Renderer::render(PlayerPosition pos)
 	glCallList(gllist_item);
 	
 	glPopMatrix();
-	*/
-/*	int anzahl_mit_data=0;
-	int anzahl_ohne_data=0;
-	
-	for(Map::iterator it = c->map->areas.begin(); it != c->map->areas.end(); it++)
-		if(it->second->m)
-			anzahl_mit_data++;
-		else
-			anzahl_ohne_data++;
-	std::cout << "anzahl areas: " << anzahl_mit_data << " " << anzahl_ohne_data <<std::endl;
 	*/
 	
 }
