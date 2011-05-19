@@ -16,7 +16,7 @@
 using namespace std;
 namespace fs = boost::filesystem;
 
-//#define USE_VBO
+#define USE_VBO
 
 void getGlError() { 
 	/*
