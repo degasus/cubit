@@ -226,10 +226,11 @@ void Renderer::init()
 	}
 
 	if(textureFilterMethod >= 3){
-		gluBuild2DMipmaps(GL_TEXTURE_2D, 4, 1024, 1024, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-	} else {
-		glTexImage2D(GL_TEXTURE_2D, 0, 4, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-	}
+		//gluBuild2DMipmaps(GL_TEXTURE_2D, 3, 1024, 1024, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, true);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
+	} 
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	
 	delete [] pixels;
 }
@@ -237,7 +238,7 @@ void Renderer::init()
 
 void Renderer::renderArea(Area* area, bool show)
 {
-
+	
 	if(area->empty) {
 		area->needupdate = 0;
 		area->delete_opengl();
@@ -255,7 +256,7 @@ void Renderer::renderArea(Area* area, bool show)
 	if((area->needupdate || (!area->bullet_generated && generate_bullet)) && (areasRendered <= areasPerFrame)) {
 
 		// only update, if the other blocks are loaded
-		for(int d=0; d<DIRECTION_COUNT; d++) {
+		for(int d=0; d<DIRECTION_COUNT && !area->full; d++) {
 			if(area->next[d]) {
 				switch(area->next[d]->state) {				
 					case Area::STATE_READY:			
@@ -302,7 +303,7 @@ void Renderer::renderArea(Area* area, bool show)
 					else 
 						next_m = now;
 					
-					// MAterial 9 = water
+					// Material 9 = water
 					if(!next_m || (next_m == 9 && now != next_m )) {
 						polygon p;
 						p.pos = pos;
@@ -318,6 +319,7 @@ void Renderer::renderArea(Area* area, bool show)
 				}
 			}
 		}
+		
 		if(empty) {
 			area->needstore = 1;
 			area->empty = 1;
@@ -415,6 +417,7 @@ void Renderer::renderArea(Area* area, bool show)
 			delete [] index;
 			*/
 			if(generate_bullet && has_mesh) {
+				
 				area->shape = new btBvhTriangleMeshShape(area->mesh,1);
 				//area->shape = new btConvexTriangleMeshShape(area->mesh);
 				
@@ -569,6 +572,7 @@ void Renderer::render(PlayerPosition pos)
 	}
 	
 	//std::cout << "anzahl gerenderte areas: " << i << " " << (void*)a << " " << (a?a->state:-1) << std::endl;
+	
 	
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);

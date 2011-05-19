@@ -266,7 +266,7 @@ void Map::setPosition(PlayerPosition pos)
 			inital_loaded = 1;
 			dijsktra_wert++;
 		}
-		std::cout << "pos: " << pos.to_string() << " " << a->state << std::endl;
+		//std::cout << "pos: " << pos.to_string() << " " << a->state << std::endl;
 	}
 	//std::cout << "load: " << to_load.size() << ", store: " << to_save.size() << ", queue: " << dijsktra_queue.size() << std::endl;
 	
