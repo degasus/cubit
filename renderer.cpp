@@ -683,6 +683,7 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 }
 
 void Renderer::renderObjects() {
+	glBindTexture( GL_TEXTURE_2D, texture[0] );
 	std::list<MovingObject*>::iterator it;
 	for(it = c->map->objects.begin(); it != c->map->objects.end(); it++) {
 		glPushMatrix();
@@ -692,7 +693,7 @@ void Renderer::renderObjects() {
 		glTranslatef(trans.getOrigin().getX(),trans.getOrigin().getY(),trans.getOrigin().getZ());
 		glRotatef( trans.getRotation().getAngle()*180/M_PI, trans.getRotation().getAxis().getX(), trans.getRotation().getAxis().getY(), trans.getRotation().getAxis().getZ());
 		
-		glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
+		//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
 		glBegin( GL_QUADS );
 
 		for(int i=0; i<DIRECTION_COUNT; i++) {
@@ -700,8 +701,8 @@ void Renderer::renderObjects() {
 					
 			for(int point=0; point < POINTS_PER_POLYGON; point++) {
 				glTexCoord2f(
-					TEXTUR_POSITION_OF_DIRECTION[i][point][0],
-					TEXTUR_POSITION_OF_DIRECTION[i][point][1]
+					(TEXTUR_POSITION_OF_DIRECTION[i][point][0]+(*it)->tex%16)/16.0,
+					(TEXTUR_POSITION_OF_DIRECTION[i][point][1]+(*it)->tex/16)/16.0
 				);
 				glVertex3f(
 					(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.1,

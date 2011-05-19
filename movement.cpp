@@ -842,7 +842,7 @@ int Movement::getNextAvailableMaterial(int startMat)
 			startMat = 1;
 		if(startMat == selectedMaterial)
 			break;
-	} while(c->movement->getCountInInventory(startMat) == 0);
+	} while(c->movement->getCountInInventory(startMat) == 0 && !sandboxMode);
 	
 	return startMat;
 }
@@ -855,7 +855,7 @@ int Movement::getLastAvailableMaterial(int startMat)
 			startMat = NUMBER_OF_MATERIALS - 1;
 		if(startMat == selectedMaterial)
 			break;
-	} while(c->movement->getCountInInventory(startMat) == 0);
+	} while(c->movement->getCountInInventory(startMat) == 0 && !sandboxMode);
 	
 	return startMat;
 }
