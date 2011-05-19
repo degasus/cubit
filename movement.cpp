@@ -142,6 +142,8 @@ void	Movement::initPhysics(){
 	trans.setOrigin(btVector3(position.x,position.y,position.z));
 	ghost->setWorldTransform(trans);
 	
+	//ghost->setCcdMotionThreshold(1.0f);
+	//ghost->setCcdSweptSphereRadius(0.2f); 
 	
 	kinCon = new btKinematicCharacterController(ghost, cShape, 0.3, 2);
 	//kinCon->setFallSpeed(1);
@@ -774,11 +776,15 @@ void Movement::throwBlock(){
 		);
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.01,new btDefaultMotionState(t),s,localInertia);
 	MovingObject* o = new MovingObject(rbInfo);
-	o->applyCentralImpulse(btVector3(cos(position.orientationHorizontal*(M_PI/180))*cos(position.orientationVertical*(M_PI/180))*0.1,
-									 sin(position.orientationHorizontal*(M_PI/180))*cos(position.orientationVertical*(M_PI/180))*0.1,
-									 sin(position.orientationVertical*(M_PI/180))*0.1
+	o->applyCentralImpulse(btVector3(cos(position.orientationHorizontal*(M_PI/180))*cos(position.orientationVertical*(M_PI/180))*0.3,
+									 sin(position.orientationHorizontal*(M_PI/180))*cos(position.orientationVertical*(M_PI/180))*0.3,
+									 sin(position.orientationVertical*(M_PI/180))*0.3
 									));
 	o->tex = selectedMaterial;
+	
+	o->setCcdMotionThreshold(0.1f);
+	o->setCcdSweptSphereRadius(0.02f); 
+	
 	c->map->objects.push_back(o);
 	dynamicsWorld->addRigidBody(o);
 	
@@ -813,14 +819,14 @@ void Movement::triggerNextFrame(){
 	
 	bool calc = 1;
 	try {
-		if(!c->map->getArea(position.block())->bullet_generated) {
+		if(!c->map->getArea(position.block())->bullet_generated && c->map->getBlock(position.block())) {
 			calc = 0;
 			std::cout << "bullet not generated" << std::endl;
 		} 
 	} catch(NotLoadedException) {
 		std::cout << "area not loaded" << std::endl;
 		calc = 0;
-	}catch(AreaEmptyException) {}
+	} catch(AreaEmptyException) {}
 	
 	if(calc) {
 		calcNewSpeed();

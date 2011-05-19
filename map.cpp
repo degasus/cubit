@@ -67,7 +67,7 @@ void Map::config(const boost::program_options::variables_map& c)
 	deleteRange = c["visualRange"].as<int>()*c["destroyAreaFaktor"].as<double>()*2;
 	storeMaps = c["storeMaps"].as<bool>();
 	areasPerFrameLoading = c["areasPerFrameLoading"].as<int>();
-	loadRange = c["visualRange"].as<int>()*2;
+	loadRange = c["visualRange"].as<int>()*2+2;
 	generate_random = c["generateRandom"].as<bool>();
 }
 
@@ -214,6 +214,8 @@ Area* Map::getArea(BlockPosition pos)
 {
 	iterator it = areas.find(pos.area());
 	if(it != areas.end()) {
+		if(it->second->state != Area::STATE_READY)
+			throw NotLoadedException();
 		if(it->second->empty)
 			throw AreaEmptyException();
 		return it->second;
