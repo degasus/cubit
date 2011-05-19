@@ -192,6 +192,7 @@ public:
 	Area* next[DIRECTION_COUNT];
 	int dijsktra;
 	int dijsktra_distance;
+	bool dijsktra_direction_used[DIRECTION_COUNT];
 	
 	bool empty;
 	bool full;

@@ -262,11 +262,13 @@ void Map::setPosition(PlayerPosition pos)
 			to_load.push(a);
 		}
 		// add it to queue
-		if(a->state == Area::STATE_READY) {
+		if(a->state == Area::STATE_READY) {			
 			dijsktra_queue.push(a);
 			a->dijsktra_distance = 0;
 			inital_loaded = 1;
 			dijsktra_wert++;
+			for(int d=0; d<DIRECTION_COUNT; d++)
+				a->dijsktra_direction_used[d] = 0;
 		}
 		//std::cout << "pos: " << pos.to_string() << " " << a->state << std::endl;
 	}
@@ -289,12 +291,14 @@ void Map::setPosition(PlayerPosition pos)
 			// found, so go and try any direction
 			case Area::STATE_READY:
 			if(!a->full) {
-				for(int i=0; i<DIRECTION_COUNT; i++) {
+				for(int i=0; i<DIRECTION_COUNT; i++) if(!a->dijsktra_direction_used[!((DIRECTION)i)]) {
 					Area* b = a->next[i];
 					if(!b && a->dijsktra_distance < loadRange) b = getOrCreate(a->pos*DIRECTION(i));
 					if(b && (b->dijsktra != dijsktra_wert || b->dijsktra_distance > a->dijsktra_distance+1)) {
 						b->dijsktra_distance = a->dijsktra_distance+1;
 						b->dijsktra = dijsktra_wert;
+						for(int d=0; d<DIRECTION_COUNT; d++)
+							b->dijsktra_direction_used[d] = a->dijsktra_direction_used[d] || (i==d);
 						dijsktra_queue.push(b);
 						if(b->state == Area::STATE_NEW) {
 							b->state = Area::STATE_LOAD;
