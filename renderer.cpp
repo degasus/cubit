@@ -183,7 +183,7 @@ void Renderer::init()
 				for(int c=0; c<3; c++) 
 					pixels[c + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = p[c + x*3 + y*3*64];
 				
-				pixels[3 + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = 255;
+				pixels[3 + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = ((x/2)%2)&&((y/2)%2)?0:255;
 				
 			}
 				
@@ -230,7 +230,7 @@ void Renderer::init()
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, true);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
 	} 
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	
 	delete [] pixels;
 }
@@ -530,6 +530,8 @@ void Renderer::render(PlayerPosition pos)
 	areasRendered -= areasPerFrame;
 
 	// state for rendering vbos
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.4);
 	glBindTexture( GL_TEXTURE_2D, texture[0] );				
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
