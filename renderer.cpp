@@ -198,7 +198,6 @@ void Renderer::init()
 			SDL_FreeSurface( surface );
 		}
 		
-		
 	}
 	// Bind the texture object
 	glBindTexture( GL_TEXTURE_2D, texture[0] );

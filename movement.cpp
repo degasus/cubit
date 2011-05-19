@@ -155,7 +155,6 @@ void	Movement::initPhysics(){
 
 void Movement::calcPhysics(){
 	dynamicsWorld->stepSimulation(0.04,5);
-	
 /*	if (body && body->getMotionState())
 	{
 		btTransform trans;
@@ -811,19 +810,24 @@ void Movement::calcElevator()
 }
 
 void Movement::triggerNextFrame(){
-	calcNewSpeed();
-	calcDuckingAndSteps();
-	calcCharacter();
-	calcPhysics();
-	lastThrow++;
-	if(throwPressed && (lastThrow >= 8 || fastPressed)){
-		lastThrow = 0;
-		throwBlock();
+	try {
+		c->map->getBlock(position.block());
+		calcNewSpeed();
+		calcDuckingAndSteps();
+		calcCharacter();
+		calcPhysics();
+		lastThrow++;
+		if(throwPressed && (lastThrow >= 8 || fastPressed)){
+			lastThrow = 0;
+			throwBlock();
+		}
+		/*calcCollisionAndMove();*/
+		calcPointingOn();
+		calcBuilding();
+		calcElevator();
+	} catch(NotLoadedException) {
+		
 	}
-	/*calcCollisionAndMove();*/
-	calcPointingOn();
-	calcBuilding();
-	calcElevator();
 }
 
 int Movement::getCountInInventory(int mat){
