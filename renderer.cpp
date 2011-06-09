@@ -435,6 +435,11 @@ void Renderer::generateArea(Area* area)
 		
 				glPopMatrix();
 				glEndList();
+				
+#ifndef USE_VBO
+				delete [] area->vbopointer[i];
+				area->vbopointer[i] = 0;
+#endif
 #endif
 
 			}
