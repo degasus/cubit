@@ -19,6 +19,7 @@ class BlockPosition;
 
 // including Air == 0
 const int NUMBER_OF_MATERIALS = 109;
+const int NUMBER_OF_LISTS = 7;
 
 // must be a pow of two 
 const int AREASIZE_X = 32;
@@ -176,14 +177,14 @@ public:
 	
 	// for saving the GL-List
 	GLuint gllist;
-	GLuint vbo[NUMBER_OF_MATERIALS];
-	GLuint gllist_blend;
-	GLfloat* vbopointer[NUMBER_OF_MATERIALS];
+	bool   gllist_generated;
 	
-	bool gllist_generated;
-	int vbo_created[NUMBER_OF_MATERIALS];
-	bool vbo_generated;
-	bool gllist_has_blend; 
+	GLuint vbo[NUMBER_OF_LISTS];
+	bool   vbo_generated;
+	int    vbo_length[NUMBER_OF_LISTS];
+	
+	GLfloat* vbopointer[NUMBER_OF_LISTS];
+	
 	bool bullet_generated;
 	bool needupdate;
 	bool show;
@@ -219,27 +220,23 @@ public:
 	
 	inline void delete_opengl() {
 		if(gllist_generated) {
-			glDeleteLists(gllist,1);
-			if(gllist_has_blend) {
-				glDeleteLists(gllist_blend,1);
-			}
+			glDeleteLists(gllist,NUMBER_OF_LISTS);
 		}
 		if(vbo_generated) {
-			glDeleteBuffersARB(NUMBER_OF_MATERIALS,vbo);
+			glDeleteBuffers(NUMBER_OF_LISTS,vbo);
 		}
 		gllist_generated = 0;
-		gllist_has_blend = 0;
 		vbo_generated = 0;
-		for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
+		gllist = 0;
+		
+		for(int i=0; i<NUMBER_OF_LISTS; i++) {
 			vbo[i] = 0;
-			vbo_created[i] = 0;
+			vbo_length[i] = 0;
 			if(vbopointer[i]) {
 				delete [] vbopointer[i];
 				vbopointer[i] = 0;
 			}
 		}
-		gllist = 0;
-		gllist_blend = 0;
 	}
 	
 	enum AreaState {

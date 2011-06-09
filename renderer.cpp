@@ -16,7 +16,8 @@
 using namespace std;
 namespace fs = boost::filesystem;
 
-#define USE_VBO
+//#define USE_VBO
+#define USE_GLLIST
 
 void getGlError() { 
 	/*
@@ -183,7 +184,7 @@ void Renderer::init()
 				for(int c=0; c<3; c++) 
 					pixels[c + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = p[c + x*3 + y*3*64];
 				
-				pixels[3 + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = ((x/2)%2)&&((y/2)%2)?0:255;
+				pixels[3 + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = ((x/4)%3)&&((y/4)%3)?0:255;
 				
 			}
 				
@@ -235,7 +236,8 @@ void Renderer::init()
 }
 
 
-void Renderer::renderArea(Area* area, bool show)
+void Renderer::generateArea(Area* area)
+
 {
 	
 	if(area->empty) {
@@ -276,7 +278,7 @@ void Renderer::renderArea(Area* area, bool show)
 		area->bullet_generated = generate_bullet;
 		area->needupdate = 0;
 		
-		std::vector<polygon> polys[NUMBER_OF_MATERIALS];
+		std::vector<polygon> polys[NUMBER_OF_LISTS];
 
 		bool empty = 1;
 		
@@ -309,7 +311,7 @@ void Renderer::renderArea(Area* area, bool show)
 						p.d = (DIRECTION)dir;
 						p.m = now;
 						if(now == 9) {
-							polys[now].push_back(p);
+							polys[6].push_back(p);
 						} else {
 							polys[dir].push_back(p);
 						}
@@ -329,12 +331,19 @@ void Renderer::renderArea(Area* area, bool show)
 			if(generate_bullet)
 				area->mesh = new btTriangleMesh();
 			
+#ifdef USE_VBO 
 			area->vbo_generated = 1;
-			glGenBuffers(NUMBER_OF_MATERIALS, area->vbo);
+			glGenBuffers(NUMBER_OF_LISTS, area->vbo);
+#endif
+			
+#ifdef USE_GLLIST
+			area->gllist_generated = 1;
+			area->gllist = glGenLists(NUMBER_OF_LISTS);
+#endif
 			
 			int max_counts = 0;
       
-			for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
+			for(int i=0; i<NUMBER_OF_LISTS; i++) {
 				if(polys[i].empty()) continue;
 				
 				int size = polys[i].size()*8*POINTS_PER_POLYGON;
@@ -342,11 +351,7 @@ void Renderer::renderArea(Area* area, bool show)
 				if(max_counts < size)
 					max_counts = size;
 				
-				area->vbo_created[i] = size;
-#ifdef USE_VBO 
-				glBindBuffer(GL_ARRAY_BUFFER, area->vbo[i]);
-				getGlError();
-#endif
+				area->vbo_length[i] = size;
 				area->vbopointer[i] = new GLfloat[size];
 				int vbocounter = 0;
 				
@@ -375,7 +380,7 @@ void Renderer::renderArea(Area* area, bool show)
 						vbocounter+=8;
 					}
 
-					if(generate_bullet && i != 9) {
+					if(generate_bullet && i != 6) {
 						for(int point=2; point < POINTS_PER_POLYGON; point++) {
 							has_mesh = 1;
 							area->mesh->addTriangle(
@@ -398,12 +403,40 @@ void Renderer::renderArea(Area* area, bool show)
 						}
 					}
 				}
+
 #ifdef USE_VBO
+				glBindBuffer(GL_ARRAY_BUFFER, area->vbo[i]);
+				getGlError();
 				glBufferData(GL_ARRAY_BUFFER, size*sizeof(GLfloat), area->vbopointer[i], GL_STATIC_DRAW);
 				getGlError();
 				delete [] area->vbopointer[i];
 				area->vbopointer[i] = 0;
 #endif
+				
+				
+#ifdef USE_GLLIST
+				glNewList(area->gllist+i, GL_COMPILE);
+				getGlError();
+				
+				glPushMatrix();
+				glTranslatef(area->pos.x,area->pos.y,area->pos.z);
+
+#ifdef USE_VBO			
+				GLfloat* startpointer = 0;				
+#else
+				GLfloat* startpointer = area->vbopointer[i];
+#endif
+				glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
+				glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
+				glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
+
+				getGlError();
+				glDrawArrays(GL_QUADS, 0, area->vbo_length[i]/8);
+		
+				glPopMatrix();
+				glEndList();
+#endif
+
 			}
 			/*
 			ushort* index = new ushort[max_counts];
@@ -438,6 +471,42 @@ void Renderer::renderArea(Area* area, bool show)
 		}
 	}
 }
+
+
+
+void Renderer::renderArea(Area* a, int l) {
+	if(a->vbo_length[l]) {
+	
+#ifdef USE_GLLIST
+		glCallList(a->gllist + l);
+#else		
+		glPushMatrix();
+		glTranslatef(a->pos.x,a->pos.y,a->pos.z);
+#ifdef USE_VBO
+		glBindBuffer(GL_ARRAY_BUFFER, a->vbo[l]);
+		getGlError();
+	
+		GLfloat* startpointer = 0;				
+#else
+		GLfloat* startpointer = a->vbopointer[l];
+#endif
+		//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
+		glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
+		glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
+
+		getGlError();
+		glDrawArrays(GL_QUADS, 0, a->vbo_length[l]/8);
+		//glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
+		getGlError();
+		
+		glPopMatrix();
+#endif
+	
+	}
+}
+
+
 
 void Renderer::generateViewPort(PlayerPosition pos) {
 	double a = pos.orientationHorizontal/180*M_PI;
@@ -527,11 +596,11 @@ void Renderer::render(PlayerPosition pos)
 	
 	if(areasRendered<0) areasRendered = 0;
 	areasRendered -= areasPerFrame;
-
+	
 	// state for rendering vbos
-	//glEnable(GL_ALPHA_TEST);
-	//glAlphaFunc(GL_GREATER, 0.3);
-	glBindTexture( GL_TEXTURE_2D, texture[0] );				
+//	glEnable(GL_ALPHA_TEST);
+//	glAlphaFunc(GL_GREATER, 0.3);
+	glBindTexture( GL_TEXTURE_2D, texture[0] );
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);				
@@ -545,33 +614,9 @@ void Renderer::render(PlayerPosition pos)
 //		if(a->pos != areapos) continue;
 		a->show = areaInViewport(a->pos, pos);
 		if(a->state == Area::STATE_READY && (a->show || areasRendered < 0)) {
-			renderArea(a, 0);
-			if(a->show) {
-				glPushMatrix();
-				glTranslatef(a->pos.x,a->pos.y,a->pos.z);
-				
-				for(int d=0; d<DIRECTION_COUNT; d++) if(!a->dijsktra_direction_used[d]) {
-#ifdef USE_VBO
-					glBindBuffer(GL_ARRAY_BUFFER, a->vbo[d]);
-					getGlError();
-				
-					GLfloat* startpointer = 0;				
-#else
-					GLfloat* startpointer = a->vbopointer[d];
-#endif
-					//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
-					glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
-					glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
-					glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
-
-					getGlError();
-					glDrawArrays(GL_QUADS, 0, a->vbo_created[d]/8);
-					//glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
-					getGlError();
-					k++;
-				}
-				
-				glPopMatrix();
+			generateArea(a);
+			if(a->show) for(int d=0; d<DIRECTION_COUNT; d++) if(!a->dijsktra_direction_used[d]) {
+				renderArea(a,d);
 			}
 		}
 		i++;
@@ -584,24 +629,8 @@ void Renderer::render(PlayerPosition pos)
 	glBlendFunc(GL_ZERO, GL_ONE);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
-		if(a->state == Area::STATE_READY && a->show && a->vbo_created[9]) {
-			glPushMatrix();
-			glTranslatef(a->pos.x,a->pos.y,a->pos.z);			
-#ifdef USE_VBO
-			glBindBuffer(GL_ARRAY_BUFFER, a->vbo[9]);
-			getGlError();
-			
-			GLfloat* startpointer = 0;				
-#else
-			GLfloat* startpointer = a->vbopointer[9];
-#endif
-			//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
-			glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
-			glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
-			glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
-
-			glDrawArrays(GL_QUADS, 0, a->vbo_created[9]/8);
-			glPopMatrix();
+		if(a->state == Area::STATE_READY && a->show) {
+			renderArea(a,6);
 		}
 	}
 	
@@ -609,24 +638,8 @@ void Renderer::render(PlayerPosition pos)
 	glBlendFunc(GL_ONE, GL_SRC_COLOR);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
-		if(a->state == Area::STATE_READY && a->show && a->vbo_created[9]) {
-			glPushMatrix();
-			glTranslatef(a->pos.x,a->pos.y,a->pos.z);			
-#ifdef USE_VBO
-			glBindBuffer(GL_ARRAY_BUFFER, a->vbo[9]);
-			getGlError();
-			
-			GLfloat* startpointer = 0;				
-#else
-			GLfloat* startpointer = a->vbopointer[9];
-#endif
-			//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
-			glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
-			glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
-			glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
-
-			glDrawArrays(GL_QUADS, 0, a->vbo_created[9]/8);
-			glPopMatrix();
+		if(a->state == Area::STATE_READY && a->show) {
+			renderArea(a,6);
 		}
 	}
 	glEnable(GL_CULL_FACE);
