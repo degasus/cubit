@@ -138,7 +138,7 @@ void UInterface::initWindow()
 		screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE );
 	}
 
-	SDL_WM_SetCaption("Cubit Alpha 0.0.3","Cubit Alpha 0.0.3");
+	SDL_WM_SetCaption("Cubit Alpha 0.0.4","Cubit Alpha 0.0.4");
 
 	if ( !screen ) {
 		printf("Unable to set video mode: %s\n", SDL_GetError());

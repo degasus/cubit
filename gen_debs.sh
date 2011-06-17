@@ -1,20 +1,21 @@
 #!/bin/sh
 
-export CUBITVERSION=0.0.3
+export CUBITVERSION=0.0.4
 
 
 mkdir -p debs
 
 cd debs
 
-rm -rf cubit-* cubit*diff.gz cubit*dsc cubit*build cubit*changes cubit_*
+rm -rf cubit-* cubit*diff.gz cubit*dsc cubit*build cubit*changes 
 
 git clone .. cubit-$CUBITVERSION
 
 rm -rf cubit-$CUBITVERSION/.git
 
 if [ ! -e cubit_$CUBITVERSION.orig.tar.gz ]
-then tar -zcf cubit_$CUBITVERSION.orig.tar.gz cubit-$CUBITVERSION
+then echo "Creating new orig.tar.gz file"
+tar -zcf cubit_$CUBITVERSION.orig.tar.gz cubit-$CUBITVERSION
 fi
 
 cd cubit-$CUBITVERSION
