@@ -10,6 +10,7 @@
 #ifndef _MAP_H_
 #define _MAP_H_
 
+#include "config.h"
 #include "movement.h"
 #include "matrix.h"
 
@@ -175,14 +176,16 @@ public:
 	// compairable with the server
 	int revision;
 	
+#ifdef USE_GLLIST
 	// for saving the GL-List
 	GLuint gllist;
 	bool   gllist_generated;
-	
+#endif
+#ifdef USE_VBO	
 	GLuint vbo[NUMBER_OF_LISTS];
 	bool   vbo_generated;
+#endif
 	int    vbo_length[NUMBER_OF_LISTS];
-	
 	GLfloat* vbopointer[NUMBER_OF_LISTS];
 	
 	bool bullet_generated;
@@ -219,18 +222,22 @@ public:
 	}
 	
 	inline void delete_opengl() {
+#ifdef USE_GLLIST
 		if(gllist_generated) {
 			glDeleteLists(gllist,NUMBER_OF_LISTS);
 		}
+		gllist_generated = 0;
+		gllist = 0;
+#endif
+#ifdef USE_VBO
 		if(vbo_generated) {
 			glDeleteBuffers(NUMBER_OF_LISTS,vbo);
 		}
-		gllist_generated = 0;
 		vbo_generated = 0;
-		gllist = 0;
+		for(int i=0; i<NUMBER_OF_LISTS; i++) vbo[i] = 0;
+#endif
 		
 		for(int i=0; i<NUMBER_OF_LISTS; i++) {
-			vbo[i] = 0;
 			vbo_length[i] = 0;
 			if(vbopointer[i]) {
 				delete [] vbopointer[i];

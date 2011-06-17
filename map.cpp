@@ -8,9 +8,7 @@
 #include <cstdio>
 
 
-#define USE_ZLIB
-
-
+#include "config.h"
 #include "controller.h"
 
 #include "map.h"
@@ -620,11 +618,16 @@ Area::Area(BlockPosition p)
 	
 	state = STATE_NEW;
 
+#ifdef USE_GLLIST
 	gllist_generated = 0;
-	vbo_generated = 0;
 	gllist = 0;
+#endif
+#ifdef USE_VBO
+	vbo_generated = 0;
+	for(int i=0; i<NUMBER_OF_LISTS; i++) vbo[i] = 0;
+#endif
+	
 	for(int i=0; i<NUMBER_OF_LISTS; i++) {
-		vbo[i] = 0;
 		vbopointer[i] = 0;
 		vbo_length[i] = 0;
 	}

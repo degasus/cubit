@@ -49,3 +49,11 @@ INSTALL( FILES ${soundmusic} DESTINATION share/games/cubit/sound/music)
 
 INSTALL( FILES logo/cubit.svg DESTINATION share/icons/hicolor/scalable/apps)
 INSTALL( FILES logo/cubit.desktop DESTINATION share/applications)
+
+# build a CPack driven installer package
+include (InstallRequiredSystemLibraries)
+set (CPACK_PACKAGE_VERSION_MAJOR "0")
+set (CPACK_PACKAGE_VERSION_MINOR "0")
+set (CPACK_PACKAGE_VERSION_PATCH "4")
+set (CPACK_DEBIAN_PACKAGE_MAINTAINER "markus@selfnet.de")
+include (CPack)

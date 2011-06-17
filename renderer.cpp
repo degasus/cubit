@@ -7,6 +7,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include "config.h"
 #include "controller.h"
 #include "map.h"
 
@@ -16,8 +17,6 @@
 using namespace std;
 namespace fs = boost::filesystem;
 
-//#define USE_VBO
-#define USE_GLLIST
 
 void getGlError() { 
 	/*
