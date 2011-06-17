@@ -53,13 +53,21 @@ void UInterface::init()
 	if(Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) {
 		printf("Unable to open audio!\n");
 	}
-
+	
 	// Create a pixmap font from a TrueType file.
-	font = new FTTextureFont("/usr/share/fonts/truetype/freefont/FreeSans.ttf");
-
-	// If something went wrong, bail out.
-	if(font->Error())
-		printf("Unable to open Font!\n");
+	font = new FTTextureFont((dataDirectory/"fonts"/"FreeSans.ttf").string().c_str());
+	if(font->Error()) {
+		font = new FTTextureFont((workingDirectory/"fonts"/"FreeSans.ttf").string().c_str());
+		if(font->Error()) {
+			font = new FTTextureFont((localDirectory/"fonts"/"FreeSans.ttf").string().c_str());
+			if(font->Error()) {
+				font = new FTTextureFont((fs::path("fonts")/"FreeSans.ttf").string().c_str());
+				if(font->Error()) {
+					printf("Unable to open Font!\n");
+				}
+			}
+		}
+	}
 	
 	// Set the font size
 	font->FaceSize(20);

@@ -38,6 +38,9 @@ target_link_libraries (cubit_converter ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} $
 INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit DESTINATION games)
 INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit_converter DESTINATION games)
 
+FILE(GLOB fonts "${CMAKE_CURRENT_SOURCE_DIR}/fonts/*" )
+INSTALL( FILES ${fonts} DESTINATION share/games/cubit/fonts)
+
 FILE(GLOB tex "${CMAKE_CURRENT_SOURCE_DIR}/tex/*" )
 INSTALL( FILES ${tex} DESTINATION share/games/cubit/tex)
 
