@@ -3,6 +3,7 @@ cubit (0.0.4) UNRELEASED; urgency=low
   New features:
   * VBO, but deactivated
   * zlib compression
+  * Minecraft Converter
 
   Tweaks:
   * one big texture in memory
