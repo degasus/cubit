@@ -28,7 +28,7 @@ if(MINGW)
   set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
 endif(MINGW)
 
-add_executable(cubit main.cpp controller.cpp map.cpp movement.cpp ui.cpp renderer.cpp GLDebugDrawer.cpp logo/cubit.rc)
+add_executable(cubit area.cpp main.cpp controller.cpp map.cpp movement.cpp ui.cpp renderer.cpp GLDebugDrawer.cpp logo/cubit.rc)
 add_executable(cubit_converter converter.cpp)
 
 include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${LZO_INCLUDE_DIR} ${BULLET_INCLUDE_DIR} ${ZLIB_INCLUDE_DIRS})
