@@ -235,9 +235,7 @@ void Renderer::init()
 }
 
 
-void Renderer::generateArea(Area* area)
-
-{
+void Renderer::generateArea(Area* area) {
 	
 	if(area->empty) {
 		area->needupdate = 0;
@@ -254,7 +252,6 @@ void Renderer::generateArea(Area* area)
 	}
 	
 	if((area->needupdate || (!area->bullet_generated && generate_bullet)) && (areasRendered <= areasPerFrame)) {
-
 		// only update, if the other blocks are loaded
 		for(int d=0; d<DIRECTION_COUNT && !area->full; d++) {
 			if(area->next[d]) {
@@ -268,7 +265,7 @@ void Renderer::generateArea(Area* area)
 				}
 			}/* else return*/;
 		}
-
+		
 		areasRendered++;
 		
 		area->delete_opengl();
@@ -442,16 +439,7 @@ void Renderer::generateArea(Area* area)
 #endif
 
 			}
-			/*
-			ushort* index = new ushort[max_counts];
-			for(int i=0; i<max_counts; i++)
-				index[i] = i;
-			
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, area->vbo[0]);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, max_counts*sizeof(ushort), index, GL_STATIC_DRAW);
-			
-			delete [] index;
-			*/
+
 			if(generate_bullet && has_mesh) {
 				
 				area->shape = new btBvhTriangleMeshShape(area->mesh,1);
@@ -470,6 +458,7 @@ void Renderer::generateArea(Area* area)
 			}
 			
 		} else {
+			c->map->areas_with_gllist.erase(area);
 			area->delete_opengl();
 			area->delete_collision(c->movement->dynamicsWorld);
 		}
@@ -567,10 +556,15 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 		 && (abs(erg.data[0][2])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < angleOfVision ) // oben/unten aus dem Bildbereich
 		 ;
 }
+
 void Renderer::render(PlayerPosition pos)
 {
+	
+	int start = SDL_GetTicks();
+	
 	// Clear the screen before drawing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
+	
 	glLoadIdentity();							// Reset The View
 	if(enableFog)
 		glEnable(GL_FOG);
@@ -584,6 +578,7 @@ void Renderer::render(PlayerPosition pos)
 	glRotatef(pos.orientationVertical,0.0f,1.0f,0.0f);
 	glRotatef(-pos.orientationHorizontal,0.0f,0.0f,1.0f);
 
+	
 
 	//Eigene Position
 	glTranslatef(-(pos.x), -(pos.y), -(pos.z));
@@ -598,8 +593,27 @@ void Renderer::render(PlayerPosition pos)
 	BlockPosition areapos = pos.block().area();
 	generateViewPort(pos);
 	
+	
+	int init = SDL_GetTicks()-start;
+	
 	if(areasRendered<0) areasRendered = 0;
 	areasRendered -= areasPerFrame;
+	
+	
+	int vertex_saved = 0;
+	int vertex_displayed = 0;
+	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
+		Area* a = *it;
+		a->show = areaInViewport(a->pos, pos);
+		if(a->state == Area::STATE_READY && (a->show || areasRendered < 0)) {
+			generateArea(a);
+		}
+		for(int i=0; i<NUMBER_OF_LISTS; i++)
+			vertex_saved+=a->vbo_length[i];
+	}
+	
+	
+	int generate = SDL_GetTicks()-init-start;
 	
 	// state for rendering vbos
 //	glEnable(GL_ALPHA_TEST);
@@ -610,23 +624,19 @@ void Renderer::render(PlayerPosition pos)
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);				
 	getGlError();
 	
-	int i=0;
 	int k=0;
 	glColor4f(1,1,1,0.5);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
-//		if(a->pos != areapos) continue;
-		a->show = areaInViewport(a->pos, pos);
-		if(a->state == Area::STATE_READY && (a->show || areasRendered < 0)) {
-			generateArea(a);
-			if(a->show) for(int d=0; d<DIRECTION_COUNT; d++) if(!a->dijsktra_direction_used[d]) {
+		if(a->state == Area::STATE_READY && a->show) {
+			for(int d=0; d<DIRECTION_COUNT; d++) if(!a->dijsktra_direction_used[d]) {
 				renderArea(a,d);
+				vertex_displayed += a->vbo_length[d];
 			}
 		}
-		i++;
 	}
 	
-	//std::cout << "anzahl gerenderte areas: " << i << " " << k << std::endl;
+	int solid = SDL_GetTicks()-generate-init-start;
 	
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
@@ -635,6 +645,7 @@ void Renderer::render(PlayerPosition pos)
 		Area* a = *it;
 		if(a->state == Area::STATE_READY && a->show) {
 			renderArea(a,6);
+			vertex_displayed += a->vbo_length[6];
 		}
 	}
 	
@@ -644,22 +655,25 @@ void Renderer::render(PlayerPosition pos)
 		Area* a = *it;
 		if(a->state == Area::STATE_READY && a->show) {
 			renderArea(a,6);
+			vertex_displayed += a->vbo_length[6];
 		}
 	}
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
 	glDepthFunc(GL_LEQUAL);	
 	
+	int trans = SDL_GetTicks()-solid-generate-init-start;
+	
 	renderObjects();
 	
-/*	glPushMatrix();
-	glTranslatef(itemPos.x,itemPos.y,itemPos.z);
-	glRotatef(itemPos.rotate.getAngle()*180/M_PI,itemPos.rotate.getAxis().getX(),itemPos.rotate.getAxis().getY(),itemPos.rotate.getAxis().getZ());
-	glCallList(gllist_item);
+	stats[0] = stats[0]*0.9 + init/10.;
+	stats[1] = stats[1]*0.9 + generate/10.;
+	stats[2] = stats[2]*0.9 + solid/10.;
+	stats[3] = stats[3]*0.9 + trans/10.;
 	
-	glPopMatrix();
-	*/
 	
+	std::cout << "Groesse VBOs: " << vertex_saved/1024/1024 << " MB, Angezeigte Polygone: " << vertex_displayed/8/4/1000 << " k" << std::endl;
+	std::cout << "Init: " << stats[0] << ", Generate: " << stats[1] << ", Solid: " << stats[2] << ", Transparent: " << stats[3] << std::endl;
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){

@@ -67,6 +67,9 @@ private:
 
 	bool highlightWholePlane;
 	int textureFilterMethod;
+	
+	
+	float stats[4];
 	 
 };
 

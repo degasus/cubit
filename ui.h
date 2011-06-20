@@ -111,6 +111,9 @@ private:
 	//Music
 	Mix_Music *ingameMusic;
 	bool musicPlaying;
+	
+	
+	float stats[4];
 };
 
 

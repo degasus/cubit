@@ -341,6 +341,7 @@ void UInterface::renderText(double x, double y, const char* Text)
 	font->Render(Text, -1, FTPoint(FTGL_DOUBLE(x), FTGL_DOUBLE(y)));
 }
 
+
 void UInterface::redraw()
 {
 	int start = SDL_GetTicks();
@@ -354,11 +355,7 @@ void UInterface::redraw()
 	c->map->setPosition(pos);
 	int map = SDL_GetTicks()-start-movement;
 	
-	c->renderer->render(pos);
-	BlockPosition block;
-	DIRECTION direct;
-	if(c->movement->getPointingOn(&block, &direct))
-		c->renderer->highlightBlockDirection(block, direct);
+	c->renderer->render(pos); 
 	int renderer = SDL_GetTicks()-start-movement-map;
 
 	//glDisable(GL_DEPTH_TEST);
@@ -366,12 +363,15 @@ void UInterface::redraw()
 	//glEnable(GL_DEPTH_TEST);
 
 	drawHUD();
-	int hud = SDL_GetTicks()-start-movement-map-renderer;
-
 	SDL_GL_SwapBuffers();
-	int buffer = SDL_GetTicks()-start-movement-map-renderer-hud;
+	int hud = SDL_GetTicks()-start-movement-map-renderer;
 	
-	std::cout << movement << " " << map << " " << renderer << " " << hud << " " << buffer << std::endl;
+	stats[0] = stats[0]*0.9 + movement/10.;
+	stats[1] = stats[1]*0.9 + map/10.;
+	stats[2] = stats[2]*0.9 + renderer/10.;
+	stats[3] = stats[3]*0.9 + hud/10.;
+	
+	std::cout << "Movement: " << stats[0] << ", Map: " << stats[1] << ", Renderer: " << stats[2] << ", HUD: " << stats[3] << std::endl;
 }
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
@@ -445,6 +445,13 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 //float a = -10.0;
 
 void UInterface::drawHUD() {
+	
+	// Highlighted Block
+	BlockPosition block;
+	DIRECTION direct;
+	if(c->movement->getPointingOn(&block, &direct))
+		c->renderer->highlightBlockDirection(block, direct);
+	
 	int cubeSize = 50;
 	
 	glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
