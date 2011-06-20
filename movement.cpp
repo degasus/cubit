@@ -156,7 +156,7 @@ void	Movement::initPhysics(){
 }
 
 void Movement::calcPhysics(){
-	dynamicsWorld->stepSimulation(0.04,5);
+	dynamicsWorld->stepSimulation(time/1000.,5);
 /*	if (body && body->getMotionState())
 	{
 		btTransform trans;
@@ -815,7 +815,11 @@ void Movement::calcElevator()
 	}
 }
 
-void Movement::triggerNextFrame(){
+void Movement::triggerNextFrame(int time){
+	if(time)
+		this->time = time;
+	else
+		this->time = 1;
 	
 	bool calc = 1;
 	try {

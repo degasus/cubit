@@ -48,7 +48,8 @@ private:
 	
 	void initWindow();
 	
-	void handleUserEvents(SDL_UserEvent e);
+	void redraw();
+	
 	void handleKeyDownEvents(SDL_KeyboardEvent e);
 	void handleKeyUpEvents(SDL_KeyboardEvent e);
 	void handleMouseDownEvents(SDL_MouseButtonEvent e);
@@ -78,6 +79,7 @@ private:
 	//SDL vars
 	SDL_Surface *screen;
 	bool done;
+	int lastframe;
 
 
 	

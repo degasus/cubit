@@ -266,7 +266,7 @@ void Renderer::generateArea(Area* area)
 						return;
 					
 				}
-			} else return;
+			}/* else return*/;
 		}
 
 		areasRendered++;

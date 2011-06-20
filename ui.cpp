@@ -23,6 +23,7 @@ UInterface::UInterface(Controller *controller)
 	fadingProgress = 0;
 	lastMaterial = 1;
 	musicPlaying = false;
+	lastframe = 0;
 }
 
 void UInterface::init()
@@ -172,6 +173,7 @@ void UInterface::initWindow()
 	}
 }
 
+/*
 Uint32 GameLoopTimer(Uint32 interval, void* param)
 {
 		// Create a user event to call the game loop.
@@ -186,30 +188,32 @@ Uint32 GameLoopTimer(Uint32 interval, void* param)
 
 		return interval;
 }
-
+*/
 
 void UInterface::run()
 {
-	SDL_TimerID timer = SDL_AddTimer(40,GameLoopTimer,0);
+//	SDL_TimerID timer = SDL_AddTimer(40,GameLoopTimer,0);
 
-	SDL_Event event;
+	while(!done) {
+		redraw();
+		
+		SDL_Event event;
+		while(SDL_PollEvent (&event)) {
+			switch(event.type) {
+				case SDL_KEYDOWN:			handleKeyDownEvents(event.key); 		break;
+				case SDL_KEYUP:				handleKeyUpEvents(event.key); 			break;
+				case SDL_MOUSEBUTTONDOWN: 	handleMouseDownEvents(event.button); 	break;
+				case SDL_MOUSEBUTTONUP: 	handleMouseUPEvents(event.button); 		break;
+				case SDL_MOUSEMOTION: 		handleMouseEvents(event.motion); 		break;
+				case SDL_QUIT: 				done = true;  							break;
 
-	while((!done) && (SDL_WaitEvent(&event))) {
-		switch(event.type) {
-			case SDL_USEREVENT:			handleUserEvents(event.user);			break;
-			case SDL_KEYDOWN:			handleKeyDownEvents(event.key); 		break;
-			case SDL_KEYUP:				handleKeyUpEvents(event.key); 			break;
-			case SDL_MOUSEBUTTONDOWN: 	handleMouseDownEvents(event.button); 	break;
-			case SDL_MOUSEBUTTONUP: 	handleMouseUPEvents(event.button); 		break;
-			case SDL_MOUSEMOTION: 		handleMouseEvents(event.motion); 		break;
-			case SDL_QUIT: 				done = true;  							break;
-
-			case SDL_VIDEORESIZE:
-				std::cout << "video-resize-event" << std::endl;
-				screenX = event.resize.w;
-				screenY = event.resize.h;
-				initWindow();
-				break;
+				case SDL_VIDEORESIZE:
+					std::cout << "video-resize-event" << std::endl;
+					screenX = event.resize.w;
+					screenY = event.resize.h;
+					initWindow();
+					break;
+			}
 		}
 	}
 }
@@ -337,29 +341,37 @@ void UInterface::renderText(double x, double y, const char* Text)
 	font->Render(Text, -1, FTPoint(FTGL_DOUBLE(x), FTGL_DOUBLE(y)));
 }
 
-void UInterface::handleUserEvents(SDL_UserEvent e)
+void UInterface::redraw()
 {
-	c->movement->triggerNextFrame();
+	int start = SDL_GetTicks();
+	int time = start-lastframe;
+	lastframe = start;
+	
+	c->movement->triggerNextFrame(time);
+	PlayerPosition pos = c->movement->getPosition();
+	int movement = SDL_GetTicks()-start;
+	
+	c->map->setPosition(pos);
+	int map = SDL_GetTicks()-start-movement;
+	
+	c->renderer->render(pos);
+	BlockPosition block;
+	DIRECTION direct;
+	if(c->movement->getPointingOn(&block, &direct))
+		c->renderer->highlightBlockDirection(block, direct);
+	int renderer = SDL_GetTicks()-start-movement-map;
 
-	SDL_Event next;
-	SDL_PumpEvents();
-	if(!SDL_PeepEvents(&next, 1, SDL_PEEKEVENT, ~SDL_USEREVENT)) {
-		PlayerPosition pos = c->movement->getPosition();
-		c->map->setPosition(pos);
-		c->renderer->render(pos);
-		BlockPosition block;
-		DIRECTION direct;
-		if(c->movement->getPointingOn(&block, &direct))
-			c->renderer->highlightBlockDirection(block, direct);
+	//glDisable(GL_DEPTH_TEST);
+	//c->movement->dynamicsWorld->debugDrawWorld();
+	//glEnable(GL_DEPTH_TEST);
 
-		//glDisable(GL_DEPTH_TEST);
-		c->movement->dynamicsWorld->debugDrawWorld();
-		//glEnable(GL_DEPTH_TEST);
+	drawHUD();
+	int hud = SDL_GetTicks()-start-movement-map-renderer;
 
-		drawHUD();
-
-		SDL_GL_SwapBuffers();
-	} else std::cout << "Dropping Frame" << std::endl;
+	SDL_GL_SwapBuffers();
+	int buffer = SDL_GetTicks()-start-movement-map-renderer-hud;
+	
+	std::cout << movement << " " << map << " " << renderer << " " << hud << " " << buffer << std::endl;
 }
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
