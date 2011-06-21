@@ -574,14 +574,17 @@ void Renderer::render(PlayerPosition pos)
 	
 	int vertex_saved = 0;
 	int vertex_displayed = 0;
+	int areas_in_viewport = 0;
+	int displayed_vbos = 0;
+	
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		a->show = areaInViewport(a->pos, pos);
+		areas_in_viewport += a->show;
 		if(a->state == Area::STATE_READY && (a->show || areasRendered < 0)) {
 			generateArea(a);
 		}
-		for(int i=0; i<NUMBER_OF_LISTS; i++)
-			vertex_saved+=a->vbo_length[i];
+		vertex_saved += a->vbo_size();
 	}
 	
 	
@@ -603,7 +606,8 @@ void Renderer::render(PlayerPosition pos)
 		if(a->state == Area::STATE_READY && a->show) {
 			for(int d=0; d<DIRECTION_COUNT; d++) if(!a->dijsktra_direction_used[d]) {
 				renderArea(a,d);
-				vertex_displayed += a->vbo_length[d];
+				vertex_displayed += a->polygons_count(d);
+				displayed_vbos++;
 			}
 		}
 	}
@@ -617,7 +621,8 @@ void Renderer::render(PlayerPosition pos)
 		Area* a = *it;
 		if(a->state == Area::STATE_READY && a->show) {
 			renderArea(a,6);
-			vertex_displayed += a->vbo_length[6];
+			vertex_displayed += a->polygons_count(6);
+			displayed_vbos++;
 		}
 	}
 	
@@ -627,7 +632,8 @@ void Renderer::render(PlayerPosition pos)
 		Area* a = *it;
 		if(a->state == Area::STATE_READY && a->show) {
 			renderArea(a,6);
-			vertex_displayed += a->vbo_length[6];
+			vertex_displayed += a->polygons_count(6);
+			displayed_vbos++;
 		}
 	}
 	glEnable(GL_CULL_FACE);
@@ -644,7 +650,7 @@ void Renderer::render(PlayerPosition pos)
 	stats[3] = stats[3]*0.9 + trans/10.;
 	
 	
-	std::cout << "Groesse VBOs: " << vertex_saved/1024/1024 << " MB, Angezeigte Polygone: " << vertex_displayed/8/4/1000 << " k" << std::endl;
+	std::cout << "Speicher: " << vertex_saved/1024/1024 << " MB, Polygone: " << vertex_displayed/1000 << " k, Areas: " << areas_in_viewport << ", VBOs: " << displayed_vbos << std::endl;
 	std::cout << "Init: " << stats[0] << ", Generate: " << stats[1] << ", Solid: " << stats[2] << ", Transparent: " << stats[3] << std::endl;
 }
 

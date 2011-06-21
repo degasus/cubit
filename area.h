@@ -68,6 +68,17 @@ public:
 		STATE_DELETE
 	} state;
 	
+	inline int vbo_size() {
+		int s = 0;
+		for(int i=0; i<NUMBER_OF_LISTS; i++)
+			s+=vbo_length[i];
+		return s;
+	}
+	
+	inline int polygons_count(int l) {
+		return vbo_length[l]/8/4;
+	}
+	
 	inline void allocm() {
 		m = new Material[AREASIZE_X*AREASIZE_Y*AREASIZE_Z];
 		for(int i=0; i<AREASIZE_X*AREASIZE_Y*AREASIZE_Z; i++)
