@@ -76,7 +76,7 @@ public:
 	}
 	
 	inline int polygons_count(int l) {
-		return vbo_length[l]/8/4;
+		return vbo_length[l]/8/3;
 	}
 	
 	inline void allocm() {

@@ -314,7 +314,9 @@ void Renderer::generateArea(Area* area) {
 			for(int i=0; i<NUMBER_OF_LISTS; i++) {
 				if(polys[i].empty()) continue;
 				
-				int size = polys[i].size()*8*POINTS_PER_POLYGON;
+				int points[] = {0,1,2,0,2,3};
+				
+				int size = polys[i].size()*8*sizeof(points)/sizeof(int);
 				
 				if(max_counts < size)
 					max_counts = size;
@@ -328,7 +330,10 @@ void Renderer::generateArea(Area* area) {
 					int diffx = it->pos.x-area->pos.x;
 					int diffy = it->pos.y-area->pos.y;
 					int diffz = it->pos.z-area->pos.z;
-					for(int point=0; point < POINTS_PER_POLYGON; point++) {
+					
+					
+					for(int k=0; k < sizeof(points)/sizeof(int); k++) {
+						int point = points[k];
 						//assert(vbocounter < size);
 						
 						// texture
@@ -358,14 +363,14 @@ void Renderer::generateArea(Area* area) {
 									POINTS_OF_DIRECTION[it->d][0][2]+diffz
 								),
 								btVector3(
-									POINTS_OF_DIRECTION[it->d][point][0]+diffx,
-									POINTS_OF_DIRECTION[it->d][point][1]+diffy,
-									POINTS_OF_DIRECTION[it->d][point][2]+diffz
-								),
-								btVector3(
 									POINTS_OF_DIRECTION[it->d][point-1][0]+diffx,
 									POINTS_OF_DIRECTION[it->d][point-1][1]+diffy,
 									POINTS_OF_DIRECTION[it->d][point-1][2]+diffz
+								),
+								btVector3(
+									POINTS_OF_DIRECTION[it->d][point][0]+diffx,
+									POINTS_OF_DIRECTION[it->d][point][1]+diffy,
+									POINTS_OF_DIRECTION[it->d][point][2]+diffz
 								)							
 							);
 						}
@@ -399,7 +404,7 @@ void Renderer::generateArea(Area* area) {
 				glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
 
 				getGlError();
-				glDrawArrays(GL_QUADS, 0, area->vbo_length[i]/8);
+				glDrawArrays(GL_TRIANGLES, 0, area->vbo_length[i]/8);
 		
 				glPopMatrix();
 				glEndList();
@@ -461,7 +466,7 @@ void Renderer::renderArea(Area* a, int l) {
 		glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
 
 		getGlError();
-		glDrawArrays(GL_QUADS, 0, a->vbo_length[l]/8);
+		glDrawArrays(GL_TRIANGLES, 0, a->vbo_length[l]/8);
 		//glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
 		getGlError();
 		
