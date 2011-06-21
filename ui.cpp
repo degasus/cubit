@@ -630,7 +630,7 @@ void UInterface::drawHUD() {
 	glLoadIdentity();
 	
 	renderText(20, screenY-40, c->movement->getPosition().to_string().c_str());
-	//renderText(20, screenY-80, boost::lexical_cast<std::string>(a).c_str());
+	renderText(20, screenY-80, boost::lexical_cast<std::string>(1000/(stats[0]+stats[1]+stats[2]+stats[3])).c_str());
 	
 	int progress = c->movement->getCurrentRemoveProgress();
 	if(progress > 0){

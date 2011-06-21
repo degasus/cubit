@@ -246,6 +246,38 @@ void Map::setPosition(PlayerPosition pos)
 {	
 	SDL_LockMutex(queue_mutex);
 	
+	while(!loaded.empty()) {
+		
+		Area* a = loaded.front();
+		loaded.pop();
+		
+		if(a->state == Area::STATE_LOADED){
+		
+			areas[a->pos] = a;
+				a->state = Area::STATE_READY;
+			
+			for(int i=0; i<DIRECTION_COUNT; i++)
+				if(a->next[i])
+					a->next[i]->needupdate = 1;
+			
+			if(!a->empty)
+				areas_with_gllist.insert(a);
+			}
+	}
+	
+	/*
+	while(!saved.empty()) {
+		Area* a = saved.front();
+		saved.pop();
+		
+		iterator it = areas.find(a->pos);
+		if(it->second->state == Area::STATE_DELETE) {
+			delete a;
+		}
+	}
+	*/
+
+	
 	BlockPosition p = pos.block().area();
 	
 	if(lastpos != p) {
@@ -335,38 +367,7 @@ void Map::setPosition(PlayerPosition pos)
 			to_save.push(a);
 		}
 	} 
-	
-	while(!loaded.empty()) {
 		
-		Area* a = loaded.front();
-		loaded.pop();
-		
-		if(a->state == Area::STATE_LOADED){
-		
-			areas[a->pos] = a;
-				a->state = Area::STATE_READY;
-			
-			for(int i=0; i<DIRECTION_COUNT; i++)
-				if(a->next[i])
-					a->next[i]->needupdate = 1;
-			
-			if(!a->empty)
-				areas_with_gllist.insert(a);
-			}
-	}
-	
-	/*
-	while(!saved.empty()) {
-		Area* a = saved.front();
-		saved.pop();
-		
-		iterator it = areas.find(a->pos);
-		if(it->second->state == Area::STATE_DELETE) {
-			delete a;
-		}
-	}
-	*/
-	
 	SDL_UnlockMutex(queue_mutex);
 }
 

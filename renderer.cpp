@@ -74,8 +74,10 @@ void Renderer::init()
 	glClearDepth(1.0f);													// Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);											// Enables Depth Testing
 	glDepthFunc(GL_LEQUAL);												// The Type Of Depth Testing To Do
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);					// Really Nice Perspective Calculations
-
+	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);					// Really Nice Perspective Calculations
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);					// Really Nice Perspective Calculations
+	glShadeModel(GL_FLAT);
+	glDisable(GL_DITHER);
 	glEnable(GL_CULL_FACE);
 	
 	//LIGHT
@@ -147,36 +149,6 @@ void Renderer::init()
 				printf("warning: %s's height is not a power of 2\n", filename.string().c_str());
 			}
 
-/*			// Bind the texture object
-			glBindTexture( GL_TEXTURE_2D, texture[i] );
-
-			// Set the texture's stretching properties
-			if ( textureFilterMethod >= 4 ) {
-				float maxAni;
-				glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni );
-				glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );   
-				
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-			} else if(textureFilterMethod >= 3){
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-			}
-			else if(textureFilterMethod >= 2){
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-			}
-			else{
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-			}
-
-			if(textureFilterMethod >= 3){
-				gluBuild2DMipmaps(GL_TEXTURE_2D, 3, surface->w, surface->h, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
-			} else {
-				glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
-			}
-*/			
 			unsigned char* p = (unsigned char*)surface->pixels;
 			for(int x=0; x<64; x++) for(int y=0; y<64; y++) {
 				
