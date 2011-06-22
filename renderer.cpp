@@ -542,7 +542,32 @@ void Renderer::render(PlayerPosition pos)
 	
 	int start = SDL_GetTicks();
 	
+	int vertex_saved = 0;
+	int area_saved = 0;
+	int vertex_displayed = 0;
+	int areas_in_viewport = 0;
+	int displayed_vbos = 0;
+	
+	if(areasRendered<0) areasRendered = 0;
+	areasRendered -= areasPerFrame;
+	generateViewPort(pos);	
+	
+	
+	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
+		Area* a = *it;
+		a->show = areaInViewport(a->pos, pos);
+		areas_in_viewport += a->show;
+		if(a->state == Area::STATE_READY && (a->show || areasRendered < 0)) {
+			generateArea(a);
+		}
+		vertex_saved += a->vbo_size();
+		area_saved += AREASIZE*sizeof(Material);
+	}
+	
+	int generate = SDL_GetTicks()-start;
+	
 	// Clear the screen before drawing
+	SDL_GL_SwapBuffers();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
 	
 	glLoadIdentity();							// Reset The View
@@ -568,37 +593,10 @@ void Renderer::render(PlayerPosition pos)
 
 	GLfloat LightPosition2[] = { -10000000.0f, -2000000.0f, 25000000.0f, 1.0f };
 	glLightfv(GL_LIGHT2, GL_POSITION, LightPosition2);
-
-	// eigenes gebiet
-	BlockPosition areapos = pos.block().area();
-	generateViewPort(pos);
+	
+	int init = SDL_GetTicks()-generate-start;
 	
 	
-	int init = SDL_GetTicks()-start;
-	
-	if(areasRendered<0) areasRendered = 0;
-	areasRendered -= areasPerFrame;
-	
-	
-	int vertex_saved = 0;
-	int area_saved = 0;
-	int vertex_displayed = 0;
-	int areas_in_viewport = 0;
-	int displayed_vbos = 0;
-	
-	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
-		Area* a = *it;
-		a->show = areaInViewport(a->pos, pos);
-		areas_in_viewport += a->show;
-		if(a->state == Area::STATE_READY && (a->show || areasRendered < 0)) {
-			generateArea(a);
-		}
-		vertex_saved += a->vbo_size();
-		area_saved += AREASIZE*sizeof(Material);
-	}
-	
-	
-	int generate = SDL_GetTicks()-init-start;
 	
 	// state for rendering vbos
 //	glEnable(GL_ALPHA_TEST);

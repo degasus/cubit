@@ -363,7 +363,6 @@ void UInterface::redraw()
 	//glEnable(GL_DEPTH_TEST);
 
 	drawHUD();
-	SDL_GL_SwapBuffers();
 	int hud = SDL_GetTicks()-start-movement-map-renderer;
 	
 	stats[0] = stats[0]*0.9 + movement/10.;
