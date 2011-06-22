@@ -309,10 +309,16 @@ void Map::setPosition(PlayerPosition pos)
 	}
 	//std::cout << "load: " << to_load.size() << ", store: " << to_save.size() << ", queue: " << dijsktra_queue.size() << std::endl;
 
-	int maxk = std::min((areasPerFrameLoading - std::max(to_load.size(), to_save.size())), dijsktra_queue.size());
-	for(int k=0; k<maxk; k++) {
+	//int maxk = std::min((areasPerFrameLoading - std::max(to_load.size(), to_save.size())), dijsktra_queue.size());
+	int maxk = areasPerFrameLoading - std::max(to_load.size(), to_save.size());
+	Area *first = 0;
+	int k;
+	for(k=0; k<maxk && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
 		dijsktra_queue.pop();
+		
+		// do not circle
+		if(a == first) break;
 		
 		switch(a->state) {		
 			// found, so go and try any direction
@@ -340,6 +346,7 @@ void Map::setPosition(PlayerPosition pos)
 			case Area::STATE_LOAD:
 			case Area::STATE_LOADED:
 			dijsktra_queue.push(a);
+			if(!first) first = a;
 			break;
 			
 			// not available, so stop here
@@ -359,7 +366,7 @@ void Map::setPosition(PlayerPosition pos)
 			to_save.push(a);
 		}
 	} 
-	
+	std::cout << k << std::endl;
 	SDL_UnlockMutex(queue_mutex);
 }
 

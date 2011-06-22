@@ -173,7 +173,10 @@ void Renderer::init()
 	}
 	// Bind the texture object
 	glBindTexture( GL_TEXTURE_2D, texture[0] );
-
+	
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	
 	// Set the texture's stretching properties
 	if ( textureFilterMethod >= 4 /*&& glewIsSupported( "GL_EXT_texture_filter_anisotropic" )*/ ) {
 		float maxAni;
@@ -578,6 +581,7 @@ void Renderer::render(PlayerPosition pos)
 	
 	
 	int vertex_saved = 0;
+	int area_saved = 0;
 	int vertex_displayed = 0;
 	int areas_in_viewport = 0;
 	int displayed_vbos = 0;
@@ -590,6 +594,7 @@ void Renderer::render(PlayerPosition pos)
 			generateArea(a);
 		}
 		vertex_saved += a->vbo_size();
+		area_saved += AREASIZE*sizeof(Material);
 	}
 	
 	
@@ -655,7 +660,7 @@ void Renderer::render(PlayerPosition pos)
 	stats[3] = stats[3]*0.9 + trans/10.;
 	
 	
-	std::cout << "Speicher: " << vertex_saved/1024/1024 << " MB, Polygone: " << vertex_displayed/1000 << " k, Areas: " << areas_in_viewport << ", VBOs: " << displayed_vbos << std::endl;
+	std::cout << "Speicher: " << area_saved/1024/1024 << "+" << vertex_saved/1024/1024 << " MB, Polygone: " << vertex_displayed/1000 << " k, Areas: " << areas_in_viewport << ", VBOs: " << displayed_vbos << std::endl;
 	std::cout << "Init: " << stats[0] << ", Generate: " << stats[1] << ", Solid: " << stats[2] << ", Transparent: " << stats[3] << std::endl;
 }
 

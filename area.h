@@ -71,7 +71,7 @@ public:
 	inline int vbo_size() {
 		int s = 0;
 		for(int i=0; i<NUMBER_OF_LISTS; i++)
-			s+=vbo_length[i];
+			s+=vbo_length[i]*sizeof(float);
 		return s;
 	}
 	
