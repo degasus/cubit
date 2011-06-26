@@ -366,7 +366,6 @@ void Map::setPosition(PlayerPosition pos)
 			to_save.push(a);
 		}
 	} 
-	std::cout << k << std::endl;
 	SDL_UnlockMutex(queue_mutex);
 }
 

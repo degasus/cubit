@@ -542,8 +542,8 @@ void Renderer::render(PlayerPosition pos)
 	
 	int start = SDL_GetTicks();
 	
-	int vertex_saved = 0;
-	int area_saved = 0;
+	long long vertex_saved = 0;
+	long long area_saved = 0;
 	int vertex_displayed = 0;
 	int areas_in_viewport = 0;
 	int displayed_vbos = 0;
@@ -657,9 +657,13 @@ void Renderer::render(PlayerPosition pos)
 	stats[2] = stats[2]*0.9 + solid/10.;
 	stats[3] = stats[3]*0.9 + trans/10.;
 	
+	std::ostringstream out1(std::ostringstream::out);
+	out1 << "Speicher: " << area_saved/1024/1024 << "+" << vertex_saved/1024/1024 << " MB, Polygone: " << vertex_displayed/1000 << " k, Areas: " << areas_in_viewport << ", VBOs: " << displayed_vbos;
+	debug_output[0] = out1.str();
 	
-	std::cout << "Speicher: " << area_saved/1024/1024 << "+" << vertex_saved/1024/1024 << " MB, Polygone: " << vertex_displayed/1000 << " k, Areas: " << areas_in_viewport << ", VBOs: " << displayed_vbos << std::endl;
-	std::cout << "Init: " << stats[0] << ", Generate: " << stats[1] << ", Solid: " << stats[2] << ", Transparent: " << stats[3] << std::endl;
+	std::ostringstream out2(std::ostringstream::out);
+	out2 << "Init: " << stats[0] << ", Generate: " << stats[1] << ", Solid: " << stats[2] << ", Transparent: " << stats[3];
+	debug_output[1] = out2.str();
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){

@@ -35,6 +35,8 @@ public:
 	
 	void config(const boost::program_options::variables_map &c);
 	GLuint texture[NUMBER_OF_MATERIALS];
+	
+	std::string debug_output[2];
 
 private:
 	

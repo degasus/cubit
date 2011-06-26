@@ -369,9 +369,7 @@ void UInterface::redraw()
 	stats[1] = stats[1]*0.9 + map/10.;
 	stats[2] = stats[2]*0.9 + renderer/10.;
 	stats[3] = stats[3]*0.9 + hud/10.;
-	
-	std::cout << "Movement: " << stats[0] << ", Map: " << stats[1] << ", Renderer: " << stats[2] << ", HUD: " << stats[3] << std::endl;
-}
+	}
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
 {
@@ -629,7 +627,13 @@ void UInterface::drawHUD() {
 	glLoadIdentity();
 	
 	renderText(20, screenY-40, c->movement->getPosition().to_string().c_str());
-	renderText(20, screenY-80, boost::lexical_cast<std::string>(1000/(stats[0]+stats[1]+stats[2]+stats[3])).c_str());
+	//renderText(20, screenY-80, boost::lexical_cast<std::string>(1000/(stats[0]+stats[1]+stats[2]+stats[3])).c_str());
+	renderText(20, screenY-70, c->renderer->debug_output[0].c_str());
+	renderText(20, screenY-100, c->renderer->debug_output[1].c_str());
+	
+	std::ostringstream out(std::ostringstream::out);
+	out << "Movement: " << stats[0] << ", Map: " << stats[1] << ", Renderer: " << stats[2] << ", HUD: " << stats[3];
+	renderText(20,screenY-130, out.str().c_str());
 	
 	int progress = c->movement->getCurrentRemoveProgress();
 	if(progress > 0){
