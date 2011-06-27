@@ -625,6 +625,21 @@ void UInterface::drawHUD() {
 	
 	
 	glLoadIdentity();
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_LIGHTING);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(1.0,1.0,1.0,0.5);
+	
+	glBegin(GL_QUADS);
+		glVertex3f(0.0, screenY-0.0, 0.0);
+		glVertex3f(0.0, screenY-150, 0.0);
+		glVertex3f(screenX, screenY-150, 0.0);
+		glVertex3f(screenX, screenY-0.0, 0.0);
+		
+	glEnd();
+	glColor4f(0.0,0.0,0.0,1.0);
 	
 	renderText(20, screenY-40, c->movement->getPosition().to_string().c_str());
 	//renderText(20, screenY-80, boost::lexical_cast<std::string>(1000/(stats[0]+stats[1]+stats[2]+stats[3])).c_str());
@@ -650,6 +665,8 @@ void UInterface::drawHUD() {
 	glEnable(GL_LIGHT2);
 	glDisable(GL_LIGHT3);
 	glDisable(GL_LIGHT4);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_DEPTH_TEST);
 	
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 

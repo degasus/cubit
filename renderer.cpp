@@ -238,9 +238,8 @@ void Renderer::generateArea(Area* area) {
 						return;
 					
 				}
-			}/* else return*/;
-		}
-		
+			}// else return;
+		}		
 		areasRendered++;
 		
 		area->delete_opengl();
@@ -291,7 +290,6 @@ void Renderer::generateArea(Area* area) {
 				}
 			}
 		}
-		
 		if(empty) {
 			area->needstore = 1;
 			area->empty = 1;
@@ -419,7 +417,6 @@ void Renderer::generateArea(Area* area) {
 #endif
 
 			}
-
 			if(generate_bullet && has_mesh) {
 				
 				area->shape = new btBvhTriangleMeshShape(area->mesh,1);
