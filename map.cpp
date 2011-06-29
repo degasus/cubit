@@ -287,8 +287,8 @@ void Map::setPosition(PlayerPosition pos)
 	
 	if(!inital_loaded) {
 		// reset queue
-		while(!dijsktra_queue.empty())
-			dijsktra_queue.pop();
+//		while(!dijsktra_queue.empty())
+//			dijsktra_queue.pop();
 		
 		// load actual position
 		Area* a = getOrCreate(p);
@@ -327,7 +327,7 @@ void Map::setPosition(PlayerPosition pos)
 				for(int i=0; i<DIRECTION_COUNT; i++) if(!a->dijsktra_direction_used[!((DIRECTION)i)]) {
 					Area* b = a->next[i];
 					if(!b && a->dijsktra_distance < loadRange) b = getOrCreate(a->pos*DIRECTION(i));
-					if(b && (b->dijsktra != dijsktra_wert || b->dijsktra_distance > a->dijsktra_distance+1)) {
+					if(b && (b->dijsktra < dijsktra_wert || b->dijsktra_distance > a->dijsktra_distance+1)) {
 						b->dijsktra_distance = a->dijsktra_distance+1;
 						b->dijsktra = dijsktra_wert;
 						for(int d=0; d<DIRECTION_COUNT; d++)

@@ -435,7 +435,7 @@ void Renderer::generateArea(Area* area) {
 			}
 			
 		} else {
-			c->map->areas_with_gllist.erase(area);
+			//c->map->areas_with_gllist.erase(area);
 			area->delete_opengl();
 			area->delete_collision(c->movement->dynamicsWorld);
 		}
