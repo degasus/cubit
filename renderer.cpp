@@ -534,9 +534,11 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 		 ;
 }
 
-void Renderer::render(PlayerPosition pos)
+void Renderer::render(PlayerPosition pos, double eye)
 {
-	
+	pos.x += -eye*std::sin(pos.orientationHorizontal/180*M_PI);
+	pos.y += eye*std::cos(pos.orientationHorizontal/180*M_PI);
+
 	int start = SDL_GetTicks();
 	
 	long long vertex_saved = 0;
@@ -562,16 +564,21 @@ void Renderer::render(PlayerPosition pos)
 	}
 	
 	int generate = SDL_GetTicks()-start;
-	
-	// Clear the screen before drawing
-	SDL_GL_SwapBuffers();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
-	
-	glLoadIdentity();							// Reset The View
+
 	if(enableFog)
 		glEnable(GL_FOG);
 	else
 		glDisable(GL_FOG);
+	
+	glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
+	glLoadIdentity();					// Reset The Projection Matrix
+	glTranslatef(eye,0.0,0.0);
+	// Calculate The Aspect Ratio Of The Window
+	gluPerspective(angleOfVision/(1/360.0*M_PI), (GLfloat) c->ui->screenX / (GLfloat) c->ui->screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
+
+	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
+	
+	glLoadIdentity();							// Reset The View
 	glScalef(-1,1,1);
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
@@ -643,7 +650,7 @@ void Renderer::render(PlayerPosition pos)
 	}
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
-	glDepthFunc(GL_LEQUAL);	
+	glDepthFunc(GL_LEQUAL);
 	
 	int trans = SDL_GetTicks()-solid-generate-init-start;
 	

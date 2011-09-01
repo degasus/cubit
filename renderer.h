@@ -28,7 +28,7 @@ public:
 	
 	void init();
 
-	void render(PlayerPosition pos);
+	void render(PlayerPosition pos, double eye = 0);
 	void deleteArea(Area* area);
 
 	void highlightBlockDirection(BlockPosition, DIRECTION);

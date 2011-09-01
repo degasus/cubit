@@ -162,14 +162,6 @@ void UInterface::initWindow()
 		}
 
 		glViewport(0, 0, screenX, screenY);	// Reset The Current Viewport
-		glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
-		glLoadIdentity();					// Reset The Projection Matrix
-
-		// Calculate The Aspect Ratio Of The Window
-		gluPerspective(angleOfVision, (GLfloat) screenX / (GLfloat) screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
-
-		glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
-		glLoadIdentity();					// Reset The Projection Matrix
 	}
 }
 
@@ -341,7 +333,6 @@ void UInterface::renderText(double x, double y, const char* Text)
 	font->Render(Text, -1, FTPoint(FTGL_DOUBLE(x), FTGL_DOUBLE(y)));
 }
 
-
 void UInterface::redraw()
 {
 	int start = SDL_GetTicks();
@@ -355,7 +346,27 @@ void UInterface::redraw()
 	c->map->setPosition(pos);
 	int map = SDL_GetTicks()-start-movement;
 	
-	c->renderer->render(pos); 
+	// Clear the screen before drawing
+	SDL_GL_SwapBuffers();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
+	
+	glColorMask(1,0,0,0);
+	c->renderer->render(pos,0.1);
+	
+	// Highlighted Block
+	BlockPosition block;
+	DIRECTION direct;
+	bool show_pointing_on = c->movement->getPointingOn(&block, &direct);
+	if(show_pointing_on)
+		c->renderer->highlightBlockDirection(block, direct);
+	
+	glClear(GL_DEPTH_BUFFER_BIT);	
+	glColorMask(0,1,1,0);
+	c->renderer->render(pos,-0.1);
+	if(show_pointing_on)
+		c->renderer->highlightBlockDirection(block, direct);
+	glColorMask(1,1,1,1);
+	
 	int renderer = SDL_GetTicks()-start-movement-map;
 
 	//glDisable(GL_DEPTH_TEST);
@@ -442,12 +453,6 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 //float a = -10.0;
 
 void UInterface::drawHUD() {
-	
-	// Highlighted Block
-	BlockPosition block;
-	DIRECTION direct;
-	if(c->movement->getPointingOn(&block, &direct))
-		c->renderer->highlightBlockDirection(block, direct);
 	
 	int cubeSize = 50;
 	
@@ -631,7 +636,7 @@ void UInterface::drawHUD() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glColor4f(1.0,1.0,1.0,0.5);
-	
+	/*
 	glBegin(GL_QUADS);
 		glVertex3f(0.0, screenY-0.0, 0.0);
 		glVertex3f(0.0, screenY-150, 0.0);
@@ -655,7 +660,7 @@ void UInterface::drawHUD() {
 		std::string output = boost::lexical_cast<std::string>(progress) + "%";
 		renderText(20, 20, output.c_str());
 	}
-	
+	*/
 	/////////////////////////////
 	//reset the view
 	////////////////////////////
