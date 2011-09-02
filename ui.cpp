@@ -636,7 +636,7 @@ void UInterface::drawHUD() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glColor4f(1.0,1.0,1.0,0.5);
-	/*
+	
 	glBegin(GL_QUADS);
 		glVertex3f(0.0, screenY-0.0, 0.0);
 		glVertex3f(0.0, screenY-150, 0.0);
@@ -660,7 +660,7 @@ void UInterface::drawHUD() {
 		std::string output = boost::lexical_cast<std::string>(progress) + "%";
 		renderText(20, 20, output.c_str());
 	}
-	*/
+	
 	/////////////////////////////
 	//reset the view
 	////////////////////////////
