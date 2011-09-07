@@ -248,53 +248,9 @@ void Renderer::generateArea(Area* area) {
 		area->bullet_generated = generate_bullet;
 		area->needupdate = 0;
 		
-		std::vector<polygon> polys[NUMBER_OF_LISTS];
-
-		bool empty = 1;
+		area->recalc_polys();
 		
-		int polys_count = 0;
-		
-		for(int x=area->pos.x; x<AREASIZE_X+area->pos.x; x++)
-		for(int y=area->pos.y; y<AREASIZE_Y+area->pos.y; y++)
-		for(int z=area->pos.z; z<AREASIZE_Z+area->pos.z; z++)  {
-
-			BlockPosition pos = BlockPosition::create(x,y,z);
-
-			Material now = area->get(pos);
-			if(now) {
-				empty = 0;
-				for(int dir=0; dir < DIRECTION_COUNT; dir++) {
-					BlockPosition next = pos+(DIRECTION)dir;
-
-					Material next_m;
-					if((*area) << next)
-						next_m = area->get(next);
-					else if(area->next[dir] && area->next[dir]->state == Area::STATE_READY)
-						next_m = area->next[dir]->get(next);
-					else 
-						next_m = now;
-					
-					// Material 9 = water
-					if(!next_m || (next_m == 9 && now != next_m )) {
-						polygon p;
-						p.pos = pos;
-						p.d = (DIRECTION)dir;
-						p.m = now;
-						if(now == 9) {
-							polys[6].push_back(p);
-						} else {
-							polys[dir].push_back(p);
-						}
-						polys_count++;
-					}
-				}
-			}
-		}
-		if(empty) {
-			area->needstore = 1;
-			area->empty = 1;
-		} 
-		if(polys_count) {	
+		if(area->polys_list) {	
 			bool has_mesh = 0;
 			
 			if(generate_bullet)
@@ -313,11 +269,11 @@ void Renderer::generateArea(Area* area) {
 			int max_counts = 0;
       
 			for(int i=0; i<NUMBER_OF_LISTS; i++) {
-				if(polys[i].empty()) continue;
+				if(!area->polys_list_size[i]) continue;
 				
 				int points[] = {0,1,2,0,2,3};
 				
-				int size = polys[i].size()*8*sizeof(points)/sizeof(int);
+				int size = area->polys_list_size[i]*8*sizeof(points)/sizeof(int);
 				
 				if(max_counts < size)
 					max_counts = size;
@@ -326,30 +282,34 @@ void Renderer::generateArea(Area* area) {
 				area->vbopointer[i] = new GLfloat[size];
 				int vbocounter = 0;
 				
-				for(std::vector<polygon>::iterator it = polys[i].begin(); it != polys[i].end(); it++) {
+				for(int k=area->polys_list_start[i]; k<area->polys_list_size[i]+area->polys_list_start[i]; k++) {
+					polygon it = area->polys_list[k];
 					
-					int diffx = it->pos.x-area->pos.x;
-					int diffy = it->pos.y-area->pos.y;
-					int diffz = it->pos.z-area->pos.z;
+					int diffx = it.posx;
+					int diffy = it.posy;
+					int diffz = it.posz;
 					
+					
+					
+					//std::cout << k << " " << diffx << " " << diffy << " " << diffz << std::endl;
 					
 					for(int k=0; k < sizeof(points)/sizeof(int); k++) {
 						int point = points[k];
 						//assert(vbocounter < size);
 						
 						// texture
-						area->vbopointer[i][vbocounter+0] = (TEXTUR_POSITION_OF_DIRECTION[it->d][point][0]+it->m%16)/16.0;
-						area->vbopointer[i][vbocounter+1] = (TEXTUR_POSITION_OF_DIRECTION[it->d][point][1]+it->m/16)/16.0;
+						area->vbopointer[i][vbocounter+0] = (TEXTUR_POSITION_OF_DIRECTION[it.dir][point][0]+it.m%16)/16.0;
+						area->vbopointer[i][vbocounter+1] = (TEXTUR_POSITION_OF_DIRECTION[it.dir][point][1]+it.m/16)/16.0;
 						
 						// normale
-						area->vbopointer[i][vbocounter+2] = NORMAL_OF_DIRECTION[it->d][0];
-						area->vbopointer[i][vbocounter+3] = NORMAL_OF_DIRECTION[it->d][1];
-						area->vbopointer[i][vbocounter+4] = NORMAL_OF_DIRECTION[it->d][2];
+						area->vbopointer[i][vbocounter+2] = NORMAL_OF_DIRECTION[it.dir][0];
+						area->vbopointer[i][vbocounter+3] = NORMAL_OF_DIRECTION[it.dir][1];
+						area->vbopointer[i][vbocounter+4] = NORMAL_OF_DIRECTION[it.dir][2];
 						
 						// vertex
-						area->vbopointer[i][vbocounter+5] = POINTS_OF_DIRECTION[it->d][point][0]+diffx;
-						area->vbopointer[i][vbocounter+6] = POINTS_OF_DIRECTION[it->d][point][1]+diffy;
-						area->vbopointer[i][vbocounter+7] = POINTS_OF_DIRECTION[it->d][point][2]+diffz;
+						area->vbopointer[i][vbocounter+5] = POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
+						area->vbopointer[i][vbocounter+6] = POINTS_OF_DIRECTION[it.dir][point][1]+diffy;
+						area->vbopointer[i][vbocounter+7] = POINTS_OF_DIRECTION[it.dir][point][2]+diffz;
 						
 						vbocounter+=8;
 					}
@@ -359,19 +319,19 @@ void Renderer::generateArea(Area* area) {
 							has_mesh = 1;
 							area->mesh->addTriangle(
 								btVector3(
-									POINTS_OF_DIRECTION[it->d][0][0]+diffx,
-									POINTS_OF_DIRECTION[it->d][0][1]+diffy,
-									POINTS_OF_DIRECTION[it->d][0][2]+diffz
+									POINTS_OF_DIRECTION[it.dir][0][0]+diffx,
+									POINTS_OF_DIRECTION[it.dir][0][1]+diffy,
+									POINTS_OF_DIRECTION[it.dir][0][2]+diffz
 								),
 								btVector3(
-									POINTS_OF_DIRECTION[it->d][point-1][0]+diffx,
-									POINTS_OF_DIRECTION[it->d][point-1][1]+diffy,
-									POINTS_OF_DIRECTION[it->d][point-1][2]+diffz
+									POINTS_OF_DIRECTION[it.dir][point-1][0]+diffx,
+									POINTS_OF_DIRECTION[it.dir][point-1][1]+diffy,
+									POINTS_OF_DIRECTION[it.dir][point-1][2]+diffz
 								),
 								btVector3(
-									POINTS_OF_DIRECTION[it->d][point][0]+diffx,
-									POINTS_OF_DIRECTION[it->d][point][1]+diffy,
-									POINTS_OF_DIRECTION[it->d][point][2]+diffz
+									POINTS_OF_DIRECTION[it.dir][point][0]+diffx,
+									POINTS_OF_DIRECTION[it.dir][point][1]+diffy,
+									POINTS_OF_DIRECTION[it.dir][point][2]+diffz
 								)							
 							);
 						}
@@ -406,7 +366,7 @@ void Renderer::generateArea(Area* area) {
 
 				getGlError();
 				glDrawArrays(GL_TRIANGLES, 0, area->vbo_length[i]/8);
-		
+			
 				glPopMatrix();
 				glEndList();
 				
@@ -446,7 +406,6 @@ void Renderer::generateArea(Area* area) {
 
 void Renderer::renderArea(Area* a, int l) {
 	if(a->vbo_length[l]) {
-	
 #ifdef USE_GLLIST
 		glCallList(a->gllist + l);
 #else		
@@ -467,6 +426,7 @@ void Renderer::renderArea(Area* a, int l) {
 
 		getGlError();
 		glDrawArrays(GL_TRIANGLES, 0, a->vbo_length[l]/8);
+			
 		//glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
 		getGlError();
 		

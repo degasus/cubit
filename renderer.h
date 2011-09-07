@@ -76,10 +76,4 @@ private:
 };
 
 
-struct polygon {
-	BlockPosition pos;
-	DIRECTION d;
-	Material m;
-};
-
 #endif

@@ -73,6 +73,8 @@ private:
 	//multi sampling
 	bool enableAntiAliasing;
 	
+	bool enable3d;
+	
 	bool catchMouse;
 	double turningSpeed;
 
