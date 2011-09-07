@@ -23,6 +23,7 @@ UInterface::UInterface(Controller *controller)
 	fadingProgress = 0;
 	lastMaterial = 1;
 	musicPlaying = false;
+	lastframe = 0;
 }
 
 void UInterface::init()
@@ -53,13 +54,21 @@ void UInterface::init()
 	if(Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) {
 		printf("Unable to open audio!\n");
 	}
-
+	
 	// Create a pixmap font from a TrueType file.
-	font = new FTTextureFont("/usr/share/fonts/truetype/freefont/FreeSans.ttf");
-
-	// If something went wrong, bail out.
-	if(font->Error())
-		printf("Unable to open Font!\n");
+	font = new FTTextureFont((dataDirectory/"fonts"/"FreeSans.ttf").string().c_str());
+	if(font->Error()) {
+		font = new FTTextureFont((workingDirectory/"fonts"/"FreeSans.ttf").string().c_str());
+		if(font->Error()) {
+			font = new FTTextureFont((localDirectory/"fonts"/"FreeSans.ttf").string().c_str());
+			if(font->Error()) {
+				font = new FTTextureFont((fs::path("fonts")/"FreeSans.ttf").string().c_str());
+				if(font->Error()) {
+					printf("Unable to open Font!\n");
+				}
+			}
+		}
+	}
 	
 	// Set the font size
 	font->FaceSize(20);
@@ -138,7 +147,7 @@ void UInterface::initWindow()
 		screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE );
 	}
 
-	SDL_WM_SetCaption("Cubit Alpha 0.0.3","Cubit Alpha 0.0.3");
+	SDL_WM_SetCaption("Cubit Alpha 0.0.4","Cubit Alpha 0.0.4");
 
 	if ( !screen ) {
 		printf("Unable to set video mode: %s\n", SDL_GetError());
@@ -153,17 +162,10 @@ void UInterface::initWindow()
 		}
 
 		glViewport(0, 0, screenX, screenY);	// Reset The Current Viewport
-		glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
-		glLoadIdentity();					// Reset The Projection Matrix
-
-		// Calculate The Aspect Ratio Of The Window
-		gluPerspective(angleOfVision, (GLfloat) screenX / (GLfloat) screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
-
-		glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
-		glLoadIdentity();					// Reset The Projection Matrix
 	}
 }
 
+/*
 Uint32 GameLoopTimer(Uint32 interval, void* param)
 {
 		// Create a user event to call the game loop.
@@ -178,30 +180,32 @@ Uint32 GameLoopTimer(Uint32 interval, void* param)
 
 		return interval;
 }
-
+*/
 
 void UInterface::run()
 {
-	SDL_TimerID timer = SDL_AddTimer(40,GameLoopTimer,0);
+//	SDL_TimerID timer = SDL_AddTimer(40,GameLoopTimer,0);
 
-	SDL_Event event;
+	while(!done) {
+		redraw();
+		
+		SDL_Event event;
+		while(SDL_PollEvent (&event)) {
+			switch(event.type) {
+				case SDL_KEYDOWN:			handleKeyDownEvents(event.key); 		break;
+				case SDL_KEYUP:				handleKeyUpEvents(event.key); 			break;
+				case SDL_MOUSEBUTTONDOWN: 	handleMouseDownEvents(event.button); 	break;
+				case SDL_MOUSEBUTTONUP: 	handleMouseUPEvents(event.button); 		break;
+				case SDL_MOUSEMOTION: 		handleMouseEvents(event.motion); 		break;
+				case SDL_QUIT: 				done = true;  							break;
 
-	while((!done) && (SDL_WaitEvent(&event))) {
-		switch(event.type) {
-			case SDL_USEREVENT:			handleUserEvents(event.user);			break;
-			case SDL_KEYDOWN:			handleKeyDownEvents(event.key); 		break;
-			case SDL_KEYUP:				handleKeyUpEvents(event.key); 			break;
-			case SDL_MOUSEBUTTONDOWN: 	handleMouseDownEvents(event.button); 	break;
-			case SDL_MOUSEBUTTONUP: 	handleMouseUPEvents(event.button); 		break;
-			case SDL_MOUSEMOTION: 		handleMouseEvents(event.motion); 		break;
-			case SDL_QUIT: 				done = true;  							break;
-
-			case SDL_VIDEORESIZE:
-				std::cout << "video-resize-event" << std::endl;
-				screenX = event.resize.w;
-				screenY = event.resize.h;
-				initWindow();
-				break;
+				case SDL_VIDEORESIZE:
+					std::cout << "video-resize-event" << std::endl;
+					screenX = event.resize.w;
+					screenY = event.resize.h;
+					initWindow();
+					break;
+			}
 		}
 	}
 }
@@ -329,30 +333,54 @@ void UInterface::renderText(double x, double y, const char* Text)
 	font->Render(Text, -1, FTPoint(FTGL_DOUBLE(x), FTGL_DOUBLE(y)));
 }
 
-void UInterface::handleUserEvents(SDL_UserEvent e)
+void UInterface::redraw()
 {
-	c->movement->triggerNextFrame();
+	int start = SDL_GetTicks();
+	int time = start-lastframe;
+	lastframe = start;
+	
+	c->movement->triggerNextFrame(time);
+	PlayerPosition pos = c->movement->getPosition();
+	int movement = SDL_GetTicks()-start;
+	
+	c->map->setPosition(pos);
+	int map = SDL_GetTicks()-start-movement;
+	
+	// Clear the screen before drawing
+	SDL_GL_SwapBuffers();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
+	
+	glColorMask(1,0,0,0);
+	c->renderer->render(pos,0.1);
+	
+	// Highlighted Block
+	BlockPosition block;
+	DIRECTION direct;
+	bool show_pointing_on = c->movement->getPointingOn(&block, &direct);
+	if(show_pointing_on)
+		c->renderer->highlightBlockDirection(block, direct);
+	
+	glClear(GL_DEPTH_BUFFER_BIT);	
+	glColorMask(0,1,1,0);
+	c->renderer->render(pos,-0.1);
+	if(show_pointing_on)
+		c->renderer->highlightBlockDirection(block, direct);
+	glColorMask(1,1,1,1);
+	
+	int renderer = SDL_GetTicks()-start-movement-map;
 
-	SDL_Event next;
-	SDL_PumpEvents();
-	if(!SDL_PeepEvents(&next, 1, SDL_PEEKEVENT, ~SDL_USEREVENT)) {
-		PlayerPosition pos = c->movement->getPosition();
-		c->map->setPosition(pos);
-		c->renderer->render(pos);
-		BlockPosition block;
-		DIRECTION direct;
-		if(c->movement->getPointingOn(&block, &direct))
-			c->renderer->highlightBlockDirection(block, direct);
+	//glDisable(GL_DEPTH_TEST);
+	//c->movement->dynamicsWorld->debugDrawWorld();
+	//glEnable(GL_DEPTH_TEST);
 
-		//glDisable(GL_DEPTH_TEST);
-		c->movement->dynamicsWorld->debugDrawWorld();
-		//glEnable(GL_DEPTH_TEST);
-
-		drawHUD();
-
-		SDL_GL_SwapBuffers();
-	} else std::cout << "Dropping Frame" << std::endl;
-}
+	drawHUD();
+	int hud = SDL_GetTicks()-start-movement-map-renderer;
+	
+	stats[0] = stats[0]*0.9 + movement/10.;
+	stats[1] = stats[1]*0.9 + map/10.;
+	stats[2] = stats[2]*0.9 + renderer/10.;
+	stats[3] = stats[3]*0.9 + hud/10.;
+	}
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
 {
@@ -425,6 +453,7 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 //float a = -10.0;
 
 void UInterface::drawHUD() {
+	
 	int cubeSize = 50;
 	
 	glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
@@ -601,9 +630,30 @@ void UInterface::drawHUD() {
 	
 	
 	glLoadIdentity();
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_LIGHTING);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(1.0,1.0,1.0,0.5);
+	
+	glBegin(GL_QUADS);
+		glVertex3f(0.0, screenY-0.0, 0.0);
+		glVertex3f(0.0, screenY-150, 0.0);
+		glVertex3f(screenX, screenY-150, 0.0);
+		glVertex3f(screenX, screenY-0.0, 0.0);
+		
+	glEnd();
+	glColor4f(0.0,0.0,0.0,1.0);
 	
 	renderText(20, screenY-40, c->movement->getPosition().to_string().c_str());
-	//renderText(20, screenY-80, boost::lexical_cast<std::string>(a).c_str());
+	//renderText(20, screenY-80, boost::lexical_cast<std::string>(1000/(stats[0]+stats[1]+stats[2]+stats[3])).c_str());
+	renderText(20, screenY-70, c->renderer->debug_output[0].c_str());
+	renderText(20, screenY-100, c->renderer->debug_output[1].c_str());
+	
+	std::ostringstream out(std::ostringstream::out);
+	out << "Movement: " << stats[0] << ", Map: " << stats[1] << ", Renderer: " << stats[2] << ", HUD: " << stats[3];
+	renderText(20,screenY-130, out.str().c_str());
 	
 	int progress = c->movement->getCurrentRemoveProgress();
 	if(progress > 0){
@@ -620,6 +670,8 @@ void UInterface::drawHUD() {
 	glEnable(GL_LIGHT2);
 	glDisable(GL_LIGHT3);
 	glDisable(GL_LIGHT4);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_DEPTH_TEST);
 	
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 

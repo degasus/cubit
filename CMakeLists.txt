@@ -29,18 +29,21 @@ if(MINGW)
   set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
 endif(MINGW)
 
-add_executable(cubit main.cpp controller.cpp map.cpp movement.cpp ui.cpp renderer.cpp GLDebugDrawer.cpp logo/cubit.rc)
+add_executable(cubit area.cpp main.cpp controller.cpp map.cpp movement.cpp ui.cpp renderer.cpp GLDebugDrawer.cpp logo/cubit.rc)
 add_executable(cubit_converter converter.cpp)
 add_executable(cubit_server server.cpp)
 
 include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${SDLNET_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${LZO_INCLUDE_DIR} ${BULLET_INCLUDE_DIR} ${ZLIB_INCLUDE_DIRS})
-target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${SDLNET_LIBRARY} ${FTGL_LIBRARY} ${FREETYPE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${LZO_LIBRARIES} ${BULLET_LIBRARIES})
+target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${SDLNET_LIBRARY} ${FTGL_LIBRARY} ${FREETYPE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${LZO_LIBRARIES} ${BULLET_LIBRARIES} ${ZLIB_LIBRARIES})
 target_link_libraries (cubit_converter ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${LZO_LIBRARIES} ${ZLIB_LIBRARIES})
 target_link_libraries (cubit_server ${SDL_LIBRARY} ${SDLNET_LIBRARY} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${LZO_LIBRARIES} ${ZLIB_LIBRARIES})
 
 INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit DESTINATION games)
 INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit_converter DESTINATION games)
 INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit_server DESTINATION games)
+
+FILE(GLOB fonts "${CMAKE_CURRENT_SOURCE_DIR}/fonts/*" )
+INSTALL( FILES ${fonts} DESTINATION share/games/cubit/fonts)
 
 FILE(GLOB tex "${CMAKE_CURRENT_SOURCE_DIR}/tex/*" )
 INSTALL( FILES ${tex} DESTINATION share/games/cubit/tex)
@@ -53,3 +56,11 @@ INSTALL( FILES ${soundmusic} DESTINATION share/games/cubit/sound/music)
 
 INSTALL( FILES logo/cubit.svg DESTINATION share/icons/hicolor/scalable/apps)
 INSTALL( FILES logo/cubit.desktop DESTINATION share/applications)
+
+# build a CPack driven installer package
+include (InstallRequiredSystemLibraries)
+set (CPACK_PACKAGE_VERSION_MAJOR "0")
+set (CPACK_PACKAGE_VERSION_MINOR "0")
+set (CPACK_PACKAGE_VERSION_PATCH "4")
+set (CPACK_DEBIAN_PACKAGE_MAINTAINER "markus@selfnet.de")
+include (CPack)

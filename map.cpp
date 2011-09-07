@@ -8,9 +8,7 @@
 #include <cstdio>
 
 
-#define USE_ZLIB
-
-
+#include "config.h"
 #include "controller.h"
 
 #include "map.h"
@@ -248,96 +246,6 @@ void Map::setPosition(PlayerPosition pos)
 {	
 	SDL_LockMutex(queue_mutex);
 	
-	BlockPosition p = pos.block().area();
-	
-	if(lastpos != p) {
-		inital_loaded = 0;
-		lastpos = p;
-	}
-	
-	if(!inital_loaded) {
-		// reset queue
-		while(!dijsktra_queue.empty())
-			dijsktra_queue.pop();
-		
-		// load actual position
-		Area* a = getOrCreate(p);
-		if(a->state == Area::STATE_NEW) {
-			a->state = Area::STATE_LOAD;
-			to_load.push(a);
-		}
-		// add it to queue
-		if(a->state == Area::STATE_READY) {			
-			dijsktra_queue.push(a);
-			a->dijsktra_distance = 0;
-			inital_loaded = 1;
-			dijsktra_wert++;
-			for(int d=0; d<DIRECTION_COUNT; d++)
-				a->dijsktra_direction_used[d] = 0;
-		}
-		//std::cout << "pos: " << pos.to_string() << " " << a->state << std::endl;
-	}
-	//std::cout << "load: " << to_load.size() << ", store: " << to_save.size() << ", queue: " << dijsktra_queue.size() << std::endl;
-	
-	Area *first = 0;
-	for(int k=std::max(to_load.size(), to_save.size()); k<areasPerFrameLoading && !dijsktra_queue.empty(); k++) {
-		Area* a = dijsktra_queue.front();
-	
-		// not in a cycle
-		if(first == a) {
-			break;
-		}
-		if(!first) {
-			first = a;
-		}
-		dijsktra_queue.pop();
-		
-		switch(a->state) {		
-			// found, so go and try any direction
-			case Area::STATE_READY:
-			if(!a->full) {
-				for(int i=0; i<DIRECTION_COUNT; i++) if(!a->dijsktra_direction_used[!((DIRECTION)i)]) {
-					Area* b = a->next[i];
-					if(!b && a->dijsktra_distance < loadRange) b = getOrCreate(a->pos*DIRECTION(i));
-					if(b && (b->dijsktra != dijsktra_wert || b->dijsktra_distance > a->dijsktra_distance+1)) {
-						b->dijsktra_distance = a->dijsktra_distance+1;
-						b->dijsktra = dijsktra_wert;
-						for(int d=0; d<DIRECTION_COUNT; d++)
-							b->dijsktra_direction_used[d] = a->dijsktra_direction_used[d] || (i==d);
-						dijsktra_queue.push(b);
-						if(b->state == Area::STATE_NEW) {
-							b->state = Area::STATE_LOAD;
-							to_load.push(b);	
-						}
-					}
-				}
-			}
-			break;
-			
-			// wait and try it again later
-			case Area::STATE_LOAD:
-			case Area::STATE_LOADED:
-			dijsktra_queue.push(a);
-			break;
-			
-			// not available, so stop here
-			case Area::STATE_LOADED_BUT_NOT_FOUND: break;
-			default: std::cout << "state: " << a->state << std::endl;
-		}
-		
-		if(a->dijsktra_distance > deleteRange && a->state == Area::STATE_READY) {
-			a->deconfigure();
-			a->delete_collision(c->movement->dynamicsWorld);
-			areas_with_gllist.erase(a);
-			areas.erase(a->pos);
-			a->state = Area::STATE_DELETE;
-			to_save.push(a);
-		} else if(a->needstore && a->state == Area::STATE_READY) {
-			a->needstore = 0;
-			to_save.push(a);
-		}
-	} 
-	
 	while(!loaded.empty()) {
 		
 		Area* a = loaded.front();
@@ -368,7 +276,96 @@ void Map::setPosition(PlayerPosition pos)
 		}
 	}
 	*/
+
 	
+	BlockPosition p = pos.block().area();
+	
+	if(lastpos != p) {
+		inital_loaded = 0;
+		lastpos = p;
+	}
+	
+	if(!inital_loaded) {
+		// reset queue
+//		while(!dijsktra_queue.empty())
+//			dijsktra_queue.pop();
+		
+		// load actual position
+		Area* a = getOrCreate(p);
+		if(a->state == Area::STATE_NEW) {
+			a->state = Area::STATE_LOAD;
+			to_load.push(a);
+		}
+		// add it to queue
+		if(a->state == Area::STATE_READY) {			
+			dijsktra_queue.push(a);
+			a->dijsktra_distance = 0;
+			inital_loaded = 1;
+			dijsktra_wert++;
+			for(int d=0; d<DIRECTION_COUNT; d++)
+				a->dijsktra_direction_used[d] = 0;
+		}
+		//std::cout << "pos: " << pos.to_string() << " " << a->state << std::endl;
+	}
+	//std::cout << "load: " << to_load.size() << ", store: " << to_save.size() << ", queue: " << dijsktra_queue.size() << std::endl;
+
+	//int maxk = std::min((areasPerFrameLoading - std::max(to_load.size(), to_save.size())), dijsktra_queue.size());
+	int maxk = areasPerFrameLoading - std::max(to_load.size(), to_save.size());
+	Area *first = 0;
+	int k;
+	for(k=0; k<maxk && !dijsktra_queue.empty(); k++) {
+		Area* a = dijsktra_queue.front();
+		dijsktra_queue.pop();
+		
+		// do not circle
+		if(a == first) break;
+		
+		switch(a->state) {		
+			// found, so go and try any direction
+			case Area::STATE_READY:
+			if(!a->full) {
+				for(int i=0; i<DIRECTION_COUNT; i++) if(!a->dijsktra_direction_used[!((DIRECTION)i)]) {
+					Area* b = a->next[i];
+					if(!b && a->dijsktra_distance < loadRange) b = getOrCreate(a->pos*DIRECTION(i));
+					if(b && (b->dijsktra < dijsktra_wert || b->dijsktra_distance > a->dijsktra_distance+1)) {
+						b->dijsktra_distance = a->dijsktra_distance+1;
+						b->dijsktra = dijsktra_wert;
+						for(int d=0; d<DIRECTION_COUNT; d++)
+							b->dijsktra_direction_used[d] = a->dijsktra_direction_used[d] || (i==d);
+						dijsktra_queue.push(b);
+						if(b->state == Area::STATE_NEW) {
+							b->state = Area::STATE_LOAD;
+							to_load.push(b);	
+						}
+					}
+				}
+			}
+			break;
+			
+			// wait and try it again later
+			case Area::STATE_LOAD:
+			case Area::STATE_LOADED:
+			dijsktra_queue.push(a);
+			if(!first) first = a;
+			break;
+			
+			// not available, so stop here
+			case Area::STATE_LOADED_BUT_NOT_FOUND: break;
+			default: std::cout << "state: " << a->state << std::endl;
+		}
+		
+		if(a->dijsktra_distance > deleteRange && a->state == Area::STATE_READY) {
+			a->deconfigure();
+			a->delete_collision(c->movement->dynamicsWorld);
+			areas_with_gllist.erase(a);
+			areas.erase(a->pos);
+			a->state = Area::STATE_DELETE;
+			to_save.push(a);
+		} else if(a->needstore && a->state == Area::STATE_READY) {
+			a->needstore = 0;
+			to_save.push(a);
+		}
+	} 
 	SDL_UnlockMutex(queue_mutex);
 }
 
@@ -594,58 +591,6 @@ void Map::setBlock(BlockPosition pos, Material m){
 		areas_with_gllist.insert(a);
 	a->set(pos,m);
 	
-}
-
-Area::Area(BlockPosition p)
-{
-	m = 0;
-	
-	pos = p;
-	gllist_generated = 0;
-	gllist_has_blend = 0;
-	vbo_generated = 0;
-	bullet_generated = 0;
-	needupdate = 1;
-	needstore = 0;
-	
-	empty = 1;
-	full = 0;
-	for(int i=0; i<DIRECTION_COUNT; i++) {
-		dir_full[i] = 0;
-		next[i] = 0;
-	}
-	
-	dijsktra = 0;
-	dijsktra_distance = -1;
-	revision = 0;
-	
-	blocks = 0;
-	
-	state = STATE_NEW;
-
-	gllist = 0;
-	gllist_blend = 0;
-	for(int i=0; i<NUMBER_OF_MATERIALS; i++) {
-		vbo[i] = 0;
-		vbo_created[i] = 0;
-		vbopointer[i] = 0;
-	}
-	mesh = 0;
-	shape = 0;
-	motion = 0;
-	rigid = 0;
-}
-Area::~Area()
-{
-	deconfigure();
-	if(m) delete [] m;
-	m = 0;
-	empty = 1;
-	
-	assert(!mesh);
-	assert(!shape);
-	assert(!motion);
-	assert(!rigid);
 }
 
 std::string BlockPosition::to_string() {

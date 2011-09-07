@@ -57,6 +57,7 @@ find_path(BULLET_INCLUDE_DIR btBulletCollisionCommon.h
     ${BULLET_ROOT}/include
     ${BULLET_ROOT}/src
     /usr/include/bullet
+    C:/MinGW/include/bullet
 )
 
 # Find the libraries

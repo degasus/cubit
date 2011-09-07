@@ -28,17 +28,20 @@ public:
 	
 	void init();
 
-	void render(PlayerPosition pos);
+	void render(PlayerPosition pos, double eye = 0);
 	void deleteArea(Area* area);
 
 	void highlightBlockDirection(BlockPosition, DIRECTION);
 	
 	void config(const boost::program_options::variables_map &c);
 	GLuint texture[NUMBER_OF_MATERIALS];
+	
+	std::string debug_output[2];
 
 private:
 	
-	void renderArea(Area* area, bool show);
+	void renderArea(Area* area, int l);
+	void generateArea(Area* area);
 	void renderObjects();
 	bool areaInViewport(BlockPosition apos, PlayerPosition ppos);
 	void generateViewPort(PlayerPosition pos);
@@ -66,6 +69,9 @@ private:
 
 	bool highlightWholePlane;
 	int textureFilterMethod;
+	
+	
+	float stats[4];
 	 
 };
 

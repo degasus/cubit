@@ -141,7 +141,7 @@ public:
 	void performAction(ActionEvent event);
 
 	//Things to do before rendering next frame
-	void triggerNextFrame();
+	void triggerNextFrame(int time);
 	
 	//Get and set the position
 	PlayerPosition getPosition();
@@ -157,6 +157,7 @@ public:
 	//Meta
 	bool movDebug;
 	bool sandboxMode;
+	int time;
 
 	void initPhysics();
 
