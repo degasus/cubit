@@ -5,6 +5,7 @@
 #include <cmath>
 #include <zlib.h>
 #include <cstdlib>
+#include <signal.h>
 
 #include "server.h"
 #include "config.h"
@@ -155,9 +156,10 @@ int load(BlockPosition bPos, int* revision, char* buffer) {
 }
 
 int main() {
-  
+  signal(SIGPIPE, SIG_IGN);
   initSQL();
   
+  IPaddress *remote_ip;
   IPaddress ip;
   TCPsocket tcpsock;
   Client* client;
@@ -214,7 +216,14 @@ int main() {
 	client->socket=SDLNet_TCP_Accept(tcpsock);
 	if(client->socket) {
 	    clients.push(client);
-	    printf("Added a client to list!\n");
+            
+            
+            remote_ip=SDLNet_TCP_GetPeerAddress(client->socket);
+            if(!remote_ip) {
+              printf("SDLNet_TCP_GetPeerAddress: %s\n", SDLNet_GetError());
+              printf("This may be a server socket.\n");
+            }
+            printf("Added client %d.%d.%d.%d:%d to list!\n",remote_ip->host%256,remote_ip->host/(256)%256,remote_ip->host/(256*256)%256,remote_ip->host/(256*256*256),remote_ip->port);
 	    numused=SDLNet_TCP_AddSocket(set,client->socket);
 	    if(numused==-1) {
 		printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
@@ -242,14 +251,7 @@ int main() {
           if(result<=0) {
             // An error may have occured, but sometimes you can just ignore it
             // It may be good to disconnect socket because it is likely invalid now.
-            numused=SDLNet_TCP_DelSocket(set,client->socket);
-            if(numused==-1) {
-              printf("SDLNet_DelSocket: %s\n", SDLNet_GetError());
-              // perhaps the socket is not in the set
-            }
             toRemove = true;
-            printf("Client disconnected\n");    
-            SDLNet_TCP_Close(client->socket);
           }
           else{
             client->buffer_usage += result;
@@ -279,7 +281,11 @@ int main() {
                   outSize = load(bPos, &rev, outputBuffer+16);
                   SDLNet_Write32(rev, outputBuffer+15);
                   SDLNet_Write16(outSize+16,outputBuffer+1);
-                  SDLNet_TCP_Send(client->socket,outputBuffer,outSize+19);
+                  if(SDLNet_TCP_Send(client->socket,outputBuffer,outSize+19) != outSize+19) {
+                    printf("SDLNet_TCP_Send: %s\n", SDLNet_GetError());
+                    toRemove = true;
+                    // It may be good to disconnect sock because it is likely invalid now.
+                  }
                   //printf("send: PUSH_AREA: posx=%d, posy=%d, posz=%d, revision=%d, len(data)=%d\n", bPos.x, bPos.y, bPos.z, rev, outSize);
                   break;
                 case PUSH_AREA:
@@ -324,8 +330,16 @@ int main() {
         }
         if(!toRemove)
           clients.push(client);
-        else
+        else{
+          numused=SDLNet_TCP_DelSocket(set,client->socket);
+          if(numused==-1) {
+            printf("SDLNet_DelSocket: %s\n", SDLNet_GetError());
+            // perhaps the socket is not in the set
+          }
+          printf("Client disconnected\n");    
+          SDLNet_TCP_Close(client->socket);
           delete client;
+        }
       }
     }
   }
