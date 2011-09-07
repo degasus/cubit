@@ -107,6 +107,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("fogDense", po::value<float>()->default_value(0.6), "Densitivity of Fog")
 		("fogStartFactor", po::value<float>()->default_value(0.8), "Percental distance to fog start")
 		("enableFog", po::value<bool>()->default_value(1), "enable Fog")
+		("enable3D", po::value<bool>()->default_value(0), "enable 3D")
 		("angleOfVision", po::value<double>()->default_value(60), "angle of vision in degrees")
 		("areasPerFrameRendering", po::value<int>()->default_value(5), "set the maximal rendered areas per frame")
 		("areasPerFrameLoading", po::value<int>()->default_value(100), "set the maximal from hard disk loaded areas per frame")

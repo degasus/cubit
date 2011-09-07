@@ -113,6 +113,7 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	
 	visualRange = c["visualRange"].as<int>();
 	angleOfVision = c["angleOfVision"].as<double>();
+	enable3d 		= c["enable3D"].as<bool>();
 	
 	k_forward		= c["k_forward"].as<int>();
 	k_backwards		= c["k_backwards"].as<int>();
@@ -350,8 +351,11 @@ void UInterface::redraw()
 	SDL_GL_SwapBuffers();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);			// Clear The Screen And The Depth Buffer
 	
-	glColorMask(1,0,0,0);
-	c->renderer->render(pos,0.1);
+	if(enable3d) {
+		glColorMask(1,0,0,0);
+		c->renderer->render(pos,0.1);
+	}
+	c->renderer->render(pos,0);
 	
 	// Highlighted Block
 	BlockPosition block;
@@ -360,12 +364,14 @@ void UInterface::redraw()
 	if(show_pointing_on)
 		c->renderer->highlightBlockDirection(block, direct);
 	
-	glClear(GL_DEPTH_BUFFER_BIT);	
-	glColorMask(0,1,1,0);
-	c->renderer->render(pos,-0.1);
-	if(show_pointing_on)
-		c->renderer->highlightBlockDirection(block, direct);
-	glColorMask(1,1,1,1);
+	if(enable3d) {
+		glClear(GL_DEPTH_BUFFER_BIT);	
+		glColorMask(0,1,1,0);
+		c->renderer->render(pos,-0.1);
+		if(show_pointing_on)
+			c->renderer->highlightBlockDirection(block, direct);
+		glColorMask(1,1,1,1);
+	}
 	
 	int renderer = SDL_GetTicks()-start-movement-map;
 

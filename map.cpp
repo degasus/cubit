@@ -307,8 +307,6 @@ void Map::setPosition(PlayerPosition pos)
 		if(a == first) break;
 		else dijsktra_queue.pop();
 		
-		
-		
 		switch(a->state) {		
 			// found, so go and try any direction
 			case Area::STATE_READY:
@@ -372,7 +370,7 @@ void Map::blockChangedEvent(BlockPosition pos, Material m){
 
 }
 
-void Map::store(Area *a) { 
+void Map::store(Area *a) {
 	int full = a->full;
 	for(int i=DIRECTION_COUNT-1; i>=0; i--) 
 		full = full<<1 | a->dir_full[i];

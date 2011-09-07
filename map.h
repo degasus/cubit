@@ -20,7 +20,6 @@ class BlockPosition;
 
 // including Air == 0
 const int NUMBER_OF_MATERIALS = 109;
-const int NUMBER_OF_LISTS = 7;
 
 // must be a pow of two 
 const int AREASIZE_X = 32;
@@ -62,14 +61,14 @@ const double POINTS_OF_DIRECTION[DIRECTION_COUNT][POINTS_PER_POLYGON][3] = {
 	{{1.0,1.0,1.0}, {1.0,0.0,1.0}, {0.0,0.0,1.0}, {0.0,1.0,1.0}},
 	{{1.0,0.0,0.0}, {1.0,1.0,0.0}, {0.0,1.0,0.0}, {0.0,0.0,0.0}}
 };
-
+const double randT = 0.0;
 const double TEXTUR_POSITION_OF_DIRECTION[DIRECTION_COUNT][POINTS_PER_POLYGON][2] = {
-	{{0.9,0.1},{0.9,0.9},{0.1,0.9},{0.1,0.1}},
-	{{0.9,0.1},{0.9,0.9},{0.1,0.9},{0.1,0.1}},
-	{{0.9,0.1},{0.9,0.9},{0.1,0.9},{0.1,0.1}},
-	{{0.9,0.1},{0.9,0.9},{0.1,0.9},{0.1,0.1}},
-	{{0.9,0.1},{0.9,0.9},{0.1,0.9},{0.1,0.1}},
-	{{0.9,0.1},{0.9,0.9},{0.1,0.9},{0.1,0.1}}
+	{{1-randT,randT},{1-randT,1-randT},{randT,1-randT},{randT,randT}},
+	{{1-randT,randT},{1-randT,1-randT},{randT,1-randT},{randT,randT}},
+	{{1-randT,randT},{1-randT,1-randT},{randT,1-randT},{randT,randT}},
+	{{1-randT,randT},{1-randT,1-randT},{randT,1-randT},{randT,randT}},
+	{{1-randT,randT},{1-randT,1-randT},{randT,1-randT},{randT,randT}},
+	{{1-randT,randT},{1-randT,1-randT},{randT,1-randT},{randT,randT}},
 };
 
 const double NORMAL_OF_DIRECTION[DIRECTION_COUNT][3] = {
@@ -143,6 +142,7 @@ struct BlockPosition {
 	int y;
 	int z;
 };
+
 
 inline bool operator<(const BlockPosition &posa, const BlockPosition &posb) {
 	if (posa.x<posb.x) return 1;

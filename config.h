@@ -9,7 +9,5 @@
 //#define USE_GLLIST
 
 
-// or lzo
-#define USE_ZLIB
 
 #endif

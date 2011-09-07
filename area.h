@@ -3,7 +3,21 @@
 
 class Area;
 
+const int NUMBER_OF_LISTS = 7;
+
 #include "controller.h"
+
+struct polygon {
+	unsigned char posx;
+	unsigned char posy;
+	unsigned char posz;
+	
+	unsigned char dir;
+	Material m;
+	
+	unsigned char sizex;
+	unsigned char sizey;
+};
 
 /**
  * kleines Gebiet auf der Karte.
@@ -58,6 +72,10 @@ public:
 	void delete_collision(btCollisionWorld *world);
 	
 	void delete_opengl();
+	
+	polygon* polys_list;
+	int polys_list_size[NUMBER_OF_LISTS];
+	int polys_list_start[NUMBER_OF_LISTS];
 	
 	enum AreaState {
 		STATE_NEW,
@@ -134,6 +152,8 @@ public:
 			}
 		}
 	}
+	
+	void recalc_polys();
 };
 
 #endif
