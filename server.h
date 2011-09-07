@@ -1,8 +1,6 @@
 #include "SDL_net.h"
 #include "config.h"
 
-const int PORT = 1337;
-const int MAXCLIENTS = 256;
 
 enum Commands {
   GET_AREA = 1,

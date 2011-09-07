@@ -155,7 +155,7 @@ void	Movement::initPhysics(){
 	
 }
 
-void Movement::calcPhysics(){
+void Movement::calcPhysics(){ 
 	dynamicsWorld->stepSimulation(time/1000.,5);
 /*	if (body && body->getMotionState())
 	{

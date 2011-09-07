@@ -32,7 +32,7 @@ void parse_file(const char* f) {
 	
 	if (sqlite3_prepare_v2(
 		database,            /* Database handle */
-		"INSERT OR REPLACE INTO area (posx, posy, posz, empty, revision, full, blocks, data) VALUES (?,?,?,?,?,?,?,?);",       /* SQL statement, UTF-8 encoded */
+		"INSERT OR REPLACE INTO area (posx, posy, posz, empty, revision, full, blocks, data) VALUES (?,?,?-32,?,?,?,?,?);",       /* SQL statement, UTF-8 encoded */
 		-1,              /* Maximum length of zSql in bytes. */
 		&saveArea,  /* OUT: Statement handle */
 		0     /* OUT: Pointer to unused portion of zSql */

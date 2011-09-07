@@ -5,6 +5,7 @@
 #include <boost/program_options.hpp>
 #include <SDL_opengl.h>
 #include <SDL_thread.h>
+#include <SDL_net.h>
 
 
 #ifndef _MAP_H_
@@ -267,6 +268,9 @@ private:
 	int dijsktra_wert;
 	std::queue<Area*> dijsktra_queue;
 	
+	// network
+	TCPsocket tcpsock;
+	SDLNet_SocketSet set;
 };
 
 

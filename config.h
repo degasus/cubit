@@ -25,4 +25,8 @@ typedef unsigned char Material;
 
 const int AREASIZE = AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material);
 
+
+const int PORT = 1337;
+const int MAXCLIENTS = 256;
+
 #endif

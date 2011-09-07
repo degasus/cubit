@@ -14,6 +14,7 @@
 #include "map.h"
 
 #include "zlib.h"
+#include <SDL_net.h>
 
 
 Map::Map(Controller *controller) {
@@ -28,6 +29,35 @@ Map::Map(Controller *controller) {
 	inital_loaded = 0;
 	
 	dijsktra_wert = 1;
+	
+	IPaddress ip;
+	if(SDLNet_ResolveHost(&ip,"10.43.2.37",PORT)==-1) {
+		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
+		exit(1);
+	}
+
+	tcpsock=SDLNet_TCP_Open(&ip);
+	if(!tcpsock) {
+		printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
+		exit(2);
+	}
+	
+	set=SDLNet_AllocSocketSet(16);
+	if(!set) {
+		printf("SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
+		exit(1); //most of the time this is a major error, but do what you want.
+	}
+	
+	// add two sockets to a socket set
+	int numused;
+
+	numused=SDLNet_TCP_AddSocket(set,tcpsock);
+	if(numused==-1) {
+		printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
+		// perhaps you need to restart the set and make it bigger...
+	}
+	
+	
 }
 
 Map::~Map()
@@ -370,7 +400,7 @@ void Map::blockChangedEvent(BlockPosition pos, Material m){
 
 }
 
-void Map::store(Area *a) {
+void Map::store(Area *a) { return;
 	int full = a->full;
 	for(int i=DIRECTION_COUNT-1; i>=0; i--) 
 		full = full<<1 | a->dir_full[i];
@@ -424,6 +454,87 @@ void Map::store(Area *a) {
 }
 
 void Map::load(Area *a) {
+	
+	SDL_LockMutex(c->sql_mutex);
+	char outbuffer[19];
+	outbuffer[0] = 1;
+	SDLNet_Write16(16,outbuffer+1);
+	SDLNet_Write32(a->pos.x,outbuffer+3);
+	SDLNet_Write32(a->pos.y,outbuffer+7);
+	SDLNet_Write32(a->pos.z,outbuffer+11);
+	SDLNet_Write32(0,outbuffer+15);
+	SDLNet_TCP_Send(tcpsock, outbuffer, 19);
+
+	char inbuffer[64*1024+3];
+	int pos = 0;
+	
+	while(true) {
+		int maxbytes = 0;
+		if(pos < 3) maxbytes = 3-pos;
+		else        maxbytes = 3+SDLNet_Read16(inbuffer+1)-pos;
+		
+		pos += SDLNet_TCP_Recv(tcpsock, inbuffer+pos, maxbytes);
+		
+		if(pos>=3 && pos == 3+SDLNet_Read16(inbuffer+1)) {
+			//inbuffer[pos-1] = 0;
+			if(pos == 19) a->empty = 1;
+			else {
+				//std::cout << "data" << inbuffer+19 << "ENDE" << std::endl;
+				//std::cout << "groesse " << pos-19 <<  std::endl;
+				a->allocm();
+				a->empty = 0;
+				// inflate
+				z_stream strm;
+				
+				/* allocate inflate state */
+				strm.zalloc = Z_NULL;
+				strm.zfree = Z_NULL;
+				strm.opaque = Z_NULL;
+				strm.avail_in = 0;
+				strm.next_in = Z_NULL;
+				if (inflateInit(&strm) != Z_OK)
+					std::cout << "fehler" << std::endl;
+				
+				/* decompress until deflate stream ends or end of file */
+				strm.avail_in = pos-19;
+				strm.next_in = (Bytef*)inbuffer+19;
+				strm.avail_out = AREASIZE;
+				strm.next_out = a->m;
+				
+				int error = inflate(&strm, Z_FINISH);
+				if(error != Z_STREAM_END)
+					std::cout << "fehlerb" << std::endl;
+				
+				switch(error) {
+				    case Z_ERRNO:
+						if (ferror(stdin))
+							fputs("error reading stdin\n", stderr);
+						if (ferror(stdout))
+							fputs("error writing stdout\n", stderr);
+						break;
+					case Z_STREAM_ERROR:
+						fputs("invalid compression level\n", stderr);
+						break;
+					case Z_DATA_ERROR:
+						fputs("invalid or incomplete deflate data\n", stderr);
+						break;
+					case Z_MEM_ERROR:
+						fputs("out of memory\n", stderr);
+						break;
+					case Z_VERSION_ERROR:
+						fputs("zlib version mismatch!\n", stderr);
+			}
+		
+				inflateEnd(&strm);				
+			}
+			a->state = Area::STATE_LOADED;
+			recalc(a);
+			break;
+		}
+	}
+	SDL_UnlockMutex(c->sql_mutex);
+	return;
+	
 	SDL_LockMutex(c->sql_mutex);
 	sqlite3_bind_int(loadArea, 1, a->pos.x);
 	sqlite3_bind_int(loadArea, 2, a->pos.y);
