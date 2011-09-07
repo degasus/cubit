@@ -12,7 +12,6 @@ find_package( OpenGL REQUIRED )
 find_package( Boost COMPONENTS program_options filesystem system )
 
 # local modules
-find_package( LZO REQUIRED )
 find_package( ZLIB REQUIRED )
 find_package( Sqlite3 REQUIRED )
 find_package( Bullet REQUIRED )
@@ -33,10 +32,10 @@ add_executable(cubit area.cpp main.cpp controller.cpp map.cpp movement.cpp ui.cp
 add_executable(cubit_converter converter.cpp)
 add_executable(cubit_server server.cpp)
 
-include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${SDLNET_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${LZO_INCLUDE_DIR} ${BULLET_INCLUDE_DIR} ${ZLIB_INCLUDE_DIRS})
-target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${SDLNET_LIBRARY} ${FTGL_LIBRARY} ${FREETYPE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${LZO_LIBRARIES} ${BULLET_LIBRARIES} ${ZLIB_LIBRARIES})
-target_link_libraries (cubit_converter ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${LZO_LIBRARIES} ${ZLIB_LIBRARIES})
-target_link_libraries (cubit_server ${SDL_LIBRARY} ${SDLNET_LIBRARY} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${LZO_LIBRARIES} ${ZLIB_LIBRARIES})
+include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${SDLNET_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${BULLET_INCLUDE_DIR} ${ZLIB_INCLUDE_DIRS})
+target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${SDLNET_LIBRARY} ${FTGL_LIBRARY} ${FREETYPE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${BULLET_LIBRARIES} ${ZLIB_LIBRARIES})
+target_link_libraries (cubit_converter ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${ZLIB_LIBRARIES})
+target_link_libraries (cubit_server ${SDL_LIBRARY} ${SDLNET_LIBRARY} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${ZLIB_LIBRARIES})
 
 INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit DESTINATION games)
 INSTALL( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/cubit_converter DESTINATION games)

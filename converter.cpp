@@ -7,13 +7,9 @@
 #include <boost/filesystem.hpp>
 #include <sqlite3.h>
 
-#include "lzo/lzoconf.h"
-#include "lzo/lzo1x.h"
 #include "zlib.h"
 
 namespace fs = boost::filesystem;
-
-#define USE_ZLIB
 
 void parse_file(const char* f) {
 	std::ifstream file(f);
@@ -178,7 +174,6 @@ void parse_file(const char* f) {
 				sqlite3_bind_null(saveArea, 8);
 			else {
 			
-#ifdef USE_ZLIB
 				// deflate
 				z_stream strm;
 				unsigned char out[32*32*32];
@@ -203,13 +198,7 @@ void parse_file(const char* f) {
 					std::cout << "fehlerb" << std::endl;
 				out_usage = 32*32*32-strm.avail_out;
 				deflateEnd(&strm);
-#else
-				unsigned char wrkmem[LZO1X_1_MEM_COMPRESS];
-				unsigned char out[32*32*32 + 32*32*32 / 16 + 64 + 3];
-				lzo_uint out_usage;
-				
-				int r = lzo1x_1_compress(area,32*32*32,out,&out_usage,wrkmem);
-#endif
+
 				if(out_usage < 32*32*32)
 					sqlite3_bind_blob(saveArea, 8, (const void*) out, out_usage, SQLITE_STATIC);
 				else

@@ -13,12 +13,7 @@
 
 #include "map.h"
 
-#ifdef USE_ZLIB
 #include "zlib.h"
-#else
-#include "lzo/lzoconf.h"
-#include "lzo/lzo1x.h"
-#endif
 
 
 Map::Map(Controller *controller) {
@@ -33,10 +28,6 @@ Map::Map(Controller *controller) {
 	inital_loaded = 0;
 	
 	dijsktra_wert = 1;
-	
-#ifndef USE_ZLIB
-	lzo_init();
-#endif
 }
 
 Map::~Map()
@@ -252,9 +243,8 @@ void Map::setPosition(PlayerPosition pos)
 		loaded.pop();
 		
 		if(a->state == Area::STATE_LOADED){
-		
 			areas[a->pos] = a;
-				a->state = Area::STATE_READY;
+			a->state = Area::STATE_READY;
 			
 			for(int i=0; i<DIRECTION_COUNT; i++)
 				if(a->next[i])
@@ -262,7 +252,7 @@ void Map::setPosition(PlayerPosition pos)
 			
 			if(!a->empty)
 				areas_with_gllist.insert(a);
-			}
+		} 
 	}
 	
 	/*
@@ -287,8 +277,8 @@ void Map::setPosition(PlayerPosition pos)
 	
 	if(!inital_loaded) {
 		// reset queue
-//		while(!dijsktra_queue.empty())
-//			dijsktra_queue.pop();
+		while(!dijsktra_queue.empty())
+			dijsktra_queue.pop();
 		
 		// load actual position
 		Area* a = getOrCreate(p);
@@ -296,29 +286,28 @@ void Map::setPosition(PlayerPosition pos)
 			a->state = Area::STATE_LOAD;
 			to_load.push(a);
 		}
-		// add it to queue
-		if(a->state == Area::STATE_READY) {			
-			dijsktra_queue.push(a);
-			a->dijsktra_distance = 0;
-			inital_loaded = 1;
-			dijsktra_wert++;
-			for(int d=0; d<DIRECTION_COUNT; d++)
-				a->dijsktra_direction_used[d] = 0;
-		}
+		// add it to queue		
+		dijsktra_queue.push(a);
+		a->dijsktra_distance = 0;
+		inital_loaded = 1;
+		dijsktra_wert++;
+		for(int d=0; d<DIRECTION_COUNT; d++)
+			a->dijsktra_direction_used[d] = 0;
 		//std::cout << "pos: " << pos.to_string() << " " << a->state << std::endl;
 	}
 	//std::cout << "load: " << to_load.size() << ", store: " << to_save.size() << ", queue: " << dijsktra_queue.size() << std::endl;
 
 	//int maxk = std::min((areasPerFrameLoading - std::max(to_load.size(), to_save.size())), dijsktra_queue.size());
-	int maxk = areasPerFrameLoading - std::max(to_load.size(), to_save.size());
+	int maxk = areasPerFrameLoading - std::max(to_load.size(), to_save.size()) * 16;
 	Area *first = 0;
-	int k;
-	for(k=0; k<maxk && !dijsktra_queue.empty(); k++) {
+	for(int k=0; k<maxk && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
-		dijsktra_queue.pop();
 		
 		// do not circle
 		if(a == first) break;
+		else dijsktra_queue.pop();
+		
+		
 		
 		switch(a->state) {		
 			// found, so go and try any direction
@@ -335,7 +324,7 @@ void Map::setPosition(PlayerPosition pos)
 						dijsktra_queue.push(b);
 						if(b->state == Area::STATE_NEW) {
 							b->state = Area::STATE_LOAD;
-							to_load.push(b);	
+							to_load.push(b);
 						}
 					}
 				}
@@ -399,7 +388,6 @@ void Map::store(Area *a) {
 	if(a->empty)
 		sqlite3_bind_null(saveArea, 8);
 	else {
-#ifdef USE_ZLIB
 		// deflate
 		z_stream strm;
 		unsigned char out[AREASIZE];
@@ -424,13 +412,7 @@ void Map::store(Area *a) {
 			std::cout << "fehlerb" << std::endl;
 		out_usage = AREASIZE-strm.avail_out;
 		deflateEnd(&strm);
-#else
-		unsigned char wrkmem[LZO1X_1_MEM_COMPRESS];
-		unsigned char out[AREASIZE + AREASIZE / 16 + 64 + 3];
-		lzo_uint out_usage;
-		
-		int r = lzo1x_1_compress(a->m,AREASIZE,out,&out_usage,wrkmem);
-#endif
+
 		if(out_usage < AREASIZE)
 			sqlite3_bind_blob(saveArea, 8, (const void*) out, out_usage, SQLITE_STATIC);
 		else
@@ -467,7 +449,6 @@ void Map::load(Area *a) {
 				a->blocks = -1;
 			}
 			else {
-#ifdef USE_ZLIB
 				// inflate
 				z_stream strm;
 				
@@ -489,10 +470,6 @@ void Map::load(Area *a) {
 				if(inflate(&strm, Z_FINISH) != Z_STREAM_END)
 					std::cout << "fehlerb" << std::endl;
 				inflateEnd(&strm);
-#else	
-				lzo_uint length = 0;
-				int r = lzo1x_decompress((unsigned char*)sqlite3_column_blob(loadArea, 4), bytes, a->m,&length,0);
-#endif
 			}
 			for (int i = 0; i < AREASIZE; i++) {
 				if (a->m[i] >= NUMBER_OF_MATERIALS)
