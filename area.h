@@ -3,8 +3,6 @@
 
 class Area;
 
-const int NUMBER_OF_LISTS = 7;
-
 #include "controller.h"
 
 struct polygon {
