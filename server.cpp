@@ -1,121 +1,97 @@
+#include "SDL_net.h"
+#include <list>
+
 #include "server.h"
 
-static void serv_request( int in, int out, char* rootpath);
+int main() {
+  IPaddress ip;
+  TCPsocket tcpsock, client;
+  std::list<TCPsocket> clients;
 
-Server::Server() {
-	struct sockaddr_in server, client;
-	int sock, fd;
-	int len;
-	
-	#ifdef _WIN32  
-	/* Initialisiere TCP für Windows ("winsock") */
-	short wVersionRequested;
-	WSADATA wsaData;
-	wVersionRequested = MAKEWORD (1, 1);
-	if (WSAStartup (wVersionRequested, &wsaData) != 0) {
-		fprintf( stderr, "Failed to init windows sockets\n");
-		exit(1);
-	}
-	#endif
-	
-	/* Erzeuge das Socket */
-	sock = socket( PF_INET, SOCK_STREAM, 0);
-	if (sock < 0) {
-		perror( "failed to create socket");
-		exit(1);
-	}
-	
-	/* Erzeuge die Socketadresse des Servers 
-	* Sie besteht aus Typ und Portnummer */
-	memset( &server, 0, sizeof (server));
-	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = htonl( INADDR_ANY);
-	server.sin_port = htons( PORT);
-	
-	/* Erzeuge die Bindung an die Serveradresse 
-	* (d.h. an einen bestimmten Port) */
-	if (bind( sock, (struct sockaddr*)&server, sizeof( server)) < 0) {
-		perror( "can't bind socket");
-		exit(1);
-	}
-	
-	/* Teile dem Socket mit, dass Verbindungswünsche
-	* von Clients entgegengenommen werden */
-	listen( sock, 5);
-}
+  if(SDLNet_ResolveHost(&ip,NULL,PORT)==-1) {
+      printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
+      exit(1);
+  }
 
-Server::run()
-{
-	
-}
+  tcpsock=SDLNet_TCP_Open(&ip);
+  if(!tcpsock) {
+      printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
+      exit(2);
+  }
+   	
+  // Create a socket set to handle up to 16 sockets
+  SDLNet_SocketSet set;
 
-int main( int argc, char **argv)
-{
-	Server::Server() *s = new Server::Server();
-	s->run();
-	delete s;
-	return 0;
-}
-	
-/*
-* serv_request
-* Bearbeite den auf in ankommenden http request
-* Die zu sendenden Daten werden auf out ausgegeben
-*/
-static void serv_request( int in, int out, char* rootpath)
-{
-	char buffer[8192];
-	char *b, *l, *le;
-	int count, totalcount;
-	char url[256];
-	char path[256];
-	int fd;
-	int eoh = 0;
-	
-	b = buffer;
-	l = buffer;
-	totalcount = 0;
-	*url = 0;
-	while ( (count = recv( in, b, sizeof(buffer) - totalcount, 0)) > 0) {
-		totalcount += count;
-		b += count;
-		while (l < b) {
-			le = l;
-			while (le < b && *le != '\n' && *le != '\r') ++le;
-			if ('\n' == *le || '\r' == *le) {
-				*le = 0;
-				printf ("Header line = "%s"\n", l);
-				sscanf( l, "GET %255s HTTP/", url);
-				if (strlen(l)) eoh = 1;
-				l = le + 1;
-			}
-		}
-		if (eoh) break;
+  set=SDLNet_AllocSocketSet(MAXCLIENTS);
+  if(!set) {
+      printf("SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
+      exit(1); //most of the time this is a major error, but do what you want.
+  }
+  
+   	
+  // add two sockets to a socket set
+  int numused;
+
+  numused=SDLNet_TCP_AddSocket(set,tcpsock);
+  if(numused==-1) {
+      printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
+      // perhaps you need to restart the set and make it bigger...
+  }
+  
+  while(true){
+    // Wait for up to 1 second for network activity
+    //SDLNet_SocketSet set;
+    int numready;
+
+    numready=SDLNet_CheckSockets(set, 1000);
+    if(numready==-1) {
+	printf("SDLNet_CheckSockets: %s\n", SDLNet_GetError());
+	//most of the time this is a system error, where perror might help you.
+	perror("SDLNet_CheckSockets");
+    }
+    printf("There are %d sockets with activity!\n",numready);
+
+    if(numready>0){
+      // check all sockets with SDLNet_SocketReady and handle the active ones.
+      if(SDLNet_SocketReady(tcpsock)) {
+	client=SDLNet_TCP_Accept(tcpsock);
+	if(client) {
+	    clients.push_back(client);
+	    printf("Added a client to list!\n");
+	    numused=SDLNet_TCP_AddSocket(set,client);
+	    if(numused==-1) {
+		printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
+		// perhaps you need to restart the set and make it bigger...
+	    }
 	}
-	
-	if ( strlen(url)) {
-		printf( "got request: GET %s\n", url);
-		sprintf(path, "%s/%s", rootpath, url);
-		fd = open( path, O_RDONLY);
-		if (fd > 0) {
-			sprintf( buffer, "HTTP/1.0 200 OK\nContent-Type: text/html\n\n");
-			send( out, buffer, strlen(buffer), 0);
-			do {
-				count = read( fd, buffer, sizeof(buffer));
-				send( out, buffer, count, 0);
-				printf(".");
-				fflush(stdout);
-			} while (count > 0);
-			close( fd);
-			printf("finished request: GET %s\n", url);
-		}
-		else {
-			sprintf( buffer, "HTTP/1.0 404 Not Found\n\n");
-			send( out, buffer, strlen(buffer), 0);
-		}
-	}
-	else {
-		sprintf( buffer, "HTTP/1.0 501 Method Not Implemented\n\n");
-		send( out, buffer, strlen(buffer), 0);
-	}
+      }
+      std::list<TCPsocket>::iterator it;
+      bool toRemove = false;
+      for(it=clients.begin();it!=clients.end();it++){
+        if(toRemove)
+          clients.remove(client);
+        toRemove = false;
+	client = *it;
+        if(SDLNet_SocketReady(client)) {
+          #define MAXLEN 1024
+          int result;
+          char msg[MAXLEN];
+          
+          result=SDLNet_TCP_Recv(client,msg,MAXLEN);
+          if(result<=0) {
+            // An error may have occured, but sometimes you can just ignore it
+            // It may be good to disconnect socket because it is likely invalid now.
+            numused=SDLNet_TCP_DelSocket(set,client);
+            if(numused==-1) {
+              printf("SDLNet_DelSocket: %s\n", SDLNet_GetError());
+              // perhaps the socket is not in the set
+            }
+            toRemove = true;
+            SDLNet_TCP_Close(client);
+          }
+          printf("Received: \"%s\"\n",msg);
+        }
+      }
+    }
+  }
 }
