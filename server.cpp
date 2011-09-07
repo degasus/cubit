@@ -278,7 +278,7 @@ int main() {
                   SDLNet_Write32(bPos.x, outputBuffer+3);
                   SDLNet_Write32(bPos.y, outputBuffer+7);
                   SDLNet_Write32(bPos.z, outputBuffer+11);                  
-                  outSize = load(bPos, &rev, outputBuffer+16);
+                  outSize = load(bPos, &rev, outputBuffer+19);
                   SDLNet_Write32(rev, outputBuffer+15);
                   SDLNet_Write16(outSize+16,outputBuffer+1);
                   if(SDLNet_TCP_Send(client->socket,outputBuffer,outSize+19) != outSize+19) {
@@ -287,6 +287,7 @@ int main() {
                     // It may be good to disconnect sock because it is likely invalid now.
                   }
                   //printf("send: PUSH_AREA: posx=%d, posy=%d, posz=%d, revision=%d, len(data)=%d\n", bPos.x, bPos.y, bPos.z, rev, outSize);
+                  //std::cout << "data " << outputBuffer+19 << " ENDE" << std::endl;
                   break;
                 case PUSH_AREA:
                   printf("PUSH_AREA\n");
