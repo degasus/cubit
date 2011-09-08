@@ -93,30 +93,8 @@ int randomArea(BlockPosition bPos, char* buffer) {
       }
       if(empty) return 0;
       
-      //ZLIB
-      // deflate
-      z_stream strm;
-      int out_usage;
-      
-      /* allocate inflate state */
-      strm.zalloc = Z_NULL;
-      strm.zfree = Z_NULL;
-      strm.opaque = Z_NULL;
-      strm.avail_in = 0;
-      strm.next_in = Z_NULL;
-      if (deflateInit(&strm, -1) != Z_OK)
-        std::cout << "fehler" << std::endl;
-      
-      /* decompress until deflate stream ends or end of file */
-      strm.avail_in = AREASIZE;
-      strm.next_in = internalBuffer;
-      strm.avail_out = AREASIZE;
-      strm.next_out = (Bytef*)buffer;
-      
-      if(deflate(&strm, Z_FINISH) != Z_STREAM_END)
-        std::cout << "fehlerb" << std::endl;
-      out_usage = AREASIZE-strm.avail_out;
-      deflateEnd(&strm);
+	  long unsigned int buffer_size = 64*1024-16;
+	  int out_usage = compress((unsigned char*)buffer, &buffer_size, internalBuffer, AREASIZE);
       
       return out_usage;
 }

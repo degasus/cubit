@@ -232,7 +232,7 @@ void Renderer::generateArea(Area* area) {
 			if(area->next[d]) {
 				switch(area->next[d]->state) {				
 					case Area::STATE_READY:			
-					case Area::STATE_LOADED_BUT_NOT_FOUND:
+					case Area::STATE_HDD_LOADED_BUT_NOT_FOUND:
 						break;
 					default:
 						return;

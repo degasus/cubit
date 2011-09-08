@@ -31,7 +31,7 @@ Map::Map(Controller *controller) {
 	dijsktra_wert = 1;
 	
 	IPaddress ip;
-	if(SDLNet_ResolveHost(&ip,"10.43.2.37",PORT)==-1) {
+	if(SDLNet_ResolveHost(&ip,"127.0.0.1",PORT)==-1) {
 		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
 		exit(1);
 	}
@@ -272,7 +272,7 @@ void Map::setPosition(PlayerPosition pos)
 		Area* a = loaded.front();
 		loaded.pop();
 		
-		if(a->state == Area::STATE_LOADED){
+		if(a->state == Area::STATE_HDD_LOADED){
 			areas[a->pos] = a;
 			a->state = Area::STATE_READY;
 			
@@ -313,7 +313,7 @@ void Map::setPosition(PlayerPosition pos)
 		// load actual position
 		Area* a = getOrCreate(p);
 		if(a->state == Area::STATE_NEW) {
-			a->state = Area::STATE_LOAD;
+			a->state = Area::STATE_HDD_LOAD;
 			to_load.push(a);
 		}
 		// add it to queue		
@@ -351,7 +351,7 @@ void Map::setPosition(PlayerPosition pos)
 							b->dijsktra_direction_used[d] = a->dijsktra_direction_used[d] || (i==d);
 						dijsktra_queue.push(b);
 						if(b->state == Area::STATE_NEW) {
-							b->state = Area::STATE_LOAD;
+							b->state = Area::STATE_HDD_LOAD;
 							to_load.push(b);
 						}
 					}
@@ -360,14 +360,14 @@ void Map::setPosition(PlayerPosition pos)
 			break;
 			
 			// wait and try it again later
-			case Area::STATE_LOAD:
-			case Area::STATE_LOADED:
+			case Area::STATE_HDD_LOAD:
+			case Area::STATE_HDD_LOADED:
 			dijsktra_queue.push(a);
 			if(!first) first = a;
 			break;
 			
 			// not available, so stop here
-			case Area::STATE_LOADED_BUT_NOT_FOUND: break;
+			case Area::STATE_HDD_LOADED_BUT_NOT_FOUND: break;
 			default: std::cout << "state: " << a->state << std::endl;
 		}
 		
@@ -416,31 +416,10 @@ void Map::store(Area *a) { return;
 	if(a->empty)
 		sqlite3_bind_null(saveArea, 8);
 	else {
-		// deflate
-		z_stream strm;
+		uLongf dsize = AREASIZE;
 		unsigned char out[AREASIZE];
-		int out_usage;
+		int out_usage = compress(out, &dsize, a->m, AREASIZE);
 		
-		/* allocate inflate state */
-		strm.zalloc = Z_NULL;
-		strm.zfree = Z_NULL;
-		strm.opaque = Z_NULL;
-		strm.avail_in = 0;
-		strm.next_in = Z_NULL;
-		if (deflateInit(&strm, -1) != Z_OK)
-			std::cout << "fehler" << std::endl;
-		
-		/* decompress until deflate stream ends or end of file */
-		strm.avail_in = AREASIZE;
-		strm.next_in = a->m;
-		strm.avail_out = AREASIZE;
-		strm.next_out = out;
-		
-		if(deflate(&strm, Z_FINISH) != Z_STREAM_END)
-			std::cout << "fehlerb" << std::endl;
-		out_usage = AREASIZE-strm.avail_out;
-		deflateEnd(&strm);
-
 		if(out_usage < AREASIZE)
 			sqlite3_bind_blob(saveArea, 8, (const void*) out, out_usage, SQLITE_STATIC);
 		else
@@ -476,58 +455,16 @@ void Map::load(Area *a) {
 		pos += SDLNet_TCP_Recv(tcpsock, inbuffer+pos, maxbytes);
 		
 		if(pos>=3 && pos == 3+SDLNet_Read16(inbuffer+1)) {
-			//inbuffer[pos-1] = 0;
 			if(pos == 19) a->empty = 1;
 			else {
-				//std::cout << "data" << inbuffer+19 << "ENDE" << std::endl;
-				//std::cout << "groesse " << pos-19 <<  std::endl;
 				a->allocm();
 				a->empty = 0;
-				// inflate
-				z_stream strm;
 				
-				/* allocate inflate state */
-				strm.zalloc = Z_NULL;
-				strm.zfree = Z_NULL;
-				strm.opaque = Z_NULL;
-				strm.avail_in = 0;
-				strm.next_in = Z_NULL;
-				if (inflateInit(&strm) != Z_OK)
-					std::cout << "fehler" << std::endl;
-				
-				/* decompress until deflate stream ends or end of file */
-				strm.avail_in = pos-19;
-				strm.next_in = (Bytef*)inbuffer+19;
-				strm.avail_out = AREASIZE;
-				strm.next_out = a->m;
-				
-				int error = inflate(&strm, Z_FINISH);
-				if(error != Z_STREAM_END)
-					std::cout << "fehlerb" << std::endl;
-				
-				switch(error) {
-				    case Z_ERRNO:
-						if (ferror(stdin))
-							fputs("error reading stdin\n", stderr);
-						if (ferror(stdout))
-							fputs("error writing stdout\n", stderr);
-						break;
-					case Z_STREAM_ERROR:
-						fputs("invalid compression level\n", stderr);
-						break;
-					case Z_DATA_ERROR:
-						fputs("invalid or incomplete deflate data\n", stderr);
-						break;
-					case Z_MEM_ERROR:
-						fputs("out of memory\n", stderr);
-						break;
-					case Z_VERSION_ERROR:
-						fputs("zlib version mismatch!\n", stderr);
+				uLongf dsize = AREASIZE;
+				uncompress(a->m, &dsize, (Bytef*)inbuffer+19, pos-19);
 			}
-		
-				inflateEnd(&strm);				
-			}
-			a->state = Area::STATE_LOADED;
+				
+			a->state = Area::STATE_HDD_LOADED;
 			recalc(a);
 			break;
 		}
@@ -558,34 +495,15 @@ void Map::load(Area *a) {
 				a->blocks = -1;
 			}
 			else {
-				// inflate
-				z_stream strm;
-				
-				/* allocate inflate state */
-				strm.zalloc = Z_NULL;
-				strm.zfree = Z_NULL;
-				strm.opaque = Z_NULL;
-				strm.avail_in = 0;
-				strm.next_in = Z_NULL;
-				if (inflateInit(&strm) != Z_OK)
-					std::cout << "fehler" << std::endl;
-				
-				/* decompress until deflate stream ends or end of file */
-				strm.avail_in = bytes;
-				strm.next_in = (unsigned char*)sqlite3_column_blob(loadArea, 4);
-				strm.avail_out = AREASIZE;
-				strm.next_out = a->m;
-				
-				if(inflate(&strm, Z_FINISH) != Z_STREAM_END)
-					std::cout << "fehlerb" << std::endl;
-				inflateEnd(&strm);
+				uLongf dsize = AREASIZE;
+				uncompress(a->m, &dsize, (unsigned char*)sqlite3_column_blob(loadArea, 4), bytes);
 			}
 			for (int i = 0; i < AREASIZE; i++) {
 				if (a->m[i] >= NUMBER_OF_MATERIALS)
 					a->m[i] = 0;	
 			}
 		}
-		a->state = Area::STATE_LOADED;
+		a->state = Area::STATE_HDD_LOADED;
 		sqlite3_reset(loadArea);
 		SDL_UnlockMutex(c->sql_mutex);
 		if(a->blocks < 0)
@@ -595,17 +513,17 @@ void Map::load(Area *a) {
 		SDL_UnlockMutex(c->sql_mutex);
 		
 		if(generate_random) {
-			a->state = Area::STATE_LOADED;
+			a->state = Area::STATE_HDD_LOADED;
 			randomArea(a);
 			recalc(a);
 		} else {
-			a->state = Area::STATE_LOADED_BUT_NOT_FOUND;
+			a->state = Area::STATE_HDD_LOADED_BUT_NOT_FOUND;
 		}
 		
 	} else  {
 		std::cout << "SQLITE ERROR" << std::endl;
-		a->state = Area::STATE_LOADED_BUT_NOT_FOUND;
-		//a->state = Area::STATE_LOADED;
+		a->state = Area::STATE_HDD_LOADED_BUT_NOT_FOUND;
+		//a->state = Area::STATE_HDD_LOADED;
 		sqlite3_reset(loadArea);
 		SDL_UnlockMutex(c->sql_mutex);
 		//randomArea(a);
