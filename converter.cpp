@@ -70,37 +70,23 @@ void parse_file(const char* f) {
 		}
 		chunk_length[i] = (chunks[i][-5]<<24) | (chunks[i][-4]<<16) | (chunks[i][-3]<<8) | (chunks[i][-2]);
 		
-		// inflate
-		z_stream strm;
+		uLongf size = 16*16*128*16;
 		unsigned char out[16*16*128*16];
-		int have;
+		uncompress(out, &size, chunks[i], chunk_length[i]);
+		
 		raw_data[i] = new unsigned char[16*16*128];
+
+		int have = 16*16*128*16-size;
 		
-		/* allocate inflate state */
-		strm.zalloc = Z_NULL;
-		strm.zfree = Z_NULL;
-		strm.opaque = Z_NULL;
-		strm.avail_in = 0;
-		strm.next_in = Z_NULL;
-		if (inflateInit(&strm) != Z_OK)
-			std::cout << "fehler" << std::endl;
-		
-		/* decompress until deflate stream ends or end of file */
-		strm.avail_in = chunk_length[i];
-		strm.next_in = chunks[i];
-		strm.avail_out = 16*16*128*16;
-		strm.next_out = out;
-		
-		if(inflate(&strm, Z_FINISH) != Z_STREAM_END)
-			std::cout << "fehlerb" << std::endl;
-		have = 16*16*128*16-strm.avail_out;
-		inflateEnd(&strm);
-		
+		bool found = false;
 		for(int k=6; k<have-16*16*128; k++) {
 			if(out[k-6] == 'B' && out[k-5] == 'l' && out[k-4] == 'o' && out[k-3] == 'c' && out[k-2] == 'k' && out[k-1] == 's') {
 				memcpy(raw_data[i], out+k, 16*16*128);
-			}
+				found = true;
+				break;
+			} 
 		}
+		if(!found) std::cout << "Blocks not found" << std::endl;
 		
 		//std::cout << locations[i] << " x " << counts[i] << " x " << timestamps[i] << " x " << chunk_length[i] << (void*)raw_data[i] << std::endl;
 		
@@ -141,7 +127,7 @@ void parse_file(const char* f) {
 				}
 			}
 			
-			BlockPosition pos = BlockPosition::create(glob_x + x*32, glob_y + y*32, glob_z + z*32);
+			BlockPosition pos = BlockPosition::create(glob_x + x*32, glob_y + y*32, glob_z + z*32 - 64);
 			if(empty) 
 				disk->writeArea(pos, 0, 1);
 			else

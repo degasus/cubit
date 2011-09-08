@@ -371,7 +371,7 @@ void Map::blockChangedEvent(BlockPosition pos, Material m){
 
 }
 
-void Map::store(Area *a) { return;
+void Map::store(Area *a) {
 	if(a->empty)
 		disk->writeArea(a->pos, 0, a->revision);
 	else
@@ -407,7 +407,7 @@ void Map::load(Area *a) {
 				uLongf dsize = AREASIZE;
 				uncompress(a->m, &dsize, (Bytef*)inbuffer+19, pos-19);
 			}
-				
+			a->revision = SDLNet_Read32(inbuffer+15);
 			a->state = Area::STATE_HDD_LOADED;
 			recalc(a);
 			break;
@@ -422,6 +422,7 @@ void Map::load(Area *a) {
 	} else {
 		a->empty = true;
 		delete [] a->m;
+		a->m = 0;
 	}
 	
 	if(a->revision) {
@@ -433,8 +434,6 @@ void Map::load(Area *a) {
 }
 
 void Map::recalc(Area* a) {
-	a->needstore = 1;
-	
 	a->blocks = 0;
 	
 	a->full = 0;
@@ -465,6 +464,7 @@ void Map::recalc(Area* a) {
 		if(a->empty) {
 			delete [] a->m;
 			a->m = 0;
+			a->needstore = 1;
 		}
 	} 
 }

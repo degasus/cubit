@@ -18,7 +18,7 @@ Harddisk::Harddisk(std::string filename)
 		filename = (home / ".cubit" / "cubit.db").string();
 	}
 	
-	//std::cout << "open sqlite file in " << filename << std::endl;
+	std::cout << "open sqlite file in " << filename << std::endl;
 	
 	in_transaction = false;
 	
