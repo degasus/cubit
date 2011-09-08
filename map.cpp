@@ -15,13 +15,11 @@
 
 #include "zlib.h"
 #include <SDL_net.h>
+#include "harddisk.h"
 
 
 Map::Map(Controller *controller) {
 	c = controller;
-	
-	saveArea = 0;
-	loadArea = 0;
 	
 	harddisk = 0;
 	mapGenerator = 0;
@@ -81,8 +79,7 @@ Map::~Map()
 		delete it->second;
 	}
 	
-	if(saveArea) sqlite3_finalize(saveArea);
-	if(loadArea) sqlite3_finalize(loadArea);
+	if(disk) delete disk;
 }
 
 
@@ -93,6 +90,8 @@ void Map::config(const boost::program_options::variables_map& c)
 	areasPerFrameLoading = c["areasPerFrameLoading"].as<int>();
 	loadRange = c["visualRange"].as<int>()*2+2;
 	generate_random = c["generateRandom"].as<bool>();
+	
+	disk = new Harddisk((c["workingDirectory"].as<boost::filesystem::path>() / "cubit.db").string());	
 }
 
 int threaded_read_from_harddisk(void* param) {
@@ -175,15 +174,10 @@ void Map::read_from_harddisk() {
 		empty = 1;
 		Area* tosave;
 		
-		SDL_LockMutex(c->sql_mutex);
-		sqlite3_exec(c->database, "BEGIN",  0,0,0);
-		SDL_UnlockMutex(c->sql_mutex);
+		disk->begin();
 		
 		do {
 			SDL_LockMutex(queue_mutex);
-/*			if(!empty) {
-				saved.push(tosave);
-			}*/
 			empty = to_save.empty();
 			if(!empty) {
 				tosave = to_save.front();
@@ -198,9 +192,7 @@ void Map::read_from_harddisk() {
 			}
 			
 		} while(!empty);
-		SDL_LockMutex(c->sql_mutex);
-		sqlite3_exec(c->database, "Commit",  0,0,0);
-		SDL_UnlockMutex(c->sql_mutex);
+		disk->commit();
 		
 		SDL_Delay (10);
 	}
@@ -208,27 +200,6 @@ void Map::read_from_harddisk() {
 
 void Map::init()
 {
-	SDL_LockMutex(c->sql_mutex);
-	if (sqlite3_prepare_v2(
-		c->database,            /* Database handle */
-		"INSERT OR REPLACE INTO area (posx, posy, posz, empty, revision, full, blocks, data) VALUES (?,?,?,?,?,?,?,?);",       /* SQL statement, UTF-8 encoded */
-		-1,              /* Maximum length of zSql in bytes. */
-		&saveArea,  /* OUT: Statement handle */
-		0     /* OUT: Pointer to unused portion of zSql */
-	) != SQLITE_OK)
-		std::cout << "prepare(saveArea) hat nicht geklappt: " << sqlite3_errmsg(c->database) << std::endl;
-		
-	if (sqlite3_prepare_v2(
-		c->database,            /* Database handle */
-		"SELECT empty, revision, full, blocks, data from area where posx = ? and posy = ? and posz = ?;",       /* SQL statement, UTF-8 encoded */
-		-1,              /* Maximum length of zSql in bytes. */
-		&loadArea,  /* OUT: Statement handle */
-		0     /* OUT: Pointer to unused portion of zSql */
-	) != SQLITE_OK)
-		std::cout << "prepare(loadArea) hat nicht geklappt: " << sqlite3_errmsg(c->database) << std::endl;
-
-	SDL_UnlockMutex(c->sql_mutex);
-	
 	thread_stop = 0;
 	queue_mutex = SDL_CreateMutex ();
 	harddisk = SDL_CreateThread (threaded_read_from_harddisk,this);
@@ -401,40 +372,13 @@ void Map::blockChangedEvent(BlockPosition pos, Material m){
 }
 
 void Map::store(Area *a) { return;
-	int full = a->full;
-	for(int i=DIRECTION_COUNT-1; i>=0; i--) 
-		full = full<<1 | a->dir_full[i];
-	
-	SDL_LockMutex(c->sql_mutex);
-	sqlite3_bind_int(saveArea, 1, a->pos.x);
-	sqlite3_bind_int(saveArea, 2, a->pos.y);
-	sqlite3_bind_int(saveArea, 3, a->pos.z);
-	sqlite3_bind_int(saveArea, 4, a->empty);
-	sqlite3_bind_int(saveArea, 5, a->revision);
-	sqlite3_bind_int(saveArea, 6, full);
-	sqlite3_bind_int(saveArea, 7, a->blocks);
 	if(a->empty)
-		sqlite3_bind_null(saveArea, 8);
-	else {
-		uLongf dsize = AREASIZE;
-		unsigned char out[AREASIZE];
-		int out_usage = compress(out, &dsize, a->m, AREASIZE);
-		
-		if(out_usage < AREASIZE)
-			sqlite3_bind_blob(saveArea, 8, (const void*) out, out_usage, SQLITE_STATIC);
-		else
-			sqlite3_bind_blob(saveArea, 8, (const void*) a->m, AREASIZE, SQLITE_STATIC);
-		
-		
-	}
-	sqlite3_step(saveArea);
-	sqlite3_reset(saveArea);
-	SDL_UnlockMutex(c->sql_mutex); 
+		disk->writeArea(a->pos, 0, a->revision);
+	else
+		disk->writeArea(a->pos, a->m, a->revision);
 }
 
 void Map::load(Area *a) {
-	
-	SDL_LockMutex(c->sql_mutex);
 	char outbuffer[19];
 	outbuffer[0] = 1;
 	SDLNet_Write16(16,outbuffer+1);
@@ -469,65 +413,22 @@ void Map::load(Area *a) {
 			break;
 		}
 	}
-	SDL_UnlockMutex(c->sql_mutex);
 	return;
 	
-	SDL_LockMutex(c->sql_mutex);
-	sqlite3_bind_int(loadArea, 1, a->pos.x);
-	sqlite3_bind_int(loadArea, 2, a->pos.y);
-	sqlite3_bind_int(loadArea, 3, a->pos.z);
-	int step = sqlite3_step(loadArea);
-	if (step == SQLITE_ROW) {
-		a->empty = sqlite3_column_int(loadArea, 0);
-		a->revision = sqlite3_column_int(loadArea, 1);
-		int full = sqlite3_column_int(loadArea, 2);
-		for(int i=0; i<DIRECTION_COUNT; i++) {
-			a->dir_full[i] = full & 1;
-			full = full >> 1;
-		}
-		a->full = full;
-		a->blocks = sqlite3_column_int(loadArea, 3);
-		if(!a->empty) {
-			a->allocm();
-			int bytes = sqlite3_column_bytes16(loadArea, 4);
-			if(bytes == AREASIZE) {
-				memcpy(a->m,sqlite3_column_blob(loadArea, 4),AREASIZE);
-				a->blocks = -1;
-			}
-			else {
-				uLongf dsize = AREASIZE;
-				uncompress(a->m, &dsize, (unsigned char*)sqlite3_column_blob(loadArea, 4), bytes);
-			}
-			for (int i = 0; i < AREASIZE; i++) {
-				if (a->m[i] >= NUMBER_OF_MATERIALS)
-					a->m[i] = 0;	
-			}
-		}
+	a->allocm();
+	int bytes = disk->readArea(a->pos, a->m, &a->revision);
+	if(bytes) {
+		a->empty = false;
+	} else {
+		a->empty = true;
+		delete [] a->m;
+	}
+	
+	if(a->revision) {
+		recalc(a);
 		a->state = Area::STATE_HDD_LOADED;
-		sqlite3_reset(loadArea);
-		SDL_UnlockMutex(c->sql_mutex);
-		if(a->blocks < 0)
-			recalc(a);
-	} else if (step == SQLITE_DONE) {
-		sqlite3_reset(loadArea);
-		SDL_UnlockMutex(c->sql_mutex);
-		
-		if(generate_random) {
-			a->state = Area::STATE_HDD_LOADED;
-			randomArea(a);
-			recalc(a);
-		} else {
-			a->state = Area::STATE_HDD_LOADED_BUT_NOT_FOUND;
-		}
-		
-	} else  {
-		std::cout << "SQLITE ERROR" << std::endl;
+	} else {
 		a->state = Area::STATE_HDD_LOADED_BUT_NOT_FOUND;
-		//a->state = Area::STATE_HDD_LOADED;
-		sqlite3_reset(loadArea);
-		SDL_UnlockMutex(c->sql_mutex);
-		//randomArea(a);
-		//recalc(a);
 	}
 }
 
@@ -596,13 +497,3 @@ void Map::setBlock(BlockPosition pos, Material m){
 	a->set(pos,m);
 	
 }
-
-std::string BlockPosition::to_string() {
-
-	std::ostringstream oss (std::ostringstream::out);
-
-	oss << "bPos X = " << x << "; Y = " << y << "; Z = " << z;
-
-	return oss.str();
-}
-

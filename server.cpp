@@ -9,43 +9,9 @@
 
 #include "server.h"
 #include "config.h"
+#include "utils.h"
+#include "harddisk.h"
 
-sqlite3* database;
-sqlite3_stmt *loadArea;
-
-void initSQL() {
-  // init SQL
-  if(sqlite3_open("cubit.db", &database) != SQLITE_OK)
-    // Es ist ein Fehler aufgetreten!
-  std::cout << "Fehler beim Öffnen: " << sqlite3_errmsg(database) << std::endl;
-  
-  // create tables
-  sqlite3_exec(database,
-               "CREATE TABLE IF NOT EXISTS area ( "
-               "posx INT NOT NULL, "
-               "posy INT NOT NULL, "
-               "posz INT NOT NULL, "
-               "empty BOOL NOT NULL DEFAULT 0, "
-               "revision INT DEFAULT 0, "
-               "full INT NOT NULL DEFAULT 0, " 
-               "blocks INT NOT NULL DEFAULT -1, "
-               "data BLOB(32768), "
-               "PRIMARY KEY (posx, posy, posz) "
-               ");"
-               , 0, 0, 0);
-  sqlite3_exec(database, "PRAGMA synchronous = 0;", 0, 0, 0);
-  
-  if (sqlite3_prepare_v2(
-    database,            /* Database handle */
-    "SELECT empty, revision, full, blocks, data from area where posx = ? and posy = ? and posz = ?;",       /* SQL statement, UTF-8 encoded */
-    -1,              /* Maximum length of zSql in bytes. */
-    &loadArea,  /* OUT: Statement handle */
-    0     /* OUT: Pointer to unused portion of zSql */
-  ) != SQLITE_OK)
-    std::cout << "prepare(loadArea) hat nicht geklappt: " << sqlite3_errmsg(database) << std::endl;
-    
-  
-}
 
 int randomArea(BlockPosition bPos, char* buffer) {
   if(bPos.z > 92) return 0;
@@ -94,48 +60,16 @@ int randomArea(BlockPosition bPos, char* buffer) {
       if(empty) return 0;
       
 	  long unsigned int buffer_size = 64*1024-16;
-	  int out_usage = compress((unsigned char*)buffer, &buffer_size, internalBuffer, AREASIZE);
+	  compress((unsigned char*)buffer, &buffer_size, internalBuffer, AREASIZE);
       
-      return out_usage;
+      return buffer_size;
 }
 
-int load(BlockPosition bPos, int* revision, char* buffer) {
-  bool empty = true;
-  *revision = 0;
-  int bytes = 0;
-  sqlite3_bind_int(loadArea, 1, bPos.x);
-  sqlite3_bind_int(loadArea, 2, bPos.y);
-  sqlite3_bind_int(loadArea, 3, bPos.z);
-  int step = sqlite3_step(loadArea);
-  if (step == SQLITE_ROW) {
-    empty = sqlite3_column_int(loadArea, 0);
-    *revision = sqlite3_column_int(loadArea, 1);
-    if(!empty) {
-      bytes = sqlite3_column_bytes16(loadArea, 4);
-      memcpy(buffer,sqlite3_column_blob(loadArea, 4),bytes);
-    }
-    sqlite3_reset(loadArea);
-  } 
-  else if (step == SQLITE_DONE) {
-    sqlite3_reset(loadArea);
-    *revision = 1;
-    bytes = randomArea(bPos, buffer); 
-    empty = !bytes;
-  } 
-  else  {
-    std::cout << "SQLITE ERROR" << std::endl;
-    sqlite3_reset(loadArea);
-  }
-  
-  if(empty)
-    return 0;
-  else
-    return bytes;
-}
 
 int main() {
   signal(SIGPIPE, SIG_IGN);
-  initSQL();
+
+  Harddisk disk;
   
   IPaddress *remote_ip;
   IPaddress ip;
@@ -256,7 +190,11 @@ int main() {
                   SDLNet_Write32(bPos.x, outputBuffer+3);
                   SDLNet_Write32(bPos.y, outputBuffer+7);
                   SDLNet_Write32(bPos.z, outputBuffer+11);                  
-                  outSize = load(bPos, &rev, outputBuffer+19);
+                  outSize = disk.readArea(bPos, (unsigned char*)outputBuffer+19, &rev, 1, 64*1024-16);
+				  if(!rev) {
+					  outSize = randomArea(bPos,outputBuffer+19);
+					  rev = 1;
+				  }
                   SDLNet_Write32(rev, outputBuffer+15);
                   SDLNet_Write16(outSize+16,outputBuffer+1);
                   if(SDLNet_TCP_Send(client->socket,outputBuffer,outSize+19) != outSize+19) {
@@ -264,7 +202,7 @@ int main() {
                     toRemove = true;
                     // It may be good to disconnect sock because it is likely invalid now.
                   }
-                  //printf("send: PUSH_AREA: posx=%d, posy=%d, posz=%d, revision=%d, len(data)=%d\n", bPos.x, bPos.y, bPos.z, rev, outSize);
+                  printf("send: PUSH_AREA: posx=%d, posy=%d, posz=%d, revision=%d, len(data)=%d\n", bPos.x, bPos.y, bPos.z, rev, outSize);
                   //std::cout << "data " << outputBuffer+19 << " ENDE" << std::endl;
                   break;
                 case PUSH_AREA:

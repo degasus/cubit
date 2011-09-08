@@ -4,12 +4,15 @@
 #include <vector>
 #include <assert.h>
 
-#include <boost/filesystem.hpp>
 #include <sqlite3.h>
+#include <SDL_thread.h>
 
 #include "zlib.h"
+#include "harddisk.h"
+#include "utils.h"
+#include <queue>
 
-namespace fs = boost::filesystem;
+Harddisk* disk;
 
 void parse_file(const char* f) {
 	std::ifstream file(f);
@@ -22,23 +25,6 @@ void parse_file(const char* f) {
 	file.read((char*) buffer, length);
 	file.close();
 	
-	// init SQL
-	sqlite3* database;
-	sqlite3_stmt *saveArea;
-	fs::path home = fs::path(std::getenv("HOME"));
-	if(sqlite3_open((home / ".cubit" / "cubit.db").string().c_str(), &database) != SQLITE_OK)
-		// Es ist ein Fehler aufgetreten!
-		std::cout << "Fehler beim Öffnen: " << sqlite3_errmsg(database) << std::endl;
-	
-	if (sqlite3_prepare_v2(
-		database,            /* Database handle */
-		"INSERT OR REPLACE INTO area (posx, posy, posz, empty, revision, full, blocks, data) VALUES (?,?,?-32,?,?,?,?,?);",       /* SQL statement, UTF-8 encoded */
-		-1,              /* Maximum length of zSql in bytes. */
-		&saveArea,  /* OUT: Statement handle */
-		0     /* OUT: Pointer to unused portion of zSql */
-	) != SQLITE_OK)
-		std::cout << "prepare(saveArea) hat nicht geklappt: " << sqlite3_errmsg(database) << std::endl;
-		
 	int state = 0;
 	int wert = 0;
 	bool neg = 0;
@@ -70,7 +56,6 @@ void parse_file(const char* f) {
 	unsigned char* chunks[1024];
 	int chunk_length[1024];
 	unsigned char* raw_data[1024];
-	
 	
 	for(int i=0; i<1024; i++) {
 		locations[i]    = (buffer[4*i]<<16) | (buffer[4*i+1]<<8) | (buffer[4*i+2]);
@@ -121,12 +106,10 @@ void parse_file(const char* f) {
 		
 	}
 	
-	sqlite3_exec(database, "BEGIN",  0,0,0);
-	
 	for(int x=0; x<16; x++) for(int y=0; y<16; y++) for(int z=0; z<4; z++) {
-		unsigned char area[32*32*32];
+		unsigned char area[AREASIZE];
 		bool save = 1;
-		for(int pos=0; pos < 32*32*32; pos++) {
+		for(int pos=0; pos < AREASIZE; pos++) {
 			int xb = pos/1024;
 			int yb = (pos/32)%32;
 			int zb = pos%32;
@@ -148,80 +131,72 @@ void parse_file(const char* f) {
 			}
 		}
 		if(save) {
-			int blocks = 0;
-			int full = 1;
 			bool empty = 1;
 			
 			
-			for(int p=0; p<32*32*32; p++) {
+			for(int p=0; p<AREASIZE; p++) {
 				if(area[p]) {
 					empty = 0;
-					blocks++;
 				} else {
-					full = 0;
 				}
 			}
 			
-			sqlite3_bind_int(saveArea, 1, glob_x + x*32);
-			sqlite3_bind_int(saveArea, 2, glob_y + y*32);
-			sqlite3_bind_int(saveArea, 3, glob_z + z*32);
-			sqlite3_bind_int(saveArea, 4, empty);
-			sqlite3_bind_int(saveArea, 5, 1);
-			sqlite3_bind_int(saveArea, 6, full);
-			sqlite3_bind_int(saveArea, 7, -1);
-			
-			if(empty)
-				sqlite3_bind_null(saveArea, 8);
-			else {
-			
-				// deflate
-				z_stream strm;
-				unsigned char out[32*32*32];
-				int out_usage;
-				
-				/* allocate inflate state */
-				strm.zalloc = Z_NULL;
-				strm.zfree = Z_NULL;
-				strm.opaque = Z_NULL;
-				strm.avail_in = 0;
-				strm.next_in = Z_NULL;
-				if (deflateInit(&strm, -1) != Z_OK)
-					std::cout << "fehler" << std::endl;
-				
-				/* decompress until deflate stream ends or end of file */
-				strm.avail_in = 32*32*32;
-				strm.next_in = area;
-				strm.avail_out = 32*32*32;
-				strm.next_out = out;
-				
-				if(deflate(&strm, Z_FINISH) != Z_STREAM_END)
-					std::cout << "fehlerb" << std::endl;
-				out_usage = 32*32*32-strm.avail_out;
-				deflateEnd(&strm);
-
-				if(out_usage < 32*32*32)
-					sqlite3_bind_blob(saveArea, 8, (const void*) out, out_usage, SQLITE_STATIC);
-				else
-					sqlite3_bind_blob(saveArea, 8, (const void*) area, 32*32*32, SQLITE_STATIC);
-				}
-			sqlite3_step(saveArea);
-			sqlite3_reset(saveArea);
+			BlockPosition pos = BlockPosition::create(glob_x + x*32, glob_y + y*32, glob_z + z*32);
+			if(empty) 
+				disk->writeArea(pos, 0, 1);
+			else
+				disk->writeArea(pos, area, 1);
 		}
 	}
 		
 	delete [] buffer;
-	sqlite3_exec(database, "COMMIT",  0,0,0);
-	sqlite3_close(database);
 	for(int i=0; i<1024; i++) {
 		if(raw_data[i]) delete [] raw_data[i];
 	}
 }
 
+std::queue<std::string> files;
+const int threads_count = 8;
+SDL_Thread* threads[threads_count];
+SDL_mutex* lock;
+
+int threaded_convert(void* param) {
+	while(true) {
+		std::string file;
+		bool empty;
+		
+		SDL_LockMutex(lock);
+		empty = files.empty();
+		if(!empty){
+			file = files.front();
+			files.pop();
+			}
+		SDL_UnlockMutex(lock);
+		
+		if(empty) break;
+		else parse_file(file.c_str());
+	}
+	return 0;
+}
 
 int main(int argc, const char* argv[]) {
 	
+	disk = new Harddisk();
+	
 	for(int i=1; i<argc; i++)
-		parse_file(argv[i]);
+		//parse_file(argv[i]);
+		files.push(argv[i]);
+	
+	lock = SDL_CreateMutex();
+	
+	for(int i=0; i<threads_count; i++)
+		threads[i] = SDL_CreateThread(threaded_convert, 0);
+	
+	int ret;
+	for(int i=0; i<threads_count; i++)
+		SDL_WaitThread(threads[i], &ret);
+	
+	delete disk;
 	
 	return 0;
 }

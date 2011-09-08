@@ -14,9 +14,6 @@ namespace fs = boost::filesystem;
 Controller::Controller(int argc, char *argv[])
 {
 	srand ( time(NULL) );
-	
-	database = 0;
-	sql_mutex = 0;
 
 	parse_command_line(argc, argv);
 	
@@ -33,9 +30,6 @@ Controller::~Controller() {
 	delete renderer;
 	delete map;
 	delete movement;
-	
-	if(database) sqlite3_close(database);
-	if(sql_mutex) SDL_DestroyMutex(sql_mutex);
 }
 
 void Controller::run() {
@@ -61,27 +55,8 @@ void Controller::init() {
 	fs::create_directory( vm["workingDirectory"].as<fs::path>() );
 	
 	// init SQL
-	if(sqlite3_open((vm["workingDirectory"].as<fs::path>() / "cubit.db").string().c_str(), &database) != SQLITE_OK)
+//	if(sqlite3_open((vm["workingDirectory"].as<fs::path>() / "cubit.db").string().c_str(), &database) != SQLITE_OK)
 	// Es ist ein Fehler aufgetreten!
-	std::cout << "Fehler beim Öffnen: " << sqlite3_errmsg(database) << std::endl;
-	
-	// create tables
-	sqlite3_exec(database,
-		"CREATE TABLE IF NOT EXISTS area ( "
-			"posx INT NOT NULL, "
-			"posy INT NOT NULL, "
-			"posz INT NOT NULL, "
-			"empty BOOL NOT NULL DEFAULT 0, "
-			"revision INT DEFAULT 0, "
-			"full INT NOT NULL DEFAULT 0, "	
-			"blocks INT NOT NULL DEFAULT -1, "
-			"data BLOB(32768), "
-			"PRIMARY KEY (posx, posy, posz) "
-		");"
-		, 0, 0, 0);
-	sqlite3_exec(database, "PRAGMA synchronous = 0;", 0, 0, 0);
-	sql_mutex = SDL_CreateMutex();
-	
 }
 
 

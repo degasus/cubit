@@ -36,9 +36,6 @@ public:
 	Map *map;
 	
 	
-	sqlite3* database;
-	SDL_mutex* sql_mutex;
-	
 private:
 	
 	void parse_command_line(int argc, char *argv[]);
