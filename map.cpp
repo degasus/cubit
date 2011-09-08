@@ -30,7 +30,7 @@ Map::Map(Controller *controller) {
 	dijsktra_wert = 1;
 	
 	IPaddress ip;
-	if(SDLNet_ResolveHost(&ip,"10.43.2.148",PORT)==-1) {
+	if(SDLNet_ResolveHost(&ip,"markus.members.selfnet.de",PORT)==-1) {
 		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
 		exit(1);
 	}
@@ -385,7 +385,7 @@ void Map::setPosition(PlayerPosition pos)
 {	
 	SDL_LockMutex(queue_mutex);
         
-        std::cout << "anzahl Areas: " << load_requested_net.size() << std::endl;
+        //std::cout << "anzahl Areas: " << load_requested_net.size() << std::endl;
 	
 	while(!loaded_hdd.empty()) {
 		
