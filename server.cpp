@@ -202,7 +202,7 @@ int main() {
                     toRemove = true;
                     // It may be good to disconnect sock because it is likely invalid now.
                   }
-                  printf("send: PUSH_AREA: posx=%d, posy=%d, posz=%d, revision=%d, len(data)=%d\n", bPos.x, bPos.y, bPos.z, rev, outSize);
+                  //printf("send: PUSH_AREA: posx=%d, posy=%d, posz=%d, revision=%d, len(data)=%d\n", bPos.x, bPos.y, bPos.z, rev, outSize);
                   //std::cout << "data " << outputBuffer+19 << " ENDE" << std::endl;
                   break;
                 case PUSH_AREA:

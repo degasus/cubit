@@ -101,6 +101,7 @@ public:
 	void blockChangedEvent(BlockPosition pos, Material m);
 	
 	void read_from_harddisk();
+        void read_from_network();
 	
 	std::map<BlockPosition, Area*> areas;
 	typedef std::map<BlockPosition, Area*>::iterator iterator;
@@ -115,6 +116,8 @@ private:
 	void load(Area* a);
 	void recalc(Area* a);
 	void randomArea(Area* a);
+        
+        void request_load_net(Area* a);
 
 	Area* getOrCreate(BlockPosition pos);
 	
@@ -125,13 +128,21 @@ private:
 	int areasPerFrameLoading;
 	
 	// queue for loading from harddisk
-	std::queue<Area*> to_load;
-	std::queue<Area*> loaded;
-	std::queue<Area*> to_save;
+	std::queue<Area*> to_load_hdd;
+	std::queue<Area*> loaded_hdd;
+	std::queue<Area*> to_save_hdd;
+        
+        // queue for loading from network
+        std::queue<Area*> to_load_net;
+        std::queue<Area*> loaded_net;
+        std::queue<Area*> to_save_net;
+        std::map<BlockPosition, Area*> load_requested_net;
+        
 //	std::queue<Area*> saved;
 	SDL_mutex* queue_mutex;
 	
 	SDL_Thread* harddisk;
+        SDL_Thread* network;
 	SDL_Thread* mapGenerator;
 	bool thread_stop;
 	

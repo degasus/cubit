@@ -10,7 +10,14 @@
 
 
 
-
+enum Commands {
+  GET_AREA = 1,
+  PUSH_AREA = 2,
+  JOIN_AREA = 3,
+  LEAVE_AREA = 4,
+  UPDATE_BLOCK = 5,
+  PLAYER_POSITION = 6,
+};
 
 // including Air == 0
 const int NUMBER_OF_MATERIALS = 109;
