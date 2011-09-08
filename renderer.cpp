@@ -9,10 +9,13 @@
 
 #include "config.h"
 #include "controller.h"
+#include "renderer.h"
 #include "map.h"
 
 #include "matrix.h"
 #include <lzo/lzoconf.h>
+#include <SDL_opengl.h>
+
 
 using namespace std;
 namespace fs = boost::filesystem;
@@ -207,6 +210,16 @@ void Renderer::init()
 	glTexImage2D(GL_TEXTURE_2D, 0, 4, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	
 	delete [] pixels;
+	
+	std::cout << "Shader: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+	
+	shader_po = glCreateProgramObjectARB();
+	
+	shader_vs = glCreateShaderObjectARB(GL_ARB_vertex_shader);
+	shader_fs = glCreateShaderObjectARB(GL_ARB_fragment_shader);
+	
+	
+	
 }
 
 

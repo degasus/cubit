@@ -72,6 +72,12 @@ private:
 	
 	
 	float stats[4];
+	
+	// shader
+	GLhandleARB shader_po;
+	GLhandleARB shader_vs;
+	GLhandleARB shader_fs;
+	
 	 
 };
 
