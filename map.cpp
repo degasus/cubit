@@ -28,35 +28,6 @@ Map::Map(Controller *controller) {
 	inital_loaded = 0;
 	
 	dijsktra_wert = 1;
-	
-	IPaddress ip;
-	if(SDLNet_ResolveHost(&ip,"10.43.2.148",PORT)==-1) {
-		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
-		exit(1);
-	}
-
-	tcpsock=SDLNet_TCP_Open(&ip);
-	if(!tcpsock) {
-		printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
-		exit(2);
-	}
-	
-	set=SDLNet_AllocSocketSet(16);
-	if(!set) {
-		printf("SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
-		exit(1); //most of the time this is a major error, but do what you want.
-	}
-	
-	// add two sockets to a socket set
-	int numused;
-
-	numused=SDLNet_TCP_AddSocket(set,tcpsock);
-	if(numused==-1) {
-		printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
-		// perhaps you need to restart the set and make it bigger...
-	}
-	
-	
 }
 
 Map::~Map()
@@ -94,6 +65,33 @@ void Map::config(const boost::program_options::variables_map& c)
 	areasPerFrameLoading = c["areasPerFrameLoading"].as<int>();
 	loadRange = c["visualRange"].as<int>()*2+2;
 	generate_random = c["generateRandom"].as<bool>();
+
+        IPaddress ip;
+        if(SDLNet_ResolveHost(&ip,c["server"].as<std::string>().c_str(),PORT)==-1) {
+          printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
+          exit(1);
+        }
+        
+        tcpsock=SDLNet_TCP_Open(&ip);
+        if(!tcpsock) {
+          printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
+          exit(2);
+        }
+        
+        set=SDLNet_AllocSocketSet(16);
+        if(!set) {
+          printf("SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
+          exit(1); //most of the time this is a major error, but do what you want.
+        }
+        
+        // add two sockets to a socket set
+        int numused;
+        
+        numused=SDLNet_TCP_AddSocket(set,tcpsock);
+        if(numused==-1) {
+          printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
+          // perhaps you need to restart the set and make it bigger...
+        }
 	
 	disk = new Harddisk((c["workingDirectory"].as<boost::filesystem::path>() / "cubit.db").string());	
 }
