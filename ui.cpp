@@ -15,6 +15,14 @@ namespace fs = boost::filesystem;
 
 UInterface::UInterface(Controller *controller)
 {
+	// Slightly different SDL initialization
+	if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0 ) {
+		printf("Unable to initialize SDL: %s\n", SDL_GetError());
+	}
+	if(SDLNet_Init()) {
+		printf("Unable to initialize SDL-NET: %s\n", SDLNet_GetError());
+	}
+	
 	c = controller;
 	done = 0;
 	catchMouse = 1;
@@ -28,10 +36,6 @@ UInterface::UInterface(Controller *controller)
 
 void UInterface::init()
 {
-	// Slightly different SDL initialization
-	if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0 ) {
-		printf("Unable to initialize SDL: %s\n", SDL_GetError());
-	}
 
 	// load support for the JPG and PNG image formats
 	int flags=IMG_INIT_JPG|IMG_INIT_PNG;

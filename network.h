@@ -8,7 +8,6 @@
 
 #include "config.h"
 #include "utils.h"
-#include <lzo/lzoconf.h>
 #include <map>
 
 class Client {

@@ -91,7 +91,9 @@ int start_network(void *n) {
 }
 
 void Network::init() {
+#ifndef __WIN32__
 	signal(SIGPIPE, SIG_IGN);
+#endif
 	mutex = SDL_CreateMutex();
 	abort_threads = 0;
 	thread = SDL_CreateThread(start_network, this);
