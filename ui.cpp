@@ -386,10 +386,10 @@ void UInterface::redraw()
 	drawHUD();
 	int hud = SDL_GetTicks()-start-movement-map-renderer;
 	
-	stats[0] = stats[0]*0.9 + movement/10.;
-	stats[1] = stats[1]*0.9 + map/10.;
-	stats[2] = stats[2]*0.9 + renderer/10.;
-	stats[3] = stats[3]*0.9 + hud/10.;
+	stats[0] = std::max<double>(stats[0]*0.99, movement);
+	stats[1] = std::max<double>(stats[1]*0.99, map);
+	stats[2] = std::max<double>(stats[2]*0.99, renderer);
+	stats[3] = std::max<double>(stats[3]*0.99, hud);
 	}
 
 void UInterface::handleMouseDownEvents(SDL_MouseButtonEvent e)
@@ -649,27 +649,30 @@ void UInterface::drawHUD() {
 	
 	glBegin(GL_QUADS);
 		glVertex3f(0.0, screenY-0.0, 0.0);
-		glVertex3f(0.0, screenY-150, 0.0);
-		glVertex3f(screenX, screenY-150, 0.0);
+		glVertex3f(0.0, screenY-100, 0.0);
+		glVertex3f(screenX, screenY-100, 0.0);
 		glVertex3f(screenX, screenY-0.0, 0.0);
 		
 	glEnd();
 	glColor4f(0.0,0.0,0.0,1.0);
-	
-	renderText(20, screenY-40, c->movement->getPosition().to_string().c_str());
-	//renderText(20, screenY-80, boost::lexical_cast<std::string>(1000/(stats[0]+stats[1]+stats[2]+stats[3])).c_str());
-	renderText(20, screenY-70, c->renderer->debug_output[0].c_str());
-	renderText(20, screenY-100, c->renderer->debug_output[1].c_str());
-	
-	std::ostringstream out(std::ostringstream::out);
-	out << "Movement: " << stats[0] << ", Map: " << stats[1] << ", Renderer: " << stats[2] << ", HUD: " << stats[3];
-	renderText(20,screenY-130, out.str().c_str());
 	
 	int progress = c->movement->getCurrentRemoveProgress();
 	if(progress > 0){
 		std::string output = boost::lexical_cast<std::string>(progress) + "%";
 		renderText(20, 20, output.c_str());
 	}
+	
+	glTranslatef(0.0f, screenY, 0.0f);
+	glScalef(0.7f, 0.7f,1.0f);
+	
+	renderText(20, -30, c->movement->getPosition().to_string().c_str());
+	//renderText(20, screenY-80, boost::lexical_cast<std::string>(1000/(stats[0]+stats[1]+stats[2]+stats[3])).c_str());
+	renderText(20, -60, c->renderer->debug_output[0].c_str());
+	renderText(20, -90, c->renderer->debug_output[1].c_str());
+	
+	std::ostringstream out(std::ostringstream::out);
+	out << "Movement: " << stats[0] << ", Map: " << stats[1] << ", Renderer: " << stats[2] << ", HUD: " << stats[3];
+	renderText(20,-120, out.str().c_str());
 	
 	/////////////////////////////
 	//reset the view
