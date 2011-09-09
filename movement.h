@@ -21,51 +21,6 @@ struct ActionEvent;
 #include "controller.h"
 #include "map.h"
 
-/**
- * Definiert die Position eines Spielers
- * @param x x Position (West -> Ost)
- * @param y y Position (Süd -> Nord)
- * @param z z Position (Unten -> Oben), origin = eye level
- * @param orientationHorizontal horizontal orientation in degrees, 0 = east, 90 = south, 180 = west, 270 = north
- * @param orientationVertical vertical orientation in degrees, 0 = horizontal, 90 = up, -90 = down
- */
-struct PlayerPosition{
-	double x;
-	double y;
-	double z;
-	double orientationHorizontal;
-	double orientationVertical;
-	
-	btQuaternion rotate;
-
-	inline BlockPosition block(){
-		BlockPosition b;
-		b.x=std::floor(x+0.00001);
-		b.y=std::floor(y+0.00001);
-		b.z=std::floor(z+0.00001);
-
-		return b;
-	}
-
-	inline std::string to_string(){
-
-		std::ostringstream oss (std::ostringstream::out);
-
-		oss << "pPos X = " << x << "; Y = " << y << "; Z = " << z
-			<< "; Orientation: (" << orientationHorizontal << "°, " << orientationVertical << "°);";
-			
-		return oss.str();
-	}
-	
-	/**
-	 * returns the square of the distance between this and the other position
-	 */
-	inline double operator-(const BlockPosition& pos2) {
-		return (x-pos2.x-AREASIZE_X/2)*(x-pos2.x-AREASIZE_X/2)
-		      +(y-pos2.y-AREASIZE_Y/2)*(y-pos2.y-AREASIZE_Y/2)
-			  +(z-pos2.z-AREASIZE_Z/2)*(z-pos2.z-AREASIZE_Z/2);
-	}
-};
 
 struct ActionEvent {
 	double value;

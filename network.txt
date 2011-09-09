@@ -1,0 +1,35 @@
+# Immer Big-Endin
+# byte[0]<<24 | byte[1]<<16 | byte[2]<<8 | byte[3]
+
+//
+hello(playerid, ppos)
+
+// if revision is newest, answer with push_area(data='')
+get_area(bpos,revision)
+
+// 
+push_area(bpos,revision,material[],)
+
+// if revision is old, also send a push_area
+join_area(bpos,revision,)
+
+//
+leave_area(bpos,)
+
+//
+update_block(bpos,material,revision)
+
+//
+player_position(playerid, ppos)
+
+
+1 Byte Befehl
+2 Byte Länge (der Parameter)
+
+bpos: int x,y,z 
+revision: unsigned int
+material: unsigned char
+playerid: int
+ppos: double x,y,z,h,v
+
+

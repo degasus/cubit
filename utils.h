@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <cmath>
 
 #ifndef _UTILS_H_
 #define _UTILS_H_
@@ -137,5 +138,64 @@ inline bool operator<(const BlockPosition &posa, const BlockPosition &posb) {
 inline DIRECTION operator!(const DIRECTION &dir) {
 	return DIRECTION(int(dir) ^ 1);
 }
+
+/**
+ * Definiert die Position eines Spielers
+ * @param x x Position (West -> Ost)
+ * @param y y Position (Süd -> Nord)
+ * @param z z Position (Unten -> Oben), origin = eye level
+ * @param orientationHorizontal horizontal orientation in degrees, 0 = east, 90 = south, 180 = west, 270 = north
+ * @param orientationVertical vertical orientation in degrees, 0 = horizontal, 90 = up, -90 = down
+ */
+struct PlayerPosition{
+	double x;
+	double y;
+	double z;
+	double orientationHorizontal;
+	double orientationVertical;
+
+	/**
+	 * Will create the position at the Point (x,y,z,h,v)
+	 */
+	static inline PlayerPosition create(double x, double y, double z, double h, double v) { 
+		PlayerPosition p; 
+		p.x=x; 
+		p.y=y; 
+		p.z=z; 
+		p.orientationHorizontal = h;
+		p.orientationVertical = v;
+		return p; 
+	}
+	
+	inline BlockPosition block(){
+		BlockPosition b;
+		b.x=std::floor(x+0.00001);
+		b.y=std::floor(y+0.00001);
+		b.z=std::floor(z+0.00001);
+
+		return b;
+	}
+
+	inline std::string to_string(){
+
+		std::ostringstream oss (std::ostringstream::out);
+
+		oss << "pPos X = " << x << "; Y = " << y << "; Z = " << z
+			<< "; Orientation: (" << orientationHorizontal << "°, " << orientationVertical << "°);";
+			
+		return oss.str();
+	}
+	
+	/**
+	 * returns the square of the distance between this and the other position
+	 */
+	inline double operator-(const BlockPosition& pos2) {
+		return (x-pos2.x-AREASIZE_X/2)*(x-pos2.x-AREASIZE_X/2)
+		      +(y-pos2.y-AREASIZE_Y/2)*(y-pos2.y-AREASIZE_Y/2)
+			  +(z-pos2.z-AREASIZE_Z/2)*(z-pos2.z-AREASIZE_Z/2);
+	}
+};
+
+
 
 #endif
