@@ -24,7 +24,7 @@ public:
 	 * @param length size of buffer
 	 * @return bytes written in buffer
 	 */
-	int readArea (BlockPosition pos, unsigned char* buffer, int* revision, bool compressed=false, int length=AREASIZE);
+	int readArea (BlockPosition pos, char* buffer, int* revision, bool compressed=false, int length=AREASIZE);
 
 	/** write an area to harddisk
 	 * @param pos selects area
@@ -33,7 +33,7 @@ public:
 	 * @param compressed is buffer compressed
 	 * @param length size of buffer
 	 */
-	void writeArea(BlockPosition pos, unsigned char* buffer, int  revision, bool compressed=false, int length=AREASIZE);
+	void writeArea(BlockPosition pos, char* buffer, int  revision, bool compressed=false, int length=AREASIZE);
 	
 private:
 	bool in_transaction;

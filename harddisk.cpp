@@ -74,7 +74,7 @@ Harddisk::~Harddisk()
 	if(mutex) SDL_DestroyMutex(mutex);
 }
 
-int Harddisk::readArea(BlockPosition pos, unsigned char* buffer, int* revision, bool compressed, int length)
+int Harddisk::readArea(BlockPosition pos, char* buffer, int* revision, bool compressed, int length)
 {
 	//std::cout << "read Area: " << pos.to_string() << std::endl;
 	int bytes = 0;
@@ -96,7 +96,7 @@ int Harddisk::readArea(BlockPosition pos, unsigned char* buffer, int* revision, 
 				memcpy(buffer,sqlite3_column_blob(loadArea, 1),std::min(bytes,length));
 			} else {
 				uLongf dsize = length;
-				uncompress(buffer, &dsize, (unsigned char*)sqlite3_column_blob(loadArea, 1), bytes);
+				uncompress((unsigned char*)buffer, &dsize, (unsigned char*)sqlite3_column_blob(loadArea, 1), bytes);
 				bytes = dsize;
 			}
 		}
@@ -113,14 +113,14 @@ int Harddisk::readArea(BlockPosition pos, unsigned char* buffer, int* revision, 
 	return bytes;
 }
 
-void Harddisk::writeArea(BlockPosition pos, unsigned char* buffer, int revision, bool compressed, int length)
+void Harddisk::writeArea(BlockPosition pos, char* buffer, int revision, bool compressed, int length)
 {
 	//std::cout << "write Area: " << pos.to_string() << std::endl;
-	unsigned char intbuffer[AREASIZE];
+	char intbuffer[AREASIZE];
 	
 	if(buffer && !compressed) {
 		uLongf buffersize = AREASIZE;
-		compress(intbuffer, &buffersize, buffer, length);
+		compress((unsigned char*)intbuffer, &buffersize, (unsigned char*)buffer, length);
 		buffer = intbuffer;
 		length = buffersize;
 	}

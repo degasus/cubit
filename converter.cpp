@@ -131,7 +131,7 @@ void parse_file(const char* f) {
 			if(empty) 
 				disk->writeArea(pos, 0, 1);
 			else
-				disk->writeArea(pos, area, 1);
+				disk->writeArea(pos, (char*)area, 1);
 		}
 	}
 		

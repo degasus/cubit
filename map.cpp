@@ -550,12 +550,12 @@ void Map::store(Area *a) {
 	if(a->empty)
 		disk->writeArea(a->pos, 0, a->revision);
 	else
-		disk->writeArea(a->pos, a->m, a->revision);
+		disk->writeArea(a->pos, (char*)a->m, a->revision);
 }
 
 void Map::load(Area *a) {
 	a->allocm();
-	int bytes = disk->readArea(a->pos, a->m, &a->revision);
+	int bytes = disk->readArea(a->pos, (char*)a->m, &a->revision);
 	if(bytes) {
 		a->empty = false;
 	} else {

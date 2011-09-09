@@ -1,4 +1,5 @@
 #include <zlib.h>
+#include <signal.h>
 
 #include "network.h"
 
@@ -90,6 +91,7 @@ int start_network(void *n) {
 }
 
 void Network::init() {
+	signal(SIGPIPE, SIG_IGN);
 	mutex = SDL_CreateMutex();
 	abort_threads = 0;
 	thread = SDL_CreateThread(start_network, this);
@@ -477,7 +479,7 @@ void Network::send_get_area(BlockPosition pos, int revision, int connection) {
 
 void Network::send_push_area(BlockPosition pos, int revision, char* data, int length, bool compressed, int connection) {
 	char intbuffer[64*1024+3];
-	if(!compressed) {
+	if(!compressed && length) {
 		uLongf size = 64*1024+3;
 		compress((Bytef*)intbuffer, &size, (Bytef*)data, length);
 		data = intbuffer;
