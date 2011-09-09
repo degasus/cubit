@@ -9,6 +9,9 @@
 #include "config.h"
 #include "utils.h"
 #include "harddisk.h"
+#include "utils.h"
+#include "utils.h"
+
 
 
 int Server::randomArea(BlockPosition bPos, char* buffer) {
@@ -84,6 +87,9 @@ void Server::run() {
 	BlockPosition bPos;
 	char buffer[64*1024+3];
 	int rev, rev2, bytes, connection;
+	Material m;
+	std::map<BlockPosition, std::set<int> >::iterator it;
+	std::set<int>::iterator it2;
 
 	while(!stop) {
 		while(!network->recv_get_area_empty()){
@@ -98,6 +104,38 @@ void Server::run() {
 				network->send_push_area(bPos, 0, 0, 0, true, connection);
 			else
 				network->send_push_area(bPos, rev2, buffer, bytes, true, connection);
+		}
+		
+		while(!network->recv_push_area_empty())
+			network->recv_push_area(&bPos, buffer, &rev, 0, true, &connection);
+		
+		while(!network->recv_join_area_empty()){
+			bPos = network->recv_join_area(&rev, &connection);
+			joined_clients[bPos].insert(connection);
+			bytes = harddisk->readArea(bPos, buffer, &rev2, true, 64*1024+3);
+			if(rev != rev2)
+				network->send_push_area(bPos, rev2, buffer, bytes, true, connection);
+		}
+		
+		while(!network->recv_leave_area_empty()){
+			bPos = network->recv_leave_area(&connection);
+			it = joined_clients.find(bPos);
+			if(it != joined_clients.end()){
+				it->second.erase(connection);
+				if(it->second.empty()){
+					joined_clients.erase(it);
+				}
+			}
+		}
+		
+		while(!network->recv_update_block_empty()){
+			m = network->recv_update_block(&bPos, &rev, &connection);
+			it = joined_clients.find(bPos.area());
+			if(it != joined_clients.end()){
+				for(it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+					network->send_update_block(bPos, m, rev+1, *it2);
+				}
+			}
 		}
 	}
 }

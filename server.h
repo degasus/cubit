@@ -1,4 +1,7 @@
 #include "SDL_net.h"
+#include <set>
+#include <map>
+
 #include "config.h"
 #include "harddisk.h"
 #include "network.h"
@@ -15,6 +18,8 @@ private:
 	Harddisk *harddisk;
 	Network *network;
 	bool stop;
+	
+	std::map<BlockPosition, std::set<int> > joined_clients;
 	
 	int randomArea(BlockPosition bPos, char* buffer);
 };
