@@ -358,9 +358,9 @@ void UInterface::redraw()
 	if(enable3d) {
 		glColorMask(1,0,0,0);
 		c->renderer->render(pos,0.1);
+	} else {
+		c->renderer->render(pos,0);
 	}
-	c->renderer->render(pos,0);
-	
 	// Highlighted Block
 	BlockPosition block;
 	DIRECTION direct;
