@@ -13,24 +13,22 @@
 #include "map.h"
 
 #include "matrix.h"
-#include <lzo/lzoconf.h>
-#include <SDL_opengl.h>
 
 
 using namespace std;
 namespace fs = boost::filesystem;
 
 
-void getGlError() { 
-	/*
+void getGlError(std::string meldung = "") { 
+	
 	GLenum errCode;
 	const GLubyte *errString;
 
 	if ((errCode = glGetError()) != GL_NO_ERROR) {
 		errString = gluErrorString(errCode);
-		fprintf (stderr, "OpenGL Error: %s\n", errString);
+		fprintf (stderr, "%s OpenGL Error: %s\n",meldung.c_str(), errString);
 	}
-	*/
+	
 }
 
 Renderer::Renderer(Controller* controller)
@@ -210,16 +208,31 @@ void Renderer::init()
 	glTexImage2D(GL_TEXTURE_2D, 0, 4, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	
 	delete [] pixels;
-	
+	/*
 	std::cout << "Shader: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 	
 	shader_po = glCreateProgramObjectARB();
+	getGlError("glCreateProgramObjectARB");
 	
-	shader_vs = glCreateShaderObjectARB(GL_ARB_vertex_shader);
-	shader_fs = glCreateShaderObjectARB(GL_ARB_fragment_shader);
+	shader_vs = glCreateShaderObjectARB(GL_VERTEX_SHADER);
+	getGlError("glCreateShaderObjectARB vs");
+	
+	shader_fs = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
+	getGlError("glCreateShaderObjectARB fs");
+	
+	std::string shader = "";
+	const char *shader_src = shader.c_str();
+	int shader_src_length = shader.length();
+	glShaderSourceARB(shader_vs, 1, &shader_src, &shader_src_length);
+	getGlError("glShaderSourceARB");
+	
+	glCompileShaderARB(shader_vs);
+	getGlError("glCompileShaderARB vs");
 	
 	
-	
+	glCompileShaderARB(shader_fs);
+	getGlError("glCompileShaderARB fs");
+	*/
 }
 
 

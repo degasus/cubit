@@ -11,6 +11,7 @@
 #include "harddisk.h"
 #include "utils.h"
 #include <queue>
+#include <SDL.h>
 
 Harddisk* disk;
 
@@ -166,6 +167,7 @@ int threaded_convert(void* param) {
 }
 
 int main(int argc, const char* argv[]) {
+	SDL_Init(0);
 	
 	disk = new Harddisk();
 	

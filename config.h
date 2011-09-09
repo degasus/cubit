@@ -5,9 +5,17 @@
 	if none is defined, drawarray is called in memory
         if both are defined, an vbo will be created and copy its data to an list. so dont use it :-)
 */
+#ifndef __WIN32__
+
 #define USE_VBO
 //#define USE_GLLIST
 
+#else
+
+//#define USE_VBO
+#define USE_GLLIST
+
+#endif
 
 
 enum Commands {
