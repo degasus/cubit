@@ -1,5 +1,10 @@
+
 #include "area.h"
+
 #include "config.h"
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
 
 Area::Area(BlockPosition p)
 {

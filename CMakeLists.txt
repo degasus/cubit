@@ -9,6 +9,7 @@ find_package( SDL_image REQUIRED )
 find_package( SDL_net REQUIRED )
 find_package( Freetype REQUIRED )
 find_package( OpenGL REQUIRED )
+find_package( GLEW REQUIRED )
 find_package( Boost COMPONENTS program_options filesystem system )
 
 # local modules
@@ -20,7 +21,6 @@ find_package( FTGL REQUIRED )
 
 
 ADD_DEFINITIONS(-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
-ADD_DEFINITIONS(-DGL_GLEXT_PROTOTYPES)
 
 if(MINGW)
   set(CMAKE_RC_COMPILER_INIT windres)
@@ -32,8 +32,8 @@ add_executable(cubit area.cpp main.cpp controller.cpp map.cpp movement.cpp ui.cp
 add_executable(cubit_converter converter.cpp harddisk.cpp)
 add_executable(cubit_server server.cpp harddisk.cpp network.cpp)
 
-include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${SDLNET_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${BULLET_INCLUDE_DIR} ${ZLIB_INCLUDE_DIRS})
-target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${SDLNET_LIBRARY} ${FTGL_LIBRARY} ${FREETYPE_LIBRARY} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${BULLET_LIBRARIES} ${ZLIB_LIBRARIES})
+include_directories( ${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${SDLNET_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${GLEW_INCLUDE_PATH} ${Boost_INCLUDE_DIRS} ${SQLITE_INCLUDE_DIRS} ${BULLET_INCLUDE_DIR} ${ZLIB_INCLUDE_DIRS})
+target_link_libraries (cubit ${SDL_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLIMAGE_LIBRARY} ${SDLNET_LIBRARY} ${FTGL_LIBRARY} ${FREETYPE_LIBRARY} ${OPENGL_LIBRARIES} ${GLEW_LIBRARY} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${BULLET_LIBRARIES} ${ZLIB_LIBRARIES})
 target_link_libraries (cubit_converter ${SDL_LIBRARY} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${ZLIB_LIBRARIES})
 target_link_libraries (cubit_server ${SDL_LIBRARY} ${SDLNET_LIBRARY} ${Boost_LIBRARIES} ${SQLITE3_LIBRARIES} ${ZLIB_LIBRARIES})
 

@@ -1,8 +1,11 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
+
 #include <SDL.h>
-#include <SDL_opengl.h>
 #include <string>
 
 #include <LinearMath/btAlignedObjectArray.h>

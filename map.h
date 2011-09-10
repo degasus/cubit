@@ -3,7 +3,6 @@
 #include <list>
 #include <cstdio>
 #include <boost/program_options.hpp>
-#include <SDL_opengl.h>
 #include <SDL_thread.h>
 #include <SDL_net.h>
 

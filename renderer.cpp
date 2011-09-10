@@ -128,7 +128,7 @@ void Renderer::init()
 	
 	unsigned char* pixels = new unsigned char[1024*1024*4];
 	
-	glGenTextures( 1, texture );
+	glGenTextures( 2, texture );
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
 		SDL_Surface *surface; // Gives us the information to make the texture
 		
@@ -172,6 +172,9 @@ void Renderer::init()
 		}
 		
 	}
+	glBindTexture(GL_TEXTURE_2D_ARRAY,texture[1]);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY,0,GL_RGBA, 64, 64, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_FLOAT, pixels);
+	
 	// Bind the texture object
 	glBindTexture( GL_TEXTURE_2D, texture[0] );
 	
@@ -179,7 +182,7 @@ void Renderer::init()
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	
 	// Set the texture's stretching properties
-	if ( textureFilterMethod >= 4 /*&& glewIsSupported( "GL_EXT_texture_filter_anisotropic" )*/ ) {
+	if ( textureFilterMethod >= 4 && glewIsSupported( "GL_EXT_texture_filter_anisotropic" ) ) {
 		float maxAni;
 		glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );   

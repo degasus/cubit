@@ -1,9 +1,15 @@
 #ifndef _AREA_H_
 #define _AREA_H_
 
-class Area;
+#include <queue>
 
-#include "controller.h"
+#include <LinearMath/btAlignedObjectArray.h>
+#include <btBulletDynamicsCommon.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <BulletDynamics/Character/btKinematicCharacterController.h>
+
+#include "config.h"
+#include "utils.h"
 
 struct polygon {
 	unsigned char posx;
@@ -35,15 +41,15 @@ public:
 	
 #ifdef USE_GLLIST
 	// for saving the GL-List
-	GLuint gllist;
+	uint gllist;
 	bool   gllist_generated;
 #endif
 #ifdef USE_VBO	
-	GLuint vbo[NUMBER_OF_LISTS];
+	uint vbo[NUMBER_OF_LISTS];
 	bool   vbo_generated;
 #endif
 	int    vbo_length[NUMBER_OF_LISTS];
-	GLfloat* vbopointer[NUMBER_OF_LISTS];
+	float* vbopointer[NUMBER_OF_LISTS];
 	
 	bool bullet_generated;
 	bool needupdate;

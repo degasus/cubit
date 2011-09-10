@@ -23,6 +23,8 @@ UInterface::UInterface(Controller *controller)
 		printf("Unable to initialize SDL-NET: %s\n", SDLNet_GetError());
 	}
 	
+
+	
 	c = controller;
 	done = 0;
 	catchMouse = 1;
@@ -84,7 +86,14 @@ void UInterface::init()
 	}
 
 	initWindow();
-//#ifndef _WIN32
+
+	int err = glewInit();
+	if (GLEW_OK != err) {
+		/* Problem: glewInit failed, something is seriously wrong. */
+		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+	}
+	
+	//#ifndef _WIN32
 	fs::path filename = fs::path("sound") / "music" / "forest.ogg";
 
 	//load music
