@@ -631,7 +631,7 @@ int Movement::getCurrentRemoveProgress() {
 
 void Movement::buildBlock()
 {
-	PlayerPosition pos[18];
+	PlayerPosition pos[27];
 	pos[0] = position;
 	pos[0].z -= personSize;
 	pos[1] = pos[0];
@@ -656,6 +656,7 @@ void Movement::buildBlock()
 	pos[8].y -= offset/2;
 	
 	pos[9] = position;
+	pos[9].z -= personSize/2;
 	pos[10] = pos[9];
 	pos[10].x += offset;
 	pos[11] = pos[9];
@@ -676,8 +677,30 @@ void Movement::buildBlock()
 	pos[17] = pos[9];
 	pos[17].x -= offset/2;
 	pos[17].y -= offset/2;
+	
+	pos[18] = position;
+	pos[19] = pos[9];
+	pos[19].x += offset;
+	pos[20] = pos[9];
+	pos[20].x -= offset;
+	pos[21] = pos[9];
+	pos[21].y += offset;
+	pos[22] = pos[9];
+	pos[22].y -= offset;
+	pos[23] = pos[9];
+	pos[23].x += offset/2;
+	pos[23].y += offset/2;
+	pos[24] = pos[9];
+	pos[24].x += offset/2;
+	pos[24].y -= offset/2;
+	pos[25] = pos[9];
+	pos[25].x -= offset/2;
+	pos[25].y += offset/2;
+	pos[26] = pos[9];
+	pos[26].x -= offset/2;
+	pos[26].y -= offset/2;
 	bool noBuild = false;
-	for(int i = 0; i < 18; i++){
+	for(int i = 0; i < 27; i++){
 		if(pos[i].block() == pointingOnBlock)
 			noBuild = true;
 	}
