@@ -134,7 +134,10 @@ void Server::run() {
 		
 		while(!network->recv_update_block_empty()){
 			m = network->recv_update_block(&bPos, &rev, &connection);
-			harddisk->readArea(bPos.area(),buffer2, &rev);
+			bytes = harddisk->readArea(bPos.area(),buffer2, &rev);
+			if(!bytes) {
+				for(int i=0; i<AREASIZE; i++) buffer2[i]=0;
+			}
 			buffer2[
 				(bPos.x-bPos.area().x)*AREASIZE_Y*AREASIZE_Z +
 				(bPos.y-bPos.area().y)*AREASIZE_Z +
