@@ -191,7 +191,7 @@ int Network::read_client ( Client* c ) {
 				rev  = SDLNet_Read32(c->buffer+15);
 				bPos = BlockPosition::create(posx, posy, posz).area();
 				
-				printf("GET_AREA: posx=%d, posy=%d, posz=%d, revision=%d\n", posx, posy, posz, rev);
+				//printf("GET_AREA: posx=%d, posy=%d, posz=%d, revision=%d\n", posx, posy, posz, rev);
 				
 				queue_recv_get_area.push(StructGetArea(bPos, rev, c->clientid));
 			break;
@@ -203,7 +203,7 @@ int Network::read_client ( Client* c ) {
 				len  = SDLNet_Read16(c->buffer+1)-16;
 				bPos = BlockPosition::create(posx, posy, posz).area();
 				
-				printf("PUSH_AREA: posx=%d, posy=%d, posz=%d, revision=%d, len(data)=%d\n", posx, posy, posz, rev, len);
+				//printf("PUSH_AREA: posx=%d, posy=%d, posz=%d, revision=%d, len(data)=%d\n", posx, posy, posz, rev, len);
 				
 				queue_recv_push_area.push(StructPushArea(bPos, rev, c->buffer+19, len, c->clientid));
 			break;
@@ -213,7 +213,7 @@ int Network::read_client ( Client* c ) {
 				posz = SDLNet_Read32(c->buffer+11);
 				rev  = SDLNet_Read32(c->buffer+15);
 				bPos = BlockPosition::create(posx, posy, posz).area();
-				printf("JOIN_AREA: posx=%d, posy=%d, posz=%d, revision=%d\n", posx, posy, posz, rev);
+				//printf("JOIN_AREA: posx=%d, posy=%d, posz=%d, revision=%d\n", posx, posy, posz, rev);
 				
 				queue_recv_join_area.push(StructJoinArea(bPos, rev, c->clientid));
 			break;
@@ -232,7 +232,7 @@ int Network::read_client ( Client* c ) {
 				material = c->buffer[15];
 				rev  = SDLNet_Read32(c->buffer+16);
 				bPos = BlockPosition::create(posx, posy, posz);
-				printf("UPDATE_BLOCK: posx=%d, posy=%d, posz=%d, matrial=%d, revision=%d\n", posx, posy, posz, material, rev);
+				//printf("UPDATE_BLOCK: posx=%d, posy=%d, posz=%d, matrial=%d, revision=%d\n", posx, posy, posz, material, rev);
 				queue_recv_update_block.push(StructUpdateBlock(bPos, material, rev, c->clientid));
 				
 			break;
@@ -326,7 +326,6 @@ void Network::send_queues() {
 		SDLNet_Write32(s.pos.y, buffer+7);
 		SDLNet_Write32(s.pos.z, buffer+11);
 		SDLNet_Write32(s.rev,   buffer+15);
-		std::cout << "etwas" << s.client_id << std::endl;
 		if((it = client_map.find(s.client_id)) != client_map.end() &&
 			SDLNet_TCP_Send(it->second->socket, buffer, 19) != 19) 
 		{
@@ -417,13 +416,10 @@ int Network::recv_push_area(BlockPosition* pos, char* data, int* revision, int l
 		bytes = std::min(s.length, length);
 	} else {
 		bytes = length;
-		std::cout << "befor uncompress: " << s.length << " " << length<< std::endl;
 		if(s.length)
 			uncompress((Bytef*)data, &bytes, (Bytef*)s.data, s.length);
 		else
 			bytes = 0;
-		
-		std::cout << "after uncompress: " << bytes << std::endl;
 	}
 	
 	delete [] s.data;

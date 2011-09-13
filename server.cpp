@@ -89,6 +89,7 @@ int main() {
 void Server::run() {
 	BlockPosition bPos;
 	char buffer[64*1024+3];
+	char buffer2[AREASIZE];
 	int rev, rev2, bytes, connection;
 	Material m;
 	std::map<BlockPosition, std::set<int> >::iterator it;
@@ -133,6 +134,12 @@ void Server::run() {
 		
 		while(!network->recv_update_block_empty()){
 			m = network->recv_update_block(&bPos, &rev, &connection);
+			harddisk->readArea(bPos.area(),buffer2, &rev);
+			buffer2[
+				(bPos.x-bPos.area().x)*AREASIZE_Y*AREASIZE_Z +
+				(bPos.y-bPos.area().y)*AREASIZE_Z +
+				(bPos.z-bPos.area().z)] = m;
+			harddisk->writeArea(bPos.area(),buffer2, ++rev);
 			it = joined_clients.find(bPos.area());
 			if(it != joined_clients.end()){
 				for(it2 = it->second.begin(); it2 != it->second.end(); it2++) {

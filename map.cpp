@@ -168,10 +168,8 @@ void Map::setPosition(PlayerPosition pos)
 		a = loaded_hdd.front();
 		loaded_hdd.pop();
 		a->state = Area::STATE_NET_LOAD;
-		std::cout << "bla" << std::endl;
 		network->send_get_area(a->pos, a->revision);
-		if(a->revision)
-			network->send_join_area(a->pos, a->revision);
+		network->send_join_area(a->pos, a->revision);
 	}
 	
 	BlockPosition bPos;
@@ -189,7 +187,6 @@ void Map::setPosition(PlayerPosition pos)
 		bytes = network->recv_push_area(&bPos, buffer, &rev);
 		a = getOrCreate(bPos);
 		a->revision = rev;
-		std::cout << "bytes = " << bytes << std::endl;
 		a->state = Area::STATE_READY;
 		if(bytes){
 			a->allocm();
@@ -199,16 +196,11 @@ void Map::setPosition(PlayerPosition pos)
 			a->needupdate = 1;
 			
 			areas[a->pos] = a;
-			
-			std::cout << "a" << std::endl;
 		}
 		else if(rev>0){
 			a->empty = 1;
 			a->needstore = 1;
 			a->needupdate = 1;
-			std::cout << "b" << std::endl;
-		} else {
-			std::cout << "c" << std::endl;
 		}
 		recalc(a);
 		for (int i=0; i<DIRECTION_COUNT; i++)
