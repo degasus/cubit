@@ -4,6 +4,7 @@
 #include <cmath>
 #include <zlib.h>
 #include <cstdlib>
+#include <signal.h>
 
 #include "server.h"
 #include "config.h"
@@ -66,10 +67,18 @@ int Server::randomArea(BlockPosition bPos, char* buffer) {
 			return buffer_size;
 }
 
+bool *tostop = 0;
+void terminate(int) {
+	if(tostop)	*tostop = 1;
+}
+
 Server::Server(){
 	harddisk = new Harddisk();
 	network = new Network();
 	stop = false;
+	tostop = &stop;
+	signal (SIGTERM,terminate);
+	signal (SIGINT, terminate);
 }
 
 Server::~Server() {
@@ -83,6 +92,7 @@ int main() {
 	
 	Server server;
 	server.run();
+	std::cout << "goodbye" << std::endl;
 	return 0;
 }
 
