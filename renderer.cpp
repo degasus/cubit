@@ -172,8 +172,8 @@ void Renderer::init()
 		}
 		
 	}
-	glBindTexture(GL_TEXTURE_2D_ARRAY,texture[1]);
-	glTexImage3D(GL_TEXTURE_2D_ARRAY,0,GL_RGBA, 64, 64, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_FLOAT, pixels);
+	//glBindTexture(GL_TEXTURE_2D_ARRAY,texture[1]);
+	//glTexImage3D(GL_TEXTURE_2D_ARRAY,0,GL_RGBA, 64, 64, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_FLOAT, pixels);
 	
 	// Bind the texture object
 	glBindTexture( GL_TEXTURE_2D, texture[0] );

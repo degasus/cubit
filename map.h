@@ -13,6 +13,7 @@
 #include "config.h"
 #include "movement.h"
 #include "matrix.h"
+#include "network.h"
 #include "harddisk.h"
 #include "utils.h"
 
@@ -114,7 +115,6 @@ private:
 	void store(Area* a);
 	void load(Area* a);
 	void recalc(Area* a);
-	void randomArea(Area* a);
         
         void request_load_net(Area* a);
 
@@ -122,6 +122,7 @@ private:
 	
 	Controller *c;
 	Harddisk *disk;
+	Network *network;
 	
 	bool storeMaps;
 	int areasPerFrameLoading;
@@ -132,16 +133,12 @@ private:
 	std::queue<Area*> to_save_hdd;
         
         // queue for loading from network
-        std::queue<Area*> to_load_net;
-        std::queue<Area*> loaded_net;
-        std::queue<Area*> to_save_net;
         std::map<BlockPosition, Area*> load_requested_net;
         
 //	std::queue<Area*> saved;
 	SDL_mutex* queue_mutex;
 	
 	SDL_Thread* harddisk;
-        SDL_Thread* network;
 	SDL_Thread* mapGenerator;
 	bool thread_stop;
 	

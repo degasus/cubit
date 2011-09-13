@@ -825,7 +825,7 @@ void Movement::triggerNextFrame(int time){
 	try {
 		if(!c->map->getArea(position.block())->bullet_generated && c->map->getBlock(position.block())) {
 			calc = 0;
-			std::cout << "bullet not generated" << std::endl;
+			//std::cout << "bullet not generated" << std::endl;
 		} 
 	} catch(NotLoadedException) {
 		std::cout << "area not loaded" << std::endl;

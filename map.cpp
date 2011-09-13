@@ -22,7 +22,7 @@ Map::Map(Controller *controller) {
 	c = controller;
 	
 	harddisk = 0;
-        network = 0;
+	network = 0;
 	mapGenerator = 0;
 	queue_mutex = 0;
 	inital_loaded = 0;
@@ -37,9 +37,6 @@ Map::~Map()
 
 	if(harddisk)
 		SDL_WaitThread (harddisk, &thread_return);
-        
-        if(network)
-          SDL_WaitThread (network, &thread_return);
 	
 	if(queue_mutex)
 		SDL_DestroyMutex(queue_mutex);
@@ -55,6 +52,8 @@ Map::~Map()
 	}
 	
 	if(disk) delete disk;
+	
+	if(network) delete network;
 }
 
 
@@ -64,34 +63,8 @@ void Map::config(const boost::program_options::variables_map& c)
 	storeMaps = c["storeMaps"].as<bool>();
 	areasPerFrameLoading = c["areasPerFrameLoading"].as<int>();
 	loadRange = c["visualRange"].as<int>()*2+2;
-	generate_random = c["generateRandom"].as<bool>();
 
-        IPaddress ip;
-        if(SDLNet_ResolveHost(&ip,c["server"].as<std::string>().c_str(),PORT)==-1) {
-          printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
-          exit(1);
-        }
-        
-        tcpsock=SDLNet_TCP_Open(&ip);
-        if(!tcpsock) {
-          printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
-          exit(2);
-        }
-        
-        set=SDLNet_AllocSocketSet(16);
-        if(!set) {
-          printf("SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
-          exit(1); //most of the time this is a major error, but do what you want.
-        }
-        
-        // add two sockets to a socket set
-        int numused;
-        
-        numused=SDLNet_TCP_AddSocket(set,tcpsock);
-        if(numused==-1) {
-          printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
-          // perhaps you need to restart the set and make it bigger...
-        }
+	network = new Network(c["server"].as<std::string>().c_str(),PORT);
 	
 	disk = new Harddisk((c["workingDirectory"].as<boost::filesystem::path>() / "cubit.db").string());	
 }
@@ -102,63 +75,6 @@ int threaded_read_from_harddisk(void* param) {
 	map->read_from_harddisk();
 	
 	return 0;
-}
-
-int threaded_read_from_network(void* param) {
-  Map* map = (Map*)param;
-  
-  map->read_from_network();
-  
-  return 0;
-}
-
-void Map::randomArea(Area* a) {
-	if(a->pos.z > 92) return;
-	
-	a->allocm();
-	a->empty = 0;
-	for(int x = a->pos.x; x < AREASIZE_X+a->pos.x; x++)
-	for(int y = a->pos.y; y < AREASIZE_Y+a->pos.y; y++)
-	for(int z = a->pos.z; z < AREASIZE_Z+a->pos.z; z++){
-		int height = cos( ((2*M_PI)/180) * ((int)((x)/0.7) % 180 )) * 8;
-		height += sin( ((2*M_PI)/180) * ((int)((y)) % 180 )) * 8;
-		height += -sin( ((2*M_PI)/180) * ((int)((x)/2.5) % 180 )) * 25;
-		height += -cos( ((2*M_PI)/180) * ((int)((y)/5) % 180 )) * 50;
-		Material m;
-		
-		if(z <  height - 10){
-			m = 1 + ((z) % (NUMBER_OF_MATERIALS-1) + (NUMBER_OF_MATERIALS-1)) % (NUMBER_OF_MATERIALS-1);
-			if(m==9) m++; // no water
-		}
-		else if(z <  height - 4){
-			m = 1; //stone
-		}
-		else if(z <  height - 1 - std::rand() % 1){
-			if (z >= -65)
-				m = 3; //mud
-			else
-				m = 12; //sand
-		}
-		else if(z <  height){
-			if(z >= 60 - std::rand() % 2)
-				m = 82; //snow
-			else if (z >= -65 - std::rand() % 2)
-				m = 2; //grass
-			else
-				m = 12; //sand
-		} else if(z < -70) {
-			m = 9; // water
-		} else {
-			m = 0; //air
-		}
-		
-		
-		a->m[a->getPos(BlockPosition::create(x,y,z))] = m;
-		
-		assert(a->m[a->getPos(BlockPosition::create(x,y,z))] >= 0);
-		assert(a->m[a->getPos(BlockPosition::create(x,y,z))] < NUMBER_OF_MATERIALS);
-		
-	}
 }
 
 void Map::read_from_harddisk() {
@@ -205,149 +121,11 @@ void Map::read_from_harddisk() {
 	}
 }
 
-void Map::read_from_network() {
-  int numready, buffer_usage = 0;
-  char buffer[64*1024+3];
-  while(!thread_stop) {
-    Area* toload = 0;
-    bool empty = 1;
-    do{
-      SDL_LockMutex(queue_mutex);
-      empty = to_load_net.empty();
-      if(!empty) {
-        toload = to_load_net.front();
-        to_load_net.pop();
-      }
-      SDL_UnlockMutex(queue_mutex);
-      
-      if(!empty)
-        request_load_net(toload);
-      
-    } while(!empty && !SDLNet_SocketReady(tcpsock));
-    
-    
-    do {
-      numready=SDLNet_CheckSockets(set, 10);
-      if(numready==-1) {
-        printf("SDLNet_CheckSockets: %s\n", SDLNet_GetError());
-        //most of the time this is a system error, where perror might help you.
-        perror("SDLNet_CheckSockets");
-      }
-      else if(numready>0){
-        if(SDLNet_SocketReady(tcpsock)) {
-          int result;
-          int maxlen = 1;
-          if(buffer_usage < 3)
-            maxlen = 3-buffer_usage;
-          else
-            maxlen = 3 + SDLNet_Read16(buffer+1) - buffer_usage;
-          
-          //printf("want to recv %d bytes\n", maxlen); 
-            result=SDLNet_TCP_Recv(tcpsock,buffer+buffer_usage,maxlen);
-            if(result<=0) {
-              // An error may have occured, but sometimes you can just ignore it
-              // It may be good to disconnect socket because it is likely invalid now.
-              
-              //FIXME: Errorhandling, reconnect, close socket, ...
-            }
-            else{
-              buffer_usage += result;
-              //printf("%d recv, %d availible, %d wanted\n", result, client->buffer_usage, 3 + SDLNet_Read16(client->buffer+1));
-              if(buffer_usage >= 3 && buffer_usage == 3 + SDLNet_Read16(buffer+1)) {
-                //char outputBuffer[64*1024+3];
-                int size = buffer_usage-3;
-                //int outSize;
-                int posx, posy, posz, rev, playerid;
-                Material material;
-                double pposx, pposy, pposz, pposh, pposv;
-                BlockPosition bPos;
-                Area *a;
-                std::map<BlockPosition, Area*>::iterator it;
-                //printf("Data recv: %d bytes, %d type, %s\n", client->buffer_usage ,client->buffer[0],client->buffer+3);
-                switch ((Commands)buffer[0]) {
-                  case GET_AREA:
-                    posx = SDLNet_Read32(buffer+3);
-                    posy = SDLNet_Read32(buffer+7);
-                    posz = SDLNet_Read32(buffer+11);
-                    rev  = SDLNet_Read32(buffer+15);
-                    bPos = BlockPosition::create(posx, posy, posz).area();
-                    printf("GET_AREA: posx=%d, posy=%d, posz=%d, revision=%d\n", posx, posy, posz, rev);
-                    break;
-                  case PUSH_AREA:
-                    posx = SDLNet_Read32(buffer+3);
-                    posy = SDLNet_Read32(buffer+7);
-                    posz = SDLNet_Read32(buffer+11);
-                    rev  = SDLNet_Read32(buffer+15);
-                    bPos = BlockPosition::create(posx, posy, posz).area();
-                    //printf("PUSH_AREA: posx=%d, posy=%d, posz=%d, revision=%d\n", posx, posy, posz, rev);
-                    it = load_requested_net.find(bPos);
-                    if(it!=load_requested_net.end()){
-                      a = it->second;
-                      a->revision = rev;
-                      if(buffer_usage == 19) a->empty = 1;
-                      else {
-                        a->allocm();
-                        a->empty = 0;
-                        uLongf dsize = AREASIZE;
-                        uncompress(a->m, &dsize, (Bytef*)buffer+19, buffer_usage-19);
-                      }
-                      a->state = Area::STATE_NET_LOADED;
-                      recalc(a);
-                      SDL_LockMutex(queue_mutex);
-                      loaded_net.push(a);
-                      SDL_UnlockMutex(queue_mutex);
-                      
-                      load_requested_net.erase(it);
-                    }
-                    break;
-                  case JOIN_AREA:
-                    posx = SDLNet_Read32(buffer+3);
-                    posy = SDLNet_Read32(buffer+7);
-                    posz = SDLNet_Read32(buffer+11);
-                    rev  = SDLNet_Read32(buffer+15);
-                    printf("JOIN_AREA: posx=%d, posy=%d, posz=%d, revision=%d\n", posx, posy, posz, rev);
-                    break;
-                  case LEAVE_AREA:
-                    posx = SDLNet_Read32(buffer+3);
-                    posy = SDLNet_Read32(buffer+7);
-                    posz = SDLNet_Read32(buffer+11);
-                    printf("LEAVE_AREA: posx=%d, posy=%d, posz=%d\n", posx, posy, posz);
-                    break;
-                  case UPDATE_BLOCK:
-                    posx = SDLNet_Read32(buffer+3);
-                    posy = SDLNet_Read32(buffer+7);
-                    posz = SDLNet_Read32(buffer+11);
-                    material = buffer[15];
-                    printf("UPDATE_BLOCK: posx=%d, posy=%d, posz=%d, matrial=%d\n", posx, posy, posz, material);
-                    break;
-                  case PLAYER_POSITION:
-                    playerid = SDLNet_Read32(buffer+3);
-                    pposx = ((double*)(buffer+7))[0];
-                    pposy = ((double*)(buffer+7))[1];
-                    pposz = ((double*)(buffer+7))[2];
-                    pposh = ((double*)(buffer+7))[3];
-                    pposv = ((double*)(buffer+7))[4];
-                    printf("PLAYER_POSITION: playerid=%d, posx=%f, posy=%f, posz=%f, posh=%f, posv=%f\n", playerid, pposx, pposy, pposz, pposh, pposv);
-                    break;
-                  default:
-                    printf("UNKNOWN COMMAND\n");
-                    break;
-                }
-                buffer_usage = 0;
-              }          
-            }
-        }
-      }
-    } while(numready > 0);
-  }
-}
-
 void Map::init()
 {
 	thread_stop = 0;
 	queue_mutex = SDL_CreateMutex ();
 	harddisk = SDL_CreateThread (threaded_read_from_harddisk,this);
-        network = SDL_CreateThread (threaded_read_from_network,this);
 }
 
 Area* Map::getArea(BlockPosition pos)
@@ -382,50 +160,102 @@ Area* Map::getOrCreate(BlockPosition pos) {
 void Map::setPosition(PlayerPosition pos)
 {	
 	SDL_LockMutex(queue_mutex);
-        
+	Area* a;    
         //std::cout << "anzahl Areas: " << load_requested_net.size() << std::endl;
 	
 	while(!loaded_hdd.empty()) {
 		
-		Area* a = loaded_hdd.front();
+		a = loaded_hdd.front();
 		loaded_hdd.pop();
-                
-                
+		a->state = Area::STATE_NET_LOAD;
+		std::cout << "bla" << std::endl;
+		network->send_get_area(a->pos, a->revision);
+		if(a->revision)
+			network->send_join_area(a->pos, a->revision);
+	}
+	
+	BlockPosition bPos;
+	char buffer[64*1024+3];
+	int rev, rev2, bytes;
+	Material m;
+	std::map<BlockPosition, Area* >::iterator it;
+	std::set<int>::iterator it2;
+	
+	while(!network->recv_get_area_empty()){
+		bPos = network->recv_get_area(&rev);
+	}
+	
+	while(!network->recv_push_area_empty()){
+		bytes = network->recv_push_area(&bPos, buffer, &rev);
+		a = getOrCreate(bPos);
+		a->revision = rev;
+		std::cout << "bytes = " << bytes << std::endl;
+		a->state = Area::STATE_READY;
+		if(bytes){
+			a->allocm();
+			memcpy(a->m, buffer, bytes);
+			a->empty = 0;
+			a->needstore = 1;
+			a->needupdate = 1;
+			
+			areas[a->pos] = a;
+			
+			std::cout << "a" << std::endl;
+		}
+		else if(rev>0){
+			a->empty = 1;
+			a->needstore = 1;
+			a->needupdate = 1;
+			std::cout << "b" << std::endl;
+		} else {
+			std::cout << "c" << std::endl;
+		}
+		recalc(a);
+		for (int i=0; i<DIRECTION_COUNT; i++)
+			if (a->next[i])
+				a->next[i]->needupdate = 1;
+			
+		if (!a->empty)
+			areas_with_gllist.insert(a);
+	}
+	
+	while(!network->recv_join_area_empty()){
+		bPos = network->recv_join_area(&rev);
+	}
+	
+	while(!network->recv_leave_area_empty()){
+		bPos = network->recv_leave_area();
+	}
+	
+	while(!network->recv_update_block_empty()){
+		m = network->recv_update_block(&bPos, &rev);
+		it = areas.find(bPos.area());
+		if(it != areas.end()) {
+			a = it->second;
+			if(a->empty && m)
+				areas_with_gllist.insert(a);
+			a->set(bPos, m);
+		} else {
+			std::cout << "NotLoadedException recv_update_block_empty" << std::endl;
+		}
+	}
+	
+	/*while (!loaded_net.empty()) {
+		Area* a = loaded_net.front();
+		loaded_net.pop();
 		
-                a->state = Area::STATE_NET_LOAD;
-                to_load_net.push(a);
-                /*
-		if(a->state == Area::STATE_HDD_LOADED){
+		if (a->state == Area::STATE_NET_LOADED) {
 			areas[a->pos] = a;
 			a->state = Area::STATE_READY;
 			
-			for(int i=0; i<DIRECTION_COUNT; i++)
-				if(a->next[i])
+			for (int i=0; i<DIRECTION_COUNT; i++)
+				if (a->next[i])
 					a->next[i]->needupdate = 1;
-			
-			if(!a->empty)
-				areas_with_gllist.insert(a);
-		} 
-		*/
-	}
-	
-	while(!loaded_net.empty()){
-          
-          Area* a = loaded_net.front();
-          loaded_net.pop();
-          
-          if(a->state == Area::STATE_NET_LOADED){
-            areas[a->pos] = a;
-            a->state = Area::STATE_READY;
-            
-            for(int i=0; i<DIRECTION_COUNT; i++)
-              if(a->next[i])
-                a->next[i]->needupdate = 1;
-              
-              if(!a->empty)
-                areas_with_gllist.insert(a);
-          } 
-        }
+				
+				if (!a->empty)
+					areas_with_gllist.insert(a);
+		}
+	}*/
 	
 	/*
 	while(!saved.empty()) {
@@ -594,6 +424,10 @@ void Map::recalc(Area* a) {
 	}
 	
 	if(!a->empty) {
+		
+		for(int i=0; i<AREASIZE; i++)
+			assert(a->m[i] >= 0 && a->m[i] < NUMBER_OF_MATERIALS);
+		
 		for(int i=0; i<DIRECTION_COUNT; i++)
 			a->dir_full[i] = 1;
 		
@@ -644,8 +478,9 @@ void Map::setBlock(BlockPosition pos, Material m){
 	if(a->state != Area::STATE_READY)
 		throw NotLoadedException();
 
-	if(a->empty && m)
+	/*if(a->empty && m)
 		areas_with_gllist.insert(a);
-	a->set(pos,m);
+	a->set(pos,m);*/
 	
+	network->send_update_block(pos, m);
 }

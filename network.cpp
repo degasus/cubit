@@ -3,7 +3,7 @@
 
 #include "network.h"
 
-int Client::next_client_id = 1;
+int Client::next_client_id = 0;
 
 // Client
 Network::Network ( std::string hostname, int port ) {
@@ -34,6 +34,7 @@ Network::Network ( std::string hostname, int port ) {
 	}
 	
 	client_sockets.push(client);
+	std::cout << "irgendwas" << client->clientid << std::endl;
 	client_map[client->clientid] = client;
 	init();
 }
@@ -199,7 +200,7 @@ int Network::read_client ( Client* c ) {
 				posy = SDLNet_Read32(c->buffer+7);
 				posz = SDLNet_Read32(c->buffer+11);
 				rev  = SDLNet_Read32(c->buffer+15);
-				len  = SDLNet_Read16(c->buffer+1);
+				len  = SDLNet_Read16(c->buffer+1)-16;
 				bPos = BlockPosition::create(posx, posy, posz).area();
 				
 				printf("PUSH_AREA: posx=%d, posy=%d, posz=%d, revision=%d, len(data)=%d\n", posx, posy, posz, rev, len);
@@ -325,6 +326,7 @@ void Network::send_queues() {
 		SDLNet_Write32(s.pos.y, buffer+7);
 		SDLNet_Write32(s.pos.z, buffer+11);
 		SDLNet_Write32(s.rev,   buffer+15);
+		std::cout << "etwas" << s.client_id << std::endl;
 		if((it = client_map.find(s.client_id)) != client_map.end() &&
 			SDLNet_TCP_Send(it->second->socket, buffer, 19) != 19) 
 		{
@@ -415,7 +417,13 @@ int Network::recv_push_area(BlockPosition* pos, char* data, int* revision, int l
 		bytes = std::min(s.length, length);
 	} else {
 		bytes = length;
-		uncompress((Bytef*)data, &bytes, (Bytef*)s.data, s.length);
+		std::cout << "befor uncompress: " << s.length << " " << length<< std::endl;
+		if(s.length)
+			uncompress((Bytef*)data, &bytes, (Bytef*)s.data, s.length);
+		else
+			bytes = 0;
+		
+		std::cout << "after uncompress: " << bytes << std::endl;
 	}
 	
 	delete [] s.data;
