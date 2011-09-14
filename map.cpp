@@ -250,8 +250,8 @@ void Map::setPosition(PlayerPosition pos)
 	while(!network->recv_push_area_empty()){
 		bytes = network->recv_push_area(&bPos, buffer, &rev);
 		a = getOrCreate(bPos);
-		a->revision = rev;
 		if(bytes){
+			a->revision = rev;
 			a->allocm();
 			memcpy(a->m, buffer, bytes);
 			a->empty = 0;
@@ -260,6 +260,7 @@ void Map::setPosition(PlayerPosition pos)
 		}
 		else if(rev>0){
 			a->empty = 1;
+			a->revision = rev;
 		}
 		network->send_join_area(a->pos, a->revision);
 		a->recalc();
