@@ -227,7 +227,7 @@ void Map::setPosition(PlayerPosition pos)
 		loaded_hdd.pop();
 		a->state = Area::STATE_NET_LOAD;
 		network->send_get_area(a->pos, a->revision);
-		//network->send_join_area(a->pos, a->revision);
+		network->send_join_area(a->pos, a->revision);
 	}
 	
 	BlockPosition bPos;

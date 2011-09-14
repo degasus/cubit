@@ -165,6 +165,7 @@ bool Area::hasallneighbor() {
 
 
 void Area::recalc() {
+	needupdate_poly = 1;
 	blocks = 0;
 	
 	full = 0;
@@ -183,11 +184,14 @@ void Area::recalc() {
 			needstore = 1;
 		}
 	}
-	needupdate_poly = 1;
 }
 
 void Area::recalc_polys()
 {
+	
+	needupdate_gl = 1;
+	needupdate_poly = 0;
+	
 	// cleanup old data
 	if(polys_list) delete [] polys_list;
 	for(int i=0; i<NUMBER_OF_LISTS; i++) {
@@ -207,7 +211,7 @@ void Area::recalc_polys()
 
 		BlockPosition pos = BlockPosition::create(x,y,z);
 
-		Material now = get(pos);
+	 	Material now = get(pos);
 		if(now) { 
 			emptynew = 0;
 			for(int dir=0; dir < DIRECTION_COUNT; dir++) /*if(!area->dijsktra_direction_used[dir])*/{
@@ -316,9 +320,6 @@ void Area::recalc_polys()
 			polys_list_size[l] = polys_count - polys_list_start[l];
 		}
 	}
-	
-	needupdate_gl = 1;
-	needupdate_poly = 0;
 }
 
 
