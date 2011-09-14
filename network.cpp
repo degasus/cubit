@@ -381,7 +381,7 @@ void Network::send_queues() {
 		((double*)(buffer+7))[3] = s.pos.orientationHorizontal;
 		((double*)(buffer+7))[4] = s.pos.orientationVertical;		
 		if((it = client_map.find(s.client_id)) != client_map.end() &&
-			SDLNet_TCP_Send(it->second->socket, buffer, 20) != 20) 
+			SDLNet_TCP_Send(it->second->socket, buffer, 47) != 47) 
 		{
 			remove_client(it->second);
 		}
