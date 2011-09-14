@@ -850,6 +850,7 @@ void Movement::triggerNextFrame(int time){
 			calc = 0;
 			std::cout << "bullet not generated" << std::endl;
 		} 
+		Area *a = c->map->getArea(position.block());
 	} catch(NotLoadedException) {
 		std::cout << "area not loaded" << std::endl;
 		calc = 0;

@@ -242,7 +242,7 @@ void Renderer::init()
 void Renderer::generateArea(Area* area) {
 	
 	if(area->empty) {
-		area->needupdate = 0;
+		area->needupdate_gl = 0;
 		area->delete_opengl();
 		area->delete_collision(c->movement->dynamicsWorld);
 		return;
@@ -255,29 +255,18 @@ void Renderer::generateArea(Area* area) {
 		area->delete_collision(c->movement->dynamicsWorld);
 	}
 	
-	if((area->needupdate || (!area->bullet_generated && generate_bullet)) && (areasRendered <= areasPerFrame)) {
-		// only update, if the other blocks are loaded
-		for(int d=0; d<DIRECTION_COUNT && !area->full; d++) {
-			if(area->next[d]) {
-				switch(area->next[d]->state) {				
-					case Area::STATE_READY:			
-					case Area::STATE_HDD_LOADED_BUT_NOT_FOUND:
-						break;
-					default:
-						return;
-					
-				}
-			}// else return;
-		}		
+	if((area->needupdate_poly || area->needupdate_gl || (!area->bullet_generated && generate_bullet)) && (areasRendered <= areasPerFrame)) {
+		
 		areasRendered++;
 		
 		area->delete_opengl();
 		area->delete_collision(c->movement->dynamicsWorld);
 		
 		area->bullet_generated = generate_bullet;
-		area->needupdate = 0;
 		
-		area->recalc_polys();
+		if(area->needupdate_poly)
+			area->recalc_polys();
+		area->needupdate_gl = 0;
 		
 		if(area->polys_list) {	
 			bool has_mesh = 0;

@@ -37,6 +37,8 @@ Map::~Map()
 
 	if(harddisk)
 		SDL_WaitThread (harddisk, &thread_return);
+	if(mapGenerator)
+		SDL_WaitThread (mapGenerator, &thread_return);
 	
 	if(queue_mutex)
 		SDL_DestroyMutex(queue_mutex);
@@ -76,6 +78,40 @@ int threaded_read_from_harddisk(void* param) {
 	
 	return 0;
 }
+
+int threaded_generator(void *param) {
+	Map* map = (Map*)param;
+	map->generator();
+	return 0;
+}
+
+void Map::generator() {
+	while(!thread_stop) {
+		Area *a;
+		SDL_LockMutex(queue_mutex);
+		if(to_generate.empty()) {
+			a=0;
+		} else {
+			a=to_generate.front();
+			to_generate.pop();
+		}
+		SDL_UnlockMutex(queue_mutex);
+		
+		if(a) {
+			a->recalc_polys();
+			a->state = Area::STATE_GENERATED;
+		} else {
+			SDL_Delay(10);
+		}
+		
+		SDL_LockMutex(queue_mutex);
+		if(a) {
+			generated.push(a);
+		} 
+		SDL_UnlockMutex(queue_mutex);
+	}
+}
+
 
 void Map::read_from_harddisk() {
 	while(!thread_stop) {
@@ -126,16 +162,19 @@ void Map::init()
 	thread_stop = 0;
 	queue_mutex = SDL_CreateMutex ();
 	harddisk = SDL_CreateThread (threaded_read_from_harddisk,this);
+	mapGenerator = SDL_CreateThread(threaded_generator, this);
 }
 
 Area* Map::getArea(BlockPosition pos)
 {
 	iterator it = areas.find(pos.area());
 	if(it != areas.end()) {
-		if(it->second->state != Area::STATE_READY)
+		if(it->second->state != Area::STATE_READY) {
 			throw NotLoadedException();
-		if(it->second->empty)
+		}
+		if(it->second->empty) {
 			throw AreaEmptyException();
+		}
 		return it->second;
 	} else {
 		throw NotLoadedException(); 
@@ -160,8 +199,27 @@ Area* Map::getOrCreate(BlockPosition pos) {
 void Map::setPosition(PlayerPosition pos)
 {	
 	SDL_LockMutex(queue_mutex);
-	Area* a;    
-        //std::cout << "anzahl Areas: " << load_requested_net.size() << std::endl;
+	Area* a;
+	
+	std::string strings[12] = {"new", "hddload", "hddloaded", "hddnotfound", 
+								"netload", "netloaded", "netnotfound",
+								"waiting", "generate", "generated", "ready", "delete"
+	};
+		
+	int states[12];
+	for(int i=0; i<12; i++) {
+		states[i] = 0;
+	}
+	std::map<BlockPosition,Area*>::iterator myit;
+	for(myit=areas.begin(); myit!=areas.end(); myit++) {
+		states[myit->second->state]++;
+	}
+	std::cout << "States: ";
+	for(int i=0; i<12; i++) {
+		if(states[i])
+			std::cout << strings[i] << ": " << states[i] << ", ";
+	}
+	std::cout << std::endl;
 	
 	while(!loaded_hdd.empty()) {
 		
@@ -169,7 +227,7 @@ void Map::setPosition(PlayerPosition pos)
 		loaded_hdd.pop();
 		a->state = Area::STATE_NET_LOAD;
 		network->send_get_area(a->pos, a->revision);
-		network->send_join_area(a->pos, a->revision);
+		//network->send_join_area(a->pos, a->revision);
 	}
 	
 	BlockPosition bPos;
@@ -187,30 +245,45 @@ void Map::setPosition(PlayerPosition pos)
 		bytes = network->recv_push_area(&bPos, buffer, &rev);
 		a = getOrCreate(bPos);
 		a->revision = rev;
-		a->state = Area::STATE_READY;
 		if(bytes){
 			a->allocm();
 			memcpy(a->m, buffer, bytes);
 			a->empty = 0;
-			a->needstore = 1;
-			a->needupdate = 1;
 			
 			areas[a->pos] = a;
 		}
 		else if(rev>0){
 			a->empty = 1;
-			a->needstore = 1;
-			a->needupdate = 1;
 		}
 		a->recalc();
+		dijsktra_queue.push(a);
+		
 		for (int i=0; i<DIRECTION_COUNT; i++)
 			if (a->next[i])
-				a->next[i]->needupdate = 1;
+				a->next[i]->needupdate_poly = 1;
 			
-		if (!a->empty)
-			areas_with_gllist.insert(a);
-		
-		dijsktra_queue.push(a);
+		if(a->state == Area::STATE_NET_LOAD) {
+			a->state = Area::STATE_READY;
+			if (!a->empty) {
+				if(a->hasallneighbor()) {
+					a->state = Area::STATE_GENERATE;
+					to_generate.push(a);
+				} else {
+					a->state = Area::STATE_WAITING_FOR_BORDERS;
+				}
+			}
+			
+			for (int i=0; i<DIRECTION_COUNT; i++) if(a->next[i]) {
+				if( a->next[i]->state == Area::STATE_WAITING_FOR_BORDERS &&
+					a->next[i]->hasallneighbor()) {
+					to_generate.push(a->next[i]);
+					a->next[i]->state = Area::STATE_GENERATE;
+					//std::cout << "rendere Area2 " << a->next[i]->pos.to_string() << std::endl;
+				}
+			}
+		} else {
+			std::cout << "push area recv but no get area send, state: " << a->state << std::endl;
+		}
 	}
 	
 	while(!network->recv_join_area_empty()){
@@ -238,6 +311,13 @@ void Map::setPosition(PlayerPosition pos)
 		} else {
 			std::cout << "NotLoadedException recv_update_block_empty" << std::endl;
 		}
+	}
+	
+	while(!generated.empty()) {
+		Area *a = generated.front();
+		generated.pop();
+		a->state = Area::STATE_READY;
+		areas_with_gllist.insert(a);
 	}
 	
 	/*while (!loaded_net.empty()) {
@@ -279,17 +359,18 @@ void Map::setPosition(PlayerPosition pos)
 	
 	if(!inital_loaded) {
 		// reset queue
-		while(!dijsktra_queue.empty())
-			dijsktra_queue.pop();
+		//while(!dijsktra_queue.empty())
+		//	dijsktra_queue.pop();
 		
 		// load actual position
 		Area* a = getOrCreate(p);
 		if(a->state == Area::STATE_NEW) {
 			a->state = Area::STATE_HDD_LOAD;
 			to_load_hdd.push(a);
+		} else {
+			// add it to queue		
+			dijsktra_queue.push(a);
 		}
-		// add it to queue		
-		dijsktra_queue.push(a);
 		a->dijsktra_distance = 0;
 		inital_loaded = 1;
 		dijsktra_wert++;
@@ -299,35 +380,32 @@ void Map::setPosition(PlayerPosition pos)
 	}
 	//std::cout << "load: " << to_load.size() << ", store: " << to_save.size() << ", queue: " << dijsktra_queue.size() << std::endl;
 
-	//int maxk = std::min((areasPerFrameLoading - std::max(to_load.size(), to_save.size())), dijsktra_queue.size());
-	int maxk = areasPerFrameLoading - std::max(to_load_hdd.size(), to_save_hdd.size());
-//	Area *first = 0;
-	for(int k=0; k<maxk && !dijsktra_queue.empty(); k++) {
+	int maxk = (areasPerFrameLoading - std::max(to_load_hdd.size(), to_save_hdd.size()))*16;
+	int k;
+	for(k=0; k<maxk && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
-		
-		// do not circle
-		//if(a == first) 
-		//	break;
-		//else 
-			dijsktra_queue.pop();
-		//if(!first) first = a;
+		dijsktra_queue.pop();
 		
 		switch(a->state) {		
 			// found, so go and try any direction
 			case Area::STATE_READY:
+			case Area::STATE_GENERATED:
+			case Area::STATE_GENERATE:
+			case Area::STATE_WAITING_FOR_BORDERS:
 			if(!a->full) {
 				for(int i=0; i<DIRECTION_COUNT; i++) if(!a->dijsktra_direction_used[!((DIRECTION)i)]) {
 					Area* b = a->next[i];
 					if(!b && a->dijsktra_distance < loadRange) b = getOrCreate(a->pos*DIRECTION(i));
-					if(b && (b->dijsktra < dijsktra_wert || b->dijsktra_distance > a->dijsktra_distance+1)) {
+					if(b && (b->dijsktra != dijsktra_wert || b->dijsktra_distance > a->dijsktra_distance+1)) {
 						b->dijsktra_distance = a->dijsktra_distance+1;
 						b->dijsktra = dijsktra_wert;
 						for(int d=0; d<DIRECTION_COUNT; d++)
 							b->dijsktra_direction_used[d] = a->dijsktra_direction_used[d] || (i==d);
-						dijsktra_queue.push(b);
 						if(b->state == Area::STATE_NEW) {
 							b->state = Area::STATE_HDD_LOAD;
 							to_load_hdd.push(b);
+						} else {
+							dijsktra_queue.push(b);
 						}
 					}
 				}
@@ -339,13 +417,13 @@ void Map::setPosition(PlayerPosition pos)
 			case Area::STATE_HDD_LOADED:
 			case Area::STATE_HDD_LOADED_BUT_NOT_FOUND:
 			case Area::STATE_NET_LOAD:
-			case Area::STATE_NET_LOADED:            
-			//dijsktra_queue.push(a);
+			case Area::STATE_NET_LOADED:     
+			std::cout << "known state, but should not happen: " << a->state << std::endl;
 			break;
 			
 			// not available, so stop here
 			case Area::STATE_NET_LOADED_BUT_NOT_FOUND:
-			default: std::cout << "state: " << a->state << std::endl;
+			default: std::cout << "unknown state: " << a->state << std::endl;
 		}
 		
 		if(a->dijsktra_distance > deleteRange && a->state == Area::STATE_READY) {
@@ -355,11 +433,13 @@ void Map::setPosition(PlayerPosition pos)
 			areas.erase(a->pos);
 			a->state = Area::STATE_DELETE;
 			to_save_hdd.push(a);
+			network->send_leave_area(a->pos);
 		} else if(a->needstore && a->state == Area::STATE_READY) {
 			a->needstore = 0;
 			to_save_hdd.push(a);
 		}
 	} 
+	//std::cout << "dijsktra usage: " << k << std::endl;
 	SDL_UnlockMutex(queue_mutex);
 }
 

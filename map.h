@@ -101,7 +101,7 @@ public:
 	void blockChangedEvent(BlockPosition pos, Material m);
 	
 	void read_from_harddisk();
-        void read_from_network();
+	void generator();
 	
 	std::map<BlockPosition, Area*> areas;
 	typedef std::map<BlockPosition, Area*>::iterator iterator;
@@ -115,7 +115,7 @@ private:
 	void store(Area* a);
 	void load(Area* a);
         
-        void request_load_net(Area* a);
+	void request_load_net(Area* a);
 
 	Area* getOrCreate(BlockPosition pos);
 	
@@ -130,9 +130,12 @@ private:
 	std::queue<Area*> to_load_hdd;
 	std::queue<Area*> loaded_hdd;
 	std::queue<Area*> to_save_hdd;
+	std::queue<Area*> to_generate;
+	std::queue<Area*> generated;
+	
         
-        // queue for loading from network
-        std::map<BlockPosition, Area*> load_requested_net;
+	// queue for loading from network
+	std::map<BlockPosition, Area*> load_requested_net;
         
 //	std::queue<Area*> saved;
 	SDL_mutex* queue_mutex;

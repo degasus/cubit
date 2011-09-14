@@ -53,7 +53,8 @@ public:
 	float* vbopointer[NUMBER_OF_LISTS];
 	
 	bool bullet_generated;
-	bool needupdate;
+	bool needupdate_gl;
+	bool needupdate_poly;
 	bool show;
 	bool needstore;
 	
@@ -90,6 +91,8 @@ public:
 		STATE_NET_LOADED,
 		STATE_NET_LOADED_BUT_NOT_FOUND,
 		STATE_WAITING_FOR_BORDERS,
+		STATE_GENERATE,
+		STATE_GENERATED,
 		STATE_READY,
 		STATE_DELETE
 	} state;
@@ -163,6 +166,7 @@ public:
 	
 	void recalc_polys();
 	void recalc();
+    bool hasallneighbor();
 };
 
 #endif

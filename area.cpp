@@ -15,7 +15,8 @@ Area::Area(BlockPosition p)
 	
 	pos = p;
 	bullet_generated = 0;
-	needupdate = 1;
+	needupdate_gl = 1;
+	needupdate_poly = 1;
 	needstore = 0;
 	
 	empty = 1;
@@ -141,14 +142,27 @@ void Area::set(BlockPosition position, Material mat) {
 			m = 0;
 		}			
 	}
-	needupdate = 1;
+	needupdate_poly = 1;
 	needstore = 1;
 	
 	for(int i=0; i<DIRECTION_COUNT; i++) {
 		if(!operator<<(position + DIRECTION(i)) && next[i]) 
-			next[i]->needupdate = 1;
+			next[i]->needupdate_poly = 1;
 	}
 }
+
+bool Area::hasallneighbor() {
+	if(full) return true;
+	
+	for(int i=0; i<DIRECTION_COUNT; i++) {
+		if(!next[i]) return false;
+		
+		if(next[i]->state < Area::STATE_WAITING_FOR_BORDERS) return false;
+	}
+	
+	return true;
+}
+
 
 void Area::recalc() {
 	blocks = 0;
@@ -168,7 +182,8 @@ void Area::recalc() {
 			m = 0;
 			needstore = 1;
 		}
-	} 
+	}
+	needupdate_poly = 1;
 }
 
 void Area::recalc_polys()
@@ -278,6 +293,7 @@ void Area::recalc_polys()
 					} else {
 						polys_count--;
 						i = 0;
+						k = 0;
 					}
 				}
 				
@@ -300,6 +316,9 @@ void Area::recalc_polys()
 			polys_list_size[l] = polys_count - polys_list_start[l];
 		}
 	}
+	
+	needupdate_gl = 1;
+	needupdate_poly = 0;
 }
 
 
