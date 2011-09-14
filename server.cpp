@@ -106,6 +106,8 @@ void Server::run() {
 	std::set<int>::iterator it2;
 
 	while(!stop) {
+		SDL_Delay(10);
+
 		while(!network->recv_get_area_empty()){
 			bPos = network->recv_get_area(&rev, &connection);
 			bytes = harddisk->readArea(bPos, buffer, &rev2, true, 64*1024+3);
