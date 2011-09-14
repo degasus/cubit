@@ -173,6 +173,7 @@ void Server::run() {
 					to_delete.push(it->first);
 				}
 			}
+			std::cout << "delete areas: " << to_delete.size() << " because of player " << connection << std::endl;
 			while(!to_delete.empty()) {
 				joined_clients.erase(to_delete.front());
 				to_delete.pop();

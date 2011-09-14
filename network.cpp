@@ -262,6 +262,7 @@ int Network::read_client ( Client* c ) {
 }
 
 void Network::remove_client(Client* client) {
+	queue_recv_player_quit.push(client->clientid);
 	client_map.erase(client->clientid);
 	if(SDLNet_TCP_DelSocket(set_socket,client->socket)==-1) {
 		printf("SDLNet_DelSocket: %s\n", SDLNet_GetError());
@@ -277,8 +278,6 @@ void Network::remove_client(Client* client) {
 		if(c != client)
 			client_sockets.push(c);
 	}
-	
-	queue_recv_player_quit.push(client->clientid);
 }
 
 
