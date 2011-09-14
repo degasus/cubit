@@ -688,35 +688,71 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 
 void Renderer::renderObjects() {
 	glBindTexture( GL_TEXTURE_2D, texture[0] );
-	std::list<MovingObject*>::iterator it;
-	for(it = c->map->objects.begin(); it != c->map->objects.end(); it++) {
-		glPushMatrix();
-		
-		btTransform trans;
-		(*it)->m->getWorldTransform(trans);		
-		glTranslatef(trans.getOrigin().getX(),trans.getOrigin().getY(),trans.getOrigin().getZ());
-		glRotatef( trans.getRotation().getAngle()*180/M_PI, trans.getRotation().getAxis().getX(), trans.getRotation().getAxis().getY(), trans.getRotation().getAxis().getZ());
-		
-		//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
-		glBegin( GL_QUADS );
+	{
+		std::list<MovingObject*>::iterator it;
+		for(it = c->map->objects.begin(); it != c->map->objects.end(); it++) {
+			glPushMatrix();
+			
+			btTransform trans;
+			(*it)->m->getWorldTransform(trans);		
+			glTranslatef(trans.getOrigin().getX(),trans.getOrigin().getY(),trans.getOrigin().getZ());
+			glRotatef( trans.getRotation().getAngle()*180/M_PI, trans.getRotation().getAxis().getX(), trans.getRotation().getAxis().getY(), trans.getRotation().getAxis().getZ());
+			
+			//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
+			glBegin( GL_QUADS );
 
-		for(int i=0; i<DIRECTION_COUNT; i++) {
-			glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
-					
-			for(int point=0; point < POINTS_PER_POLYGON; point++) {
-				glTexCoord2f(
-					(TEXTUR_POSITION_OF_DIRECTION[i][point][0]+(*it)->tex%16)/16.0,
-					(TEXTUR_POSITION_OF_DIRECTION[i][point][1]+(*it)->tex/16)/16.0
-				);
-				glVertex3f(
-					(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.1,
-					(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.1,
-					(POINTS_OF_DIRECTION[i][point][2]*2-1)*0.1
-				);
+			for(int i=0; i<DIRECTION_COUNT; i++) {
+				glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
+						
+				for(int point=0; point < POINTS_PER_POLYGON; point++) {
+					glTexCoord2f(
+						(TEXTUR_POSITION_OF_DIRECTION[i][point][0]+(*it)->tex%16)/16.0,
+						(TEXTUR_POSITION_OF_DIRECTION[i][point][1]+(*it)->tex/16)/16.0
+					);
+					glVertex3f(
+						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.1,
+						(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.1,
+						(POINTS_OF_DIRECTION[i][point][2]*2-1)*0.1
+					);
+				}
 			}
-		}
-		glEnd();
+			glEnd();
 
-		glPopMatrix();
+			glPopMatrix();
+		}
+	} {
+		std::map<int, PlayerPosition>::iterator it;
+		for(it = c->map->otherPlayers.begin(); it != c->map->otherPlayers.end(); it++) {
+			glPushMatrix();
+			
+			PlayerPosition p = it->second;
+			int tex = it->first % (NUMBER_OF_MATERIALS-1) + 1;
+			
+			glTranslatef(p.x, p.y, p.z);
+			glRotatef(p.orientationVertical,0.0f,1.0f,0.0f);
+			glRotatef(-p.orientationHorizontal,0.0f,0.0f,1.0f);
+			
+			//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
+			glBegin( GL_QUADS );
+
+			for(int i=0; i<DIRECTION_COUNT; i++) {
+				glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
+						
+				for(int point=0; point < POINTS_PER_POLYGON; point++) {
+					glTexCoord2f(
+						(TEXTUR_POSITION_OF_DIRECTION[i][point][0]+tex%16)/16.0,
+						(TEXTUR_POSITION_OF_DIRECTION[i][point][1]+tex/16)/16.0
+					);
+					glVertex3f(
+						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.6,
+						(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.6,
+						(POINTS_OF_DIRECTION[i][point][2]*2-1)*1.5
+					);
+				}
+			}
+			glEnd();
+
+			glPopMatrix();
+		}
 	}
 }
