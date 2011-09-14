@@ -92,7 +92,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 
 		("storeMaps", po::value<bool>()->default_value(1), "should maps be saved and loaded from harddisk")
 	
-		("offset", po::value<double>()->default_value(0.2), "offset for horizontal collision detection")
+		("offset", po::value<double>()->default_value(0.3), "offset for horizontal collision detection")
 		("offsetAbove", po::value<double>()->default_value(0.1f), "offset above person for vertical collision detection")
 		("accelHorizontal", po::value<double>()->default_value(0.04), "accelleration in horizontal diretion")
 		("accelVertical", po::value<double>()->default_value(0.016), "accelleration in vertical diretion")
