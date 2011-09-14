@@ -130,7 +130,7 @@ void	Movement::initPhysics(){
 
 	//Character initialization
 	ghost = new btPairCachingGhostObject();
-	btConvexShape* cShape = new btCylinderShapeZ(btVector3(offset,0,personSizeNormal/2));
+	btConvexShape* cShape = new btCylinderShapeZ(btVector3(offset,offset,personSizeNormal/2));
 	cShape->setMargin(0.1f);
 	//btConvexShape* cShape = colShape;
 	

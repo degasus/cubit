@@ -18,6 +18,8 @@ Harddisk::Harddisk(std::string filename)
 		filename = (home / ".cubit" / "cubit.db").string();
 	}
 	
+	fs::create_directory( fs::path(filename).remove_filename() );
+	
 	std::cout << "open sqlite file in " << filename << std::endl;
 	
 	in_transaction = false;

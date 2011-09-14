@@ -224,7 +224,7 @@ int Network::read_client ( Client* c ) {
 				posy = SDLNet_Read32(c->buffer+7);
 				posz = SDLNet_Read32(c->buffer+11);
 				bPos = BlockPosition::create(posx, posy, posz).area();
-				printf("LEAVE_AREA: posx=%d, posy=%d, posz=%d\n", posx, posy, posz);
+				//printf("LEAVE_AREA: posx=%d, posy=%d, posz=%d\n", posx, posy, posz);
 				queue_recv_leave_area.push(StructLeaveArea(bPos, c->clientid));
 			break;
 			case UPDATE_BLOCK:
