@@ -98,9 +98,10 @@ int main() {
 
 void Server::run() {
 	BlockPosition bPos;
+	PlayerPosition pPos;
 	char buffer[64*1024+3];
 	char buffer2[AREASIZE];
-	int rev, rev2, bytes, connection;
+	int rev, rev2, bytes, connection, id;
 	Material m;
 	std::map<BlockPosition, std::set<int> >::iterator it;
 	std::set<int>::iterator it2;
@@ -177,6 +178,17 @@ void Server::run() {
 			while(!to_delete.empty()) {
 				joined_clients.erase(to_delete.front());
 				to_delete.pop();
+			}
+		}
+		
+		while(!network->recv_player_position_empty()){
+			pPos = network->recv_player_position(&id, &connection);
+			it = joined_clients.find(pPos.block().area());
+			if(it != joined_clients.end()){
+				for(it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+					if(*it2 != connection)
+						network->send_player_position(pPos, id, *it2);
+				}
 			}
 		}
 	}

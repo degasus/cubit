@@ -96,7 +96,7 @@ public:
 	
 	std::list<MovingObject*> objects;
 	
-	std::map<int, PlayerPosition*> otherPlayers;
+	std::map<int, PlayerPosition> otherPlayers;
     
 //private:
 	void store(Area* a);

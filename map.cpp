@@ -237,8 +237,9 @@ void Map::setPosition(PlayerPosition pos)
 	}
 	
 	BlockPosition bPos;
+	PlayerPosition pPos;
 	char buffer[64*1024+3];
-	int rev, rev2, bytes;
+	int rev, rev2, bytes, id;
 	Material m;
 	std::map<BlockPosition, Area* >::iterator it;
 	std::set<int>::iterator it2;
@@ -321,12 +322,19 @@ void Map::setPosition(PlayerPosition pos)
 		}
 	}
 	
+	while(!network->recv_player_position_empty()){
+		pPos = network->recv_player_position(&id);
+		otherPlayers[id] = pPos;
+	}
+	
 	while(!generated.empty()) {
 		Area *a = generated.front();
 		generated.pop();
 		a->state = Area::STATE_READY;
 		areas_with_gllist.insert(a);
 	}
+	
+	network->send_player_position(pos);;
 	
 	/*while (!loaded_net.empty()) {
 		Area* a = loaded_net.front();
