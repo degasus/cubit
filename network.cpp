@@ -144,7 +144,9 @@ void Network::run () {
 					toremove = read_client(client) < 0;
 				}
 				if(toremove) {
+					SDL_LockMutex(mutex);
 					remove_client(client);
+					SDL_UnlockMutex(mutex);
 				} else {
 					client_sockets.push(client);
 				}
@@ -275,6 +277,8 @@ void Network::remove_client(Client* client) {
 		if(c != client)
 			client_sockets.push(c);
 	}
+	
+	queue_recv_player_quit.push(client->clientid);
 }
 
 
@@ -476,6 +480,14 @@ PlayerPosition Network::recv_player_position(int* playerid, int* connection) {
 	return s.pos;
 }
 
+int Network::recv_player_quit() {
+	int connection;
+	SDL_LockMutex(mutex);
+	connection = queue_recv_player_quit.front();
+	queue_recv_player_quit.pop();
+	SDL_UnlockMutex(mutex);
+	return connection;
+}
 
 void Network::send_get_area(BlockPosition pos, int revision, int connection) {
 	SDL_LockMutex(mutex);

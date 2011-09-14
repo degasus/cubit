@@ -160,5 +160,21 @@ void Server::run() {
 				}
 			}
 		}
+		
+		while(!network->recv_player_quit_empty()){
+			connection = network->recv_player_quit();
+			std::queue<BlockPosition> to_delete;
+			
+			for(it = joined_clients.begin(); it != joined_clients.end(); it++) {
+				it->second.erase(connection);
+				if(it->second.empty()){
+					to_delete.push(it->first);
+				}
+			}
+			while(!to_delete.empty()) {
+				joined_clients.erase(to_delete.front());
+				to_delete.pop();
+			}
+		}
 	}
 }

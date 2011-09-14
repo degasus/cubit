@@ -88,26 +88,22 @@ public:
 	
 	void send_get_area(BlockPosition pos, int revision=0, int connection=0);
 	void send_push_area(BlockPosition pos, int revision, char* data, int length=AREASIZE, bool compressed=false, int connection=0);
-	
 	void send_join_area(BlockPosition pos, int revision=0, int connection=0);
 	void send_leave_area(BlockPosition pos, int connection=0);
 	void send_update_block(BlockPosition pos, Material m, int revision=0, int connection=0);
-	
 	void send_player_position(PlayerPosition pos, int playerid=0, int connection=0);
 	
 	///////////////////////
 	
 	BlockPosition recv_get_area(int *revision=0, int *connection=0);
 	int recv_push_area(BlockPosition *pos, char* data, int *revision=0, int length=AREASIZE, bool compressed=false, int *connection=0);
-	
 	BlockPosition recv_join_area(int *revision=0, int *connection=0);
-
 	BlockPosition recv_leave_area(int *connection=0);
-	
 	Material recv_update_block(BlockPosition *pos, int *revision=0, int *connection=0);
-	
 	PlayerPosition recv_player_position(int *playerid=0, int *connection=0);
+	int recv_player_quit();
 	
+	///////////////////////
 	
 	bool recv_get_area_empty() { return queue_recv_get_area.empty();}
 	bool recv_push_area_empty() { return queue_recv_push_area.empty();}
@@ -115,6 +111,7 @@ public:
 	bool recv_leave_area_empty() { return queue_recv_leave_area.empty();}
 	bool recv_update_block_empty() { return queue_recv_update_block.empty();}
 	bool recv_player_position_empty() { return queue_recv_player_position.empty();}
+	bool recv_player_quit_empty() { return queue_recv_player_quit.empty(); };
 	
 	void run();
 private:
@@ -149,6 +146,7 @@ private:
 	std::queue<StructLeaveArea> queue_recv_leave_area;
 	std::queue<StructUpdateBlock> queue_recv_update_block;
 	std::queue<StructPlayerPosition> queue_recv_player_position;
+	std::queue<int> queue_recv_player_quit;
 	
 	std::queue<StructGetArea> queue_send_get_area;
 	std::queue<StructPushArea> queue_send_push_area;
