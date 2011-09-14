@@ -28,14 +28,6 @@ Map::Map(Controller *controller) {
 	inital_loaded = 0;
 	
 	dijsktra_wert = 1;
-	
-	PlayerPosition p;
-	p.x = 0;
-	p.y = 0;
-	p.z = 10;
-	p.orientationHorizontal = 10;
-	p.orientationVertical = 10;
-	otherPlayers[1] = p;
 }
 
 Map::~Map()
