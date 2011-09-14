@@ -96,7 +96,7 @@ public:
 	void performAction(ActionEvent event);
 
 	//Things to do before rendering next frame
-	void triggerNextFrame(int time);
+	void triggerNextStep(int time);
 	
 	//Get and set the position
 	PlayerPosition getPosition();

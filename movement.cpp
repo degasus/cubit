@@ -38,7 +38,7 @@ Movement::Movement(Controller* controller)
 	enableFly = false;
 	lastBuild = 0;
 	lastRemove = 0;
-	normalMaxRemove = 10;
+	normalMaxRemove = 400;
 	stepProgress = 0;
 	selectedMaterial = 1;
 	movDebug = 0;
@@ -463,12 +463,12 @@ void Movement::calcDuckingAndSteps(){
 	}
 	//Steps
 	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && kinCon->onGround() && !duckPressed){
-		stepProgress++;
-		if(stepProgress > 10){
+		stepProgress+=time;
+		if(stepProgress > 300){
 			stepProgress = 1;
 			//Mix_PlayChannel(-1, step, 0);
 		}
-		double stepChange = fabs(sin((M_PI/10)*stepProgress)*0.04);
+		double stepChange = fabs(sin((M_PI/300)*stepProgress)*0.04);
 		personSize = personSizeNormal+stepChange;
 	}
 }
@@ -604,8 +604,8 @@ void Movement::calcNewSpeed()
 
 void Movement::calcBuilding(){
 	if(isPointingOn && buildBlockPressed){
-		lastBuild++;
-		if(lastBuild >= 10 || fastPressed){
+		lastBuild+=time;
+		if(lastBuild >= 250 || fastPressed){
 			buildBlock();
 			lastBuild = 0;
 		}
@@ -614,7 +614,7 @@ void Movement::calcBuilding(){
 	if(isPointingOn && removeBlockPressed){
 		if(lastPointingOnBlock+lastPointingOnPlane != pointingOnBlock+pointingOnPlane)
 			lastRemove = 0;
-		lastRemove++;
+		lastRemove+=time;
 		if(lastRemove >= normalMaxRemove || fastPressed){
 			removeBlock();
 			lastRemove = 0;
@@ -631,79 +631,13 @@ int Movement::getCurrentRemoveProgress() {
 
 void Movement::buildBlock()
 {
-	PlayerPosition pos[27];
-	pos[0] = position;
-	pos[0].z -= personSize;
-	pos[1] = pos[0];
-	pos[1].x += offset;
-	pos[2] = pos[0];
-	pos[2].x -= offset;
-	pos[3] = pos[0];
-	pos[3].y += offset;
-	pos[4] = pos[0];
-	pos[4].y -= offset;
-	pos[5] = pos[0];
-	pos[5].x += offset/2;
-	pos[5].y += offset/2;
-	pos[6] = pos[0];
-	pos[6].x += offset/2;
-	pos[6].y -= offset/2;
-	pos[7] = pos[0];
-	pos[7].x -= offset/2;
-	pos[7].y += offset/2;
-	pos[8] = pos[0];
-	pos[8].x -= offset/2;
-	pos[8].y -= offset/2;
-	
-	pos[9] = position;
-	pos[9].z -= personSize/2;
-	pos[10] = pos[9];
-	pos[10].x += offset;
-	pos[11] = pos[9];
-	pos[11].x -= offset;
-	pos[12] = pos[9];
-	pos[12].y += offset;
-	pos[13] = pos[9];
-	pos[13].y -= offset;
-	pos[14] = pos[9];
-	pos[14].x += offset/2;
-	pos[14].y += offset/2;
-	pos[15] = pos[9];
-	pos[15].x += offset/2;
-	pos[15].y -= offset/2;
-	pos[16] = pos[9];
-	pos[16].x -= offset/2;
-	pos[16].y += offset/2;
-	pos[17] = pos[9];
-	pos[17].x -= offset/2;
-	pos[17].y -= offset/2;
-	
-	pos[18] = position;
-	pos[19] = pos[9];
-	pos[19].x += offset;
-	pos[20] = pos[9];
-	pos[20].x -= offset;
-	pos[21] = pos[9];
-	pos[21].y += offset;
-	pos[22] = pos[9];
-	pos[22].y -= offset;
-	pos[23] = pos[9];
-	pos[23].x += offset/2;
-	pos[23].y += offset/2;
-	pos[24] = pos[9];
-	pos[24].x += offset/2;
-	pos[24].y -= offset/2;
-	pos[25] = pos[9];
-	pos[25].x -= offset/2;
-	pos[25].y += offset/2;
-	pos[26] = pos[9];
-	pos[26].x -= offset/2;
-	pos[26].y -= offset/2;
 	bool noBuild = false;
-	for(int i = 0; i < 27; i++){
-		if(pos[i].block() == pointingOnBlock)
-			noBuild = true;
-	}
+	for(int x = int(position.x-offset); x <= int(position.x+offset); x++)
+		for(int y = int(position.y-offset); y <= int(position.y+offset); y++)
+			for(int z = int(position.z-personSize+0.1); z <= int(position.z+0.1); z++)
+				if(BlockPosition::create(x,y,z) == pointingOnBlock)
+					noBuild = true;
+
 	if(!sandboxMode)
 		if(inventory[selectedMaterial] == 0)
 			noBuild = true;
@@ -822,8 +756,10 @@ void Movement::throwBlock(){
 void Movement::calcElevator()
 {	
 	int feetBlock = 1;
+	PlayerPosition pPos = position;
+	pPos.z -= personSize-0.1;
 	try{
-		feetBlock = c->map->getBlock(position.block());
+		feetBlock = c->map->getBlock(pPos.block());
 	}
 	catch(NotLoadedException e){
 		std::cout << "not loaded" << std::endl;
@@ -838,19 +774,29 @@ void Movement::calcElevator()
 	}
 }
 
-void Movement::triggerNextFrame(int time){
+void Movement::triggerNextStep(int time){
 	if(time)
 		this->time = time;
 	else
-		this->time = 1;
+		return;
 	
 	bool calc = 1;
 	try {
-		if(!c->map->getArea(position.block())->bullet_generated && c->map->getBlock(position.block())) {
+		PlayerPosition pPos = position;
+		pPos.z -= personSize-0.1;
+		if(!c->map->getArea(pPos.block())->bullet_generated){
 			calc = 0;
-			std::cout << "bullet not generated" << std::endl;
+			std::cout << "bullet not generated bot" << std::endl;
 		} 
-		Area *a = c->map->getArea(position.block());
+		pPos.z -= (personSize/2.)-0.1;
+		if(!c->map->getArea(pPos.block())->bullet_generated){
+			calc = 0;
+			std::cout << "bullet not generated mid" << std::endl;
+		} 
+		if(!c->map->getArea(position.block())->bullet_generated){
+			calc = 0;
+			std::cout << "bullet not generated top" << std::endl;
+		}
 	} catch(NotLoadedException) {
 		std::cout << "area not loaded" << std::endl;
 		calc = 0;

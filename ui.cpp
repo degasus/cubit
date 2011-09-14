@@ -353,7 +353,7 @@ void UInterface::redraw()
 	int time = start-lastframe;
 	lastframe = start;
 	
-	c->movement->triggerNextFrame(time);
+	c->movement->triggerNextStep(time);
 	PlayerPosition pos = c->movement->getPosition();
 	int movement = SDL_GetTicks()-start;
 	
