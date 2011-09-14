@@ -21,6 +21,7 @@ struct polygon {
 	
 	unsigned char sizex;
 	unsigned char sizey;
+	unsigned char sizez;
 };
 
 /**

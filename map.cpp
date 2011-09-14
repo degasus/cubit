@@ -229,6 +229,11 @@ void Map::setPosition(PlayerPosition pos)
 			if(a->empty && m)
 				areas_with_gllist.insert(a);
 			a->set(bPos, m);
+			for(int d=0; d<DIRECTION_COUNT && !m; d++) {
+				if(a->next[d] && a->next[d]->full && *(a->next[d]) << bPos+DIRECTION(d)) {
+					areas_with_gllist.insert(a->next[d]);
+				}
+			}
 			dijsktra_queue.push(a);
 		} else {
 			std::cout << "NotLoadedException recv_update_block_empty" << std::endl;
@@ -295,7 +300,7 @@ void Map::setPosition(PlayerPosition pos)
 	//std::cout << "load: " << to_load.size() << ", store: " << to_save.size() << ", queue: " << dijsktra_queue.size() << std::endl;
 
 	//int maxk = std::min((areasPerFrameLoading - std::max(to_load.size(), to_save.size())), dijsktra_queue.size());
-	int maxk = areasPerFrameLoading - std::max(to_load_hdd.size(), to_save_hdd.size()) * 16;
+	int maxk = areasPerFrameLoading - std::max(to_load_hdd.size(), to_save_hdd.size());
 //	Area *first = 0;
 	for(int k=0; k<maxk && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
@@ -319,7 +324,7 @@ void Map::setPosition(PlayerPosition pos)
 						b->dijsktra = dijsktra_wert;
 						for(int d=0; d<DIRECTION_COUNT; d++)
 							b->dijsktra_direction_used[d] = a->dijsktra_direction_used[d] || (i==d);
-						//dijsktra_queue.push(b);
+						dijsktra_queue.push(b);
 						if(b->state == Area::STATE_NEW) {
 							b->state = Area::STATE_HDD_LOAD;
 							to_load_hdd.push(b);

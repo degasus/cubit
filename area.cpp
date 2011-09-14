@@ -212,6 +212,7 @@ void Area::recalc_polys()
 					p.posz = z-this->pos.z;
 					p.sizex = 1;
 					p.sizey = 1;
+					p.sizez = 1;
 					p.dir = dir;
 					p.m = now;
 					

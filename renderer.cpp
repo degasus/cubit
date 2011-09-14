@@ -318,8 +318,6 @@ void Renderer::generateArea(Area* area) {
 					int diffy = it.posy;
 					int diffz = it.posz;
 					
-					
-					
 					//std::cout << k << " " << diffx << " " << diffy << " " << diffz << std::endl;
 					
 					for(int k=0; k < sizeof(points)/sizeof(int); k++) {
@@ -336,9 +334,9 @@ void Renderer::generateArea(Area* area) {
 						area->vbopointer[i][vbocounter+4] = NORMAL_OF_DIRECTION[it.dir][2];
 						
 						// vertex
-						area->vbopointer[i][vbocounter+5] = POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
-						area->vbopointer[i][vbocounter+6] = POINTS_OF_DIRECTION[it.dir][point][1]+diffy;
-						area->vbopointer[i][vbocounter+7] = POINTS_OF_DIRECTION[it.dir][point][2]+diffz;
+						area->vbopointer[i][vbocounter+5] = it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
+						area->vbopointer[i][vbocounter+6] = it.sizey * POINTS_OF_DIRECTION[it.dir][point][1]+diffy;
+						area->vbopointer[i][vbocounter+7] = it.sizez * POINTS_OF_DIRECTION[it.dir][point][2]+diffz;
 						
 						vbocounter+=8;
 					}
@@ -348,19 +346,19 @@ void Renderer::generateArea(Area* area) {
 							has_mesh = 1;
 							area->mesh->addTriangle(
 								btVector3(
-									POINTS_OF_DIRECTION[it.dir][0][0]+diffx,
-									POINTS_OF_DIRECTION[it.dir][0][1]+diffy,
-									POINTS_OF_DIRECTION[it.dir][0][2]+diffz
+									it.sizex * POINTS_OF_DIRECTION[it.dir][0][0]+diffx,
+									it.sizey * POINTS_OF_DIRECTION[it.dir][0][1]+diffy,
+									it.sizez * POINTS_OF_DIRECTION[it.dir][0][2]+diffz
 								),
 								btVector3(
-									POINTS_OF_DIRECTION[it.dir][point-1][0]+diffx,
-									POINTS_OF_DIRECTION[it.dir][point-1][1]+diffy,
-									POINTS_OF_DIRECTION[it.dir][point-1][2]+diffz
+									it.sizex * POINTS_OF_DIRECTION[it.dir][point-1][0]+diffx,
+									it.sizey * POINTS_OF_DIRECTION[it.dir][point-1][1]+diffy,
+									it.sizez * POINTS_OF_DIRECTION[it.dir][point-1][2]+diffz
 								),
 								btVector3(
-									POINTS_OF_DIRECTION[it.dir][point][0]+diffx,
-									POINTS_OF_DIRECTION[it.dir][point][1]+diffy,
-									POINTS_OF_DIRECTION[it.dir][point][2]+diffz
+									it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx,
+									it.sizey * POINTS_OF_DIRECTION[it.dir][point][1]+diffy,
+									it.sizez * POINTS_OF_DIRECTION[it.dir][point][2]+diffz
 								)							
 							);
 						}
