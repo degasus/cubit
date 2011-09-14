@@ -246,7 +246,7 @@ int Network::read_client ( Client* c ) {
 				pposz = ((double*)(c->buffer+7))[2];
 				pposh = ((double*)(c->buffer+7))[3];
 				pposv = ((double*)(c->buffer+7))[4];
-				printf("PLAYER_POSITION: playerid=%d, posx=%f, posy=%f, posz=%f, posh=%f, posv=%f\n", playerid, pposx, pposy, pposz, pposh, pposv);
+				//printf("PLAYER_POSITION: playerid=%d, posx=%f, posy=%f, posz=%f, posh=%f, posv=%f\n", playerid, pposx, pposy, pposz, pposh, pposv);
 				pPos = PlayerPosition::create(pposx, pposy, pposz, pposh, pposv);
 				queue_recv_player_position.push(StructPlayerPosition(pPos, playerid, c->clientid));
 			break;
