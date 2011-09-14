@@ -187,7 +187,7 @@ void Server::run() {
 			if(it != joined_clients.end()){
 				for(it2 = it->second.begin(); it2 != it->second.end(); it2++) {
 					if(*it2 != connection)
-						network->send_player_position(pPos, id, *it2);
+						network->send_player_position(pPos, connection, *it2);
 				}
 			}
 		}
