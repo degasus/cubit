@@ -6,6 +6,8 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <assert.h>
+#include <list>
+#include <queue>
 
 Area::Area(BlockPosition p)
 {
@@ -233,6 +235,59 @@ void Area::recalc_polys()
 		empty = 1;
 	}
 	if(polys_count) {
+		
+		for(int l=0; l<NUMBER_OF_LISTS; l++) {
+			for(int i=0; i<polys[l].size(); i++) {
+				polygon p1 = polys[l].front();
+				polys[l].pop();
+				
+				for(int k=0; k<polys[l].size(); k++) {
+					polygon p2 = polys[l].front();
+					polys[l].pop();
+					
+					bool toremove = false;
+					
+					if( p1.dir == p2.dir &&
+						p1.m   == p2.m
+					) {
+						if( p1.posx + p1.sizex == p2.posx &&
+							p1.posy == p2.posy && p1.sizey == p2.sizey &&
+							p1.posz == p2.posz && p1.sizez == p2.sizez
+						) {
+							p1.sizex += p2.sizex;
+							toremove = true;
+						} else
+						if( p1.posx == p2.posx && p1.sizex == p2.sizex &&
+							p1.posy + p1.sizey == p2.posy &&
+							p1.posz == p2.posz && p1.sizez == p2.sizez
+						) {
+							p1.sizey += p2.sizey;
+							toremove = true;
+						} else
+						if( p1.posx == p2.posx && p1.sizex == p2.sizex &&
+							p1.posy == p2.posy && p1.sizey == p2.sizey &&
+							p1.posz + p1.sizez == p2.posz 
+						) {
+							p1.sizez += p2.sizez;
+							toremove = true;
+						}
+					}
+					
+					if(!toremove) {
+						polys[l].push(p2);
+					} else {
+						polys_count--;
+						i = 0;
+					}
+				}
+				
+				polys[l].push(p1);
+			}
+		}
+		
+		
+		
+		
 		polys_list = new polygon[polys_count];
 		polys_count = 0;
 		
