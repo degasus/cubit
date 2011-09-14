@@ -632,10 +632,11 @@ int Movement::getCurrentRemoveProgress() {
 void Movement::buildBlock()
 {
 	bool noBuild = false;
-	for(int x = int(position.x-offset); x <= int(position.x+offset); x++)
-		for(int y = int(position.y-offset); y <= int(position.y+offset); y++)
-			for(int z = int(position.z-personSize+0.1); z <= int(position.z+0.1); z++)
-				if(BlockPosition::create(x,y,z) == pointingOnBlock)
+	PlayerPosition p;
+	for(p.x = position.x-offset; p.x <= position.x+offset; p.x++)
+		for(p.y = position.y-offset; p.y <= position.y+offset; p.y++)
+			for(p.z = position.z-personSize+0.1; p.z <= position.z+0.1; p.z++)
+				if(p.block() == pointingOnBlock)
 					noBuild = true;
 
 	if(!sandboxMode)
@@ -755,17 +756,23 @@ void Movement::throwBlock(){
 
 void Movement::calcElevator()
 {	
-	int feetBlock = 1;
-	PlayerPosition pPos = position;
-	pPos.z -= personSize-0.1;
-	try{
-		feetBlock = c->map->getBlock(pPos.block());
+	bool go_up = 0;
+	try{	
+		PlayerPosition p;
+		for(p.x = position.x-offset/2; p.x <= position.x+offset/2; p.x++)
+			for(p.y = position.y-offset/2; p.y <= position.y+offset/2; p.y++)
+				for(p.z = position.z-personSize+0.1; p.z <= position.z-0.1; p.z++) {
+					int feetBlock = c->map->getBlock(p.block());
+					if(feetBlock != 0 && feetBlock != 9)
+						go_up = 1;
+				}
 	}
 	catch(NotLoadedException e){
 		std::cout << "not loaded" << std::endl;
+		go_up = 1;
 	}
 	//0 = air, 9 = water
-	if(feetBlock != 0 && feetBlock != 9){
+	if(go_up){
 		btTransform t = ghost->getWorldTransform();
 		btVector3 org = t.getOrigin();
 		org.setZ(org.getZ()+1);
@@ -782,10 +789,11 @@ void Movement::triggerNextStep(int time){
 	
 	bool calc = 1;
 	try {
-		for(int x = int(position.x-offset); x <= int(position.x+offset); x++)
-			for(int y = int(position.y-offset); y <= int(position.y+offset); y++)
-				for(int z = int(position.z-personSize+0.1); z <= int(position.z+0.1); z++)
-					if(!c->map->getArea(BlockPosition::create(x,y,z))->bullet_generated) {
+		PlayerPosition p;
+		for(p.x = position.x-offset; p.x <= position.x+offset; p.x++)
+			for(p.y = position.y-offset; p.y <= position.y+offset; p.y++)
+				for(p.z = position.z-personSize+0.1; p.z <= position.z+0.1; p.z++)
+					if(!c->map->getArea(p.block())->bullet_generated) {
 						calc = 0;
 					}
 		if(!calc) {

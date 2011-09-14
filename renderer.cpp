@@ -256,7 +256,7 @@ void Renderer::generateArea(Area* area) {
 		area->delete_collision(c->movement->dynamicsWorld);
 	}
 	
-	if((area->needupdate_gl || (!area->bullet_generated && generate_bullet)) && (areasRendered <= areasPerFrame)) {
+	if((area->needupdate_poly || area->needupdate_gl || (!area->bullet_generated && generate_bullet)) && (areasRendered <= areasPerFrame)) {
 		
 		areasRendered++;
 		
@@ -264,6 +264,9 @@ void Renderer::generateArea(Area* area) {
 		area->delete_collision(c->movement->dynamicsWorld);
 		
 		area->bullet_generated = generate_bullet;
+		
+		if(area->needupdate_poly)
+			area->recalc_polys();
 		
 		area->needupdate_gl = 0;
 		
@@ -524,8 +527,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	
 	if(areasRendered<0) areasRendered = 0;
 	areasRendered -= areasPerFrame;
-	generateViewPort(pos);	
-	
+	generateViewPort(pos);
 	
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
