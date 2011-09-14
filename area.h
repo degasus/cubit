@@ -63,7 +63,6 @@ public:
 	
 	bool empty;
 	bool full;
-	bool dir_full[DIRECTION_COUNT];
 	
 	int blocks;
 	
@@ -162,6 +161,7 @@ public:
 	}
 	
 	void recalc_polys();
+	void recalc();
 };
 
 #endif

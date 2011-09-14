@@ -114,7 +114,6 @@ public:
 private:
 	void store(Area* a);
 	void load(Area* a);
-	void recalc(Area* a);
         
         void request_load_net(Area* a);
 

@@ -202,13 +202,15 @@ void Map::setPosition(PlayerPosition pos)
 			a->needstore = 1;
 			a->needupdate = 1;
 		}
-		recalc(a);
+		a->recalc();
 		for (int i=0; i<DIRECTION_COUNT; i++)
 			if (a->next[i])
 				a->next[i]->needupdate = 1;
 			
 		if (!a->empty)
 			areas_with_gllist.insert(a);
+		
+		dijsktra_queue.push(a);
 	}
 	
 	while(!network->recv_join_area_empty()){
@@ -227,6 +229,7 @@ void Map::setPosition(PlayerPosition pos)
 			if(a->empty && m)
 				areas_with_gllist.insert(a);
 			a->set(bPos, m);
+			dijsktra_queue.push(a);
 		} else {
 			std::cout << "NotLoadedException recv_update_block_empty" << std::endl;
 		}
@@ -293,13 +296,16 @@ void Map::setPosition(PlayerPosition pos)
 
 	//int maxk = std::min((areasPerFrameLoading - std::max(to_load.size(), to_save.size())), dijsktra_queue.size());
 	int maxk = areasPerFrameLoading - std::max(to_load_hdd.size(), to_save_hdd.size()) * 16;
-	Area *first = 0;
+//	Area *first = 0;
 	for(int k=0; k<maxk && !dijsktra_queue.empty(); k++) {
 		Area* a = dijsktra_queue.front();
 		
 		// do not circle
-		if(a == first) break;
-		else dijsktra_queue.pop();
+		//if(a == first) 
+		//	break;
+		//else 
+			dijsktra_queue.pop();
+		//if(!first) first = a;
 		
 		switch(a->state) {		
 			// found, so go and try any direction
@@ -313,7 +319,7 @@ void Map::setPosition(PlayerPosition pos)
 						b->dijsktra = dijsktra_wert;
 						for(int d=0; d<DIRECTION_COUNT; d++)
 							b->dijsktra_direction_used[d] = a->dijsktra_direction_used[d] || (i==d);
-						dijsktra_queue.push(b);
+						//dijsktra_queue.push(b);
 						if(b->state == Area::STATE_NEW) {
 							b->state = Area::STATE_HDD_LOAD;
 							to_load_hdd.push(b);
@@ -325,17 +331,15 @@ void Map::setPosition(PlayerPosition pos)
 			
 			// wait and try it again later
 			case Area::STATE_HDD_LOAD:
-                        case Area::STATE_HDD_LOADED:
-                        case Area::STATE_HDD_LOADED_BUT_NOT_FOUND:
-                        case Area::STATE_NET_LOAD:
-                        case Area::STATE_NET_LOADED:
-                          
-			dijsktra_queue.push(a);
-			if(!first) first = a;
+			case Area::STATE_HDD_LOADED:
+			case Area::STATE_HDD_LOADED_BUT_NOT_FOUND:
+			case Area::STATE_NET_LOAD:
+			case Area::STATE_NET_LOADED:            
+			//dijsktra_queue.push(a);
 			break;
 			
-                        // not available, so stop here
-                        case Area::STATE_NET_LOADED_BUT_NOT_FOUND:
+			// not available, so stop here
+			case Area::STATE_NET_LOADED_BUT_NOT_FOUND:
 			default: std::cout << "state: " << a->state << std::endl;
 		}
 		
@@ -387,7 +391,6 @@ void Map::load(Area *a) {
 	}
 	
 	if(a->revision) {
-		recalc(a);
 		a->state = Area::STATE_HDD_LOADED;
 	} else {
 		a->state = Area::STATE_HDD_LOADED_BUT_NOT_FOUND;
@@ -406,47 +409,6 @@ void Map::request_load_net(Area *a) {
   
   load_requested_net[a->pos] = a;
 }
-
-void Map::recalc(Area* a) {
-	a->blocks = 0;
-	
-	a->full = 0;
-	for(int i=0; i<DIRECTION_COUNT; i++) {
-		a->dir_full[i] = 0;
-	}
-	
-	if(!a->empty) {
-		
-		for(int i=0; i<AREASIZE; i++)
-			assert(a->m[i] >= 0 && a->m[i] < NUMBER_OF_MATERIALS);
-		
-		for(int i=0; i<DIRECTION_COUNT; i++)
-			a->dir_full[i] = 1;
-		
-		for(int x = 0; x < AREASIZE_X; x++)
-		for(int y = 0; y < AREASIZE_Y; y++)
-		for(int z = 0; z < AREASIZE_Z; z++) {
-			a->blocks += (a->m[a->getPos(BlockPosition::create(x+a->pos.x,y+a->pos.y,z+a->pos.z))] != 0);
-			for(int i=0; i<DIRECTION_COUNT; i++)
-			if(!a->m[a->getPos(BlockPosition::create(x+a->pos.x,y+a->pos.y,z+a->pos.z))] && (
-					(x+DIRECTION_NEXT_BOX[i][0]) & ~(AREASIZE_X-1) ||
-					(y+DIRECTION_NEXT_BOX[i][1]) & ~(AREASIZE_Y-1) ||
-				(z+DIRECTION_NEXT_BOX[i][2]) & ~(AREASIZE_Z-1)
-				)
-			) a->dir_full[i] = 0;
-		}
-		
-		a->empty = (a->blocks == 0);
-		a->full = (a->blocks == AREASIZE_X*AREASIZE_Y*AREASIZE_Z);
-		
-		if(a->empty) {
-			delete [] a->m;
-			a->m = 0;
-			a->needstore = 1;
-		}
-	} 
-}
-	
 
 Material Map::getBlock(BlockPosition pos){
 	iterator it = areas.find(pos.area());

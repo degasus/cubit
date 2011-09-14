@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
+#include <assert.h>
 
 Area::Area(BlockPosition p)
 {
@@ -18,7 +19,6 @@ Area::Area(BlockPosition p)
 	empty = 1;
 	full = 0;
 	for(int i=0; i<DIRECTION_COUNT; i++) {
-		dir_full[i] = 0;
 		next[i] = 0;
 	}
 	
@@ -72,6 +72,101 @@ Area::~Area()
 	assert(!shape);
 	assert(!motion);
 	assert(!rigid);
+}
+
+void Area::delete_collision(btCollisionWorld *world) {
+	if(rigid) world->removeCollisionObject(rigid);
+	
+	if(mesh) delete mesh; mesh = 0;
+	if(shape) delete shape; shape = 0;
+	if(motion) delete motion; motion = 0;
+	if(rigid) delete rigid; rigid = 0;
+	
+	bullet_generated = 0;
+}
+
+void Area::delete_opengl() {
+#ifdef USE_GLLIST
+	if(gllist_generated) {
+		glDeleteLists(gllist,NUMBER_OF_LISTS);
+	}
+	gllist_generated = 0;
+	gllist = 0;
+#endif
+#ifdef USE_VBO
+	if(vbo_generated) {
+		glDeleteBuffers(NUMBER_OF_LISTS,vbo);
+	}
+	vbo_generated = 0;
+	for(int i=0; i<NUMBER_OF_LISTS; i++) vbo[i] = 0;
+#endif
+	
+	for(int i=0; i<NUMBER_OF_LISTS; i++) {
+		vbo_length[i] = 0;
+		if(vbopointer[i]) {
+			delete [] vbopointer[i];
+			vbopointer[i] = 0;
+		}
+	}
+}
+
+
+void Area::set(BlockPosition position, Material mat) {
+	assert(operator<<(position));
+	assert(mat >= 0 && mat < NUMBER_OF_MATERIALS);
+	
+	if(empty && mat) {
+		allocm();
+		empty = 0;
+		blocks = 1;
+		m[getPos(position)] = mat;
+	} else if(full && !mat) {
+		full = 0;
+		blocks = AREASIZE_X*AREASIZE_Y*AREASIZE_Z-1;
+		m[getPos(position)] = mat;
+	} else if(!full && !empty) {
+		Material oldmat = m[getPos(position)];
+		if(mat && !oldmat) blocks++;
+		if(!mat && oldmat) blocks--;
+
+		m[getPos(position)] = mat;
+		
+		if(blocks == AREASIZE_X*AREASIZE_Y*AREASIZE_Z)
+			full = 1;
+		else if(blocks == 0) {
+			empty = 1;
+			delete [] m;
+			m = 0;
+		}			
+	}
+	needupdate = 1;
+	needstore = 1;
+	
+	for(int i=0; i<DIRECTION_COUNT; i++) {
+		if(!operator<<(position + DIRECTION(i)) && next[i]) 
+			next[i]->needupdate = 1;
+	}
+}
+
+void Area::recalc() {
+	blocks = 0;
+	
+	full = 0;
+	
+	if(!empty) {
+		
+		for(int i=0; i<AREASIZE_X*AREASIZE_Y*AREASIZE_Z; i++)
+			blocks += (m[i] != 0);
+		
+		empty = (blocks == 0);
+		full = (blocks == AREASIZE_X*AREASIZE_Y*AREASIZE_Z);
+		
+		if(empty) {
+			delete [] m;
+			m = 0;
+			needstore = 1;
+		}
+	} 
 }
 
 void Area::recalc_polys()
@@ -152,76 +247,3 @@ void Area::recalc_polys()
 }
 
 
-void Area::delete_collision(btCollisionWorld *world) {
-	if(rigid) world->removeCollisionObject(rigid);
-	
-	if(mesh) delete mesh; mesh = 0;
-	if(shape) delete shape; shape = 0;
-	if(motion) delete motion; motion = 0;
-	if(rigid) delete rigid; rigid = 0;
-	
-	bullet_generated = 0;
-}
-
-void Area::delete_opengl() {
-#ifdef USE_GLLIST
-	if(gllist_generated) {
-		glDeleteLists(gllist,NUMBER_OF_LISTS);
-	}
-	gllist_generated = 0;
-	gllist = 0;
-#endif
-#ifdef USE_VBO
-	if(vbo_generated) {
-		glDeleteBuffers(NUMBER_OF_LISTS,vbo);
-	}
-	vbo_generated = 0;
-	for(int i=0; i<NUMBER_OF_LISTS; i++) vbo[i] = 0;
-#endif
-	
-	for(int i=0; i<NUMBER_OF_LISTS; i++) {
-		vbo_length[i] = 0;
-		if(vbopointer[i]) {
-			delete [] vbopointer[i];
-			vbopointer[i] = 0;
-		}
-	}
-}
-
-
-void Area::set(BlockPosition position, Material mat) {
-	assert(operator<<(position));
-	assert(mat >= 0 && mat < NUMBER_OF_MATERIALS);
-	
-	if(empty && mat) {
-		allocm();
-		empty = 0;
-		blocks = 1;
-		m[getPos(position)] = mat;
-	} else if(full && !mat) {
-		full = 0;
-		blocks = AREASIZE_X*AREASIZE_Y*AREASIZE_Z-1;
-		m[getPos(position)] = mat;
-	} else if(!full && !empty) {
-		Material oldmat = m[getPos(position)];
-		if(mat && !oldmat) blocks++;
-		if(!mat && oldmat) blocks--;
-
-		m[getPos(position)] = mat;
-		
-		if(blocks == AREASIZE_X*AREASIZE_Y*AREASIZE_Z)
-			full = 1;
-		else if(blocks == 0) {
-			empty = 1;
-			delete [] m;
-			m = 0;
-		}			
-	}
-	needupdate = 1;
-	needstore = 1;
-	
-	for(int i=0; i<DIRECTION_COUNT; i++) {
-		if(!operator<<(position + DIRECTION(i)) && next[i]) 
-			next[i]->needupdate = 1;
-	}
-}
