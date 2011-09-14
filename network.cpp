@@ -2,6 +2,7 @@
 #include <signal.h>
 
 #include "network.h"
+#include <assert.h>
 
 int Client::next_client_id = 0;
 
@@ -392,6 +393,7 @@ void Network::send_queues() {
 
 BlockPosition Network::recv_get_area(int* revision, int* connection) {
 	SDL_LockMutex(mutex);
+	assert(!queue_recv_get_area.empty());
 	StructGetArea s = queue_recv_get_area.front();
 	queue_recv_get_area.pop();
 	SDL_UnlockMutex(mutex);
@@ -404,6 +406,7 @@ BlockPosition Network::recv_get_area(int* revision, int* connection) {
 
 int Network::recv_push_area(BlockPosition* pos, char* data, int* revision, int length, bool compressed, int* connection) {
 	SDL_LockMutex(mutex);
+	assert(!queue_recv_push_area.empty());
 	StructPushArea s = queue_recv_push_area.front();
 	queue_recv_push_area.pop();
 	SDL_UnlockMutex(mutex);
@@ -432,6 +435,7 @@ int Network::recv_push_area(BlockPosition* pos, char* data, int* revision, int l
 
 BlockPosition Network::recv_join_area(int* revision, int* connection) {
 	SDL_LockMutex(mutex);
+	assert(!queue_recv_join_area.empty());
 	StructJoinArea s = queue_recv_join_area.front();
 	queue_recv_join_area.pop();
 	SDL_UnlockMutex(mutex);
@@ -444,6 +448,7 @@ BlockPosition Network::recv_join_area(int* revision, int* connection) {
 
 BlockPosition Network::recv_leave_area(int* connection) {
 	SDL_LockMutex(mutex);
+	assert(!queue_recv_leave_area.empty());
 	StructLeaveArea s = queue_recv_leave_area.front();
 	queue_recv_leave_area.pop();
 	SDL_UnlockMutex(mutex);
@@ -455,6 +460,7 @@ BlockPosition Network::recv_leave_area(int* connection) {
 
 Material Network::recv_update_block(BlockPosition* pos, int* revision, int* connection) {
 	SDL_LockMutex(mutex);
+	assert(!queue_recv_update_block.empty());
 	StructUpdateBlock s = queue_recv_update_block.front();
 	queue_recv_update_block.pop();
 	SDL_UnlockMutex(mutex);
@@ -469,6 +475,7 @@ Material Network::recv_update_block(BlockPosition* pos, int* revision, int* conn
 
 PlayerPosition Network::recv_player_position(int* playerid, int* connection) {
 	SDL_LockMutex(mutex);
+	assert(!queue_recv_player_position.empty());
 	StructPlayerPosition s = queue_recv_player_position.front();
 	queue_recv_player_position.pop();
 	SDL_UnlockMutex(mutex);
@@ -482,6 +489,7 @@ PlayerPosition Network::recv_player_position(int* playerid, int* connection) {
 int Network::recv_player_quit() {
 	int connection;
 	SDL_LockMutex(mutex);
+	assert(!queue_recv_player_quit.empty());
 	connection = queue_recv_player_quit.front();
 	queue_recv_player_quit.pop();
 	SDL_UnlockMutex(mutex);
