@@ -67,6 +67,7 @@ Area::~Area()
 	empty = 1;
 	
 	if(polys_list) delete [] polys_list;
+	polys_list = 0;
 	for(int i=0; i<NUMBER_OF_LISTS; i++) {
 		polys_list_size[i] = 0;
 		polys_list_start[i] = 0;

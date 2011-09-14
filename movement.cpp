@@ -782,20 +782,14 @@ void Movement::triggerNextStep(int time){
 	
 	bool calc = 1;
 	try {
-		PlayerPosition pPos = position;
-		pPos.z -= personSize-0.1;
-		if(!c->map->getArea(pPos.block())->bullet_generated){
-			calc = 0;
-			std::cout << "bullet not generated bot" << std::endl;
-		} 
-		pPos.z -= (personSize/2.)-0.1;
-		if(!c->map->getArea(pPos.block())->bullet_generated){
-			calc = 0;
-			std::cout << "bullet not generated mid" << std::endl;
-		} 
-		if(!c->map->getArea(position.block())->bullet_generated){
-			calc = 0;
-			std::cout << "bullet not generated top" << std::endl;
+		for(int x = int(position.x-offset); x <= int(position.x+offset); x++)
+			for(int y = int(position.y-offset); y <= int(position.y+offset); y++)
+				for(int z = int(position.z-personSize+0.1); z <= int(position.z+0.1); z++)
+					if(!c->map->getArea(BlockPosition::create(x,y,z))->bullet_generated) {
+						calc = 0;
+					}
+		if(!calc) {
+			std::cout << "bullet not generated" << std::endl;
 		}
 	} catch(NotLoadedException) {
 		std::cout << "area not loaded" << std::endl;
