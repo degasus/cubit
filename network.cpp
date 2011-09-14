@@ -371,7 +371,7 @@ void Network::send_queues() {
 	}
 	
 	buffer[0] = (char)PLAYER_POSITION;
-	SDLNet_Write16(17,buffer+1);
+	SDLNet_Write16(44,buffer+1);
 	while(!queue_send_player_position.empty()) {
 		StructPlayerPosition s = queue_send_player_position.front();
 		SDLNet_Write32(s.playerid, buffer+3);
