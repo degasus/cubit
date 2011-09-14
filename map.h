@@ -141,7 +141,8 @@ private:
 	SDL_mutex* queue_mutex;
 	
 	SDL_Thread* harddisk;
-	SDL_Thread* mapGenerator;
+	SDL_Thread** mapGenerator;
+	int mapGenerator_counts;
 	bool thread_stop;
 	
 	int loadRange;

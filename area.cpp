@@ -220,7 +220,7 @@ void Area::recalc_polys()
 				Material next_m;
 				if((*this) << next)
 					next_m = get(next);
-				else if(this->next[dir] && this->next[dir]->state == Area::STATE_READY)
+				else if(this->next[dir] && this->next[dir]->state >= Area::STATE_WAITING_FOR_BORDERS)
 					next_m = this->next[dir]->get(next);
 				else 
 					next_m = now;

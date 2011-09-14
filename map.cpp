@@ -37,9 +37,11 @@ Map::~Map()
 
 	if(harddisk)
 		SDL_WaitThread (harddisk, &thread_return);
-	if(mapGenerator)
-		SDL_WaitThread (mapGenerator, &thread_return);
-	
+	for(int i=0; i<mapGenerator_counts; i++)
+		if(mapGenerator[i])
+			SDL_WaitThread (mapGenerator[i], &thread_return);
+	delete [] mapGenerator;
+		
 	if(queue_mutex)
 		SDL_DestroyMutex(queue_mutex);
 	
@@ -66,6 +68,8 @@ void Map::config(const boost::program_options::variables_map& c)
 	areasPerFrameLoading = c["areasPerFrameLoading"].as<int>();
 	loadRange = c["visualRange"].as<int>()*2+2;
 
+	mapGenerator_counts = 1;
+	
 	network = new Network(c["server"].as<std::string>().c_str(),PORT);
 	
 	disk = new Harddisk((c["workingDirectory"].as<boost::filesystem::path>() / "cubit.db").string());	
@@ -162,7 +166,10 @@ void Map::init()
 	thread_stop = 0;
 	queue_mutex = SDL_CreateMutex ();
 	harddisk = SDL_CreateThread (threaded_read_from_harddisk,this);
-	mapGenerator = SDL_CreateThread(threaded_generator, this);
+	
+	mapGenerator = new SDL_Thread*[mapGenerator_counts];
+	for(int i=0; i<mapGenerator_counts; i++)
+		mapGenerator[i] = SDL_CreateThread(threaded_generator, this);
 }
 
 Area* Map::getArea(BlockPosition pos)
@@ -201,7 +208,7 @@ void Map::setPosition(PlayerPosition pos)
 	SDL_LockMutex(queue_mutex);
 	Area* a;
 	
-	std::string strings[12] = {"new", "hddload", "hddloaded", "hddnotfound", 
+/*	std::string strings[12] = {"new", "hddload", "hddloaded", "hddnotfound", 
 								"netload", "netloaded", "netnotfound",
 								"waiting", "generate", "generated", "ready", "delete"
 	};
@@ -220,7 +227,7 @@ void Map::setPosition(PlayerPosition pos)
 			std::cout << strings[i] << ": " << states[i] << ", ";
 	}
 	std::cout << std::endl;
-	
+*/	
 	while(!loaded_hdd.empty()) {
 		
 		a = loaded_hdd.front();
