@@ -441,7 +441,7 @@ void Map::setPosition(PlayerPosition pos)
 			areas.erase(a->pos);
 			a->state = Area::STATE_DELETE;
 			to_save_hdd.push(a);
-			network->send_leave_area(a->pos);
+			//network->send_leave_area(a->pos);
 		} else if(a->needstore && a->state == Area::STATE_READY) {
 			a->needstore = 0;
 			to_save_hdd.push(a);
@@ -449,20 +449,6 @@ void Map::setPosition(PlayerPosition pos)
 	} 
 	//std::cout << "dijsktra usage: " << k << std::endl;
 	SDL_UnlockMutex(queue_mutex);
-}
-
-void Map::areaLoadedIsEmpty(BlockPosition pos)
-{
-
-}
-
-void Map::areaLoadedSuccess(Area* area)
-{
-
-}
-
-void Map::blockChangedEvent(BlockPosition pos, Material m){
-
 }
 
 void Map::store(Area *a) {

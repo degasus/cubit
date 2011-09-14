@@ -84,21 +84,6 @@ public:
 	 * Gebiete geladen werden müssen.
 	 */
 	void setPosition(PlayerPosition pos);
-
-	/**
-	 * only callable from net
-	 */
-	void areaLoadedSuccess(Area* area);
-
-	/**
-	 * only callable from net
-	 */
-	void areaLoadedIsEmpty(BlockPosition pos);
-
-	/**
-	 * only callable from net
-	 */
-	void blockChangedEvent(BlockPosition pos, Material m);
 	
 	void read_from_harddisk();
 	void generator();
@@ -110,6 +95,8 @@ public:
 	std::set<Area*> areas_with_gllist;
 	
 	std::list<MovingObject*> objects;
+	
+	std::map<int, PlayerPosition*> otherPlayers;
     
 //private:
 	void store(Area* a);
