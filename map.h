@@ -111,7 +111,7 @@ public:
 	
 	std::list<MovingObject*> objects;
     
-private:
+//private:
 	void store(Area* a);
 	void load(Area* a);
         
@@ -130,7 +130,7 @@ private:
 	std::queue<Area*> to_load_hdd;
 	std::queue<Area*> loaded_hdd;
 	std::queue<Area*> to_save_hdd;
-	std::queue<Area*> to_generate;
+	std::list<Area*> to_generate;
 	std::queue<Area*> generated;
 	
         

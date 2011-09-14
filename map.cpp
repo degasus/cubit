@@ -68,7 +68,7 @@ void Map::config(const boost::program_options::variables_map& c)
 	areasPerFrameLoading = c["areasPerFrameLoading"].as<int>();
 	loadRange = c["visualRange"].as<int>()*2+2;
 
-	mapGenerator_counts = 1;
+	mapGenerator_counts = c["generatorThreads"].as<int>();
 	
 	network = new Network(c["server"].as<std::string>().c_str(),PORT);
 	
@@ -97,7 +97,7 @@ void Map::generator() {
 			a=0;
 		} else {
 			a=to_generate.front();
-			to_generate.pop();
+			to_generate.pop_front();
 		}
 		SDL_UnlockMutex(queue_mutex);
 		
@@ -176,7 +176,7 @@ Area* Map::getArea(BlockPosition pos)
 {
 	iterator it = areas.find(pos.area());
 	if(it != areas.end()) {
-		if(it->second->state != Area::STATE_READY) {
+		if(it->second->state < Area::STATE_WAITING_FOR_BORDERS || it->second->state > Area::STATE_READY) {
 			throw NotLoadedException();
 		}
 		if(it->second->empty) {
@@ -234,7 +234,6 @@ void Map::setPosition(PlayerPosition pos)
 		loaded_hdd.pop();
 		a->state = Area::STATE_NET_LOAD;
 		network->send_get_area(a->pos, a->revision);
-		network->send_join_area(a->pos, a->revision);
 	}
 	
 	BlockPosition bPos;
@@ -262,6 +261,7 @@ void Map::setPosition(PlayerPosition pos)
 		else if(rev>0){
 			a->empty = 1;
 		}
+		network->send_join_area(a->pos, a->revision);
 		a->recalc();
 		dijsktra_queue.push(a);
 		
@@ -274,7 +274,7 @@ void Map::setPosition(PlayerPosition pos)
 			if (!a->empty) {
 				if(a->hasallneighbor()) {
 					a->state = Area::STATE_GENERATE;
-					to_generate.push(a);
+					to_generate.push_back(a);
 				} else {
 					a->state = Area::STATE_WAITING_FOR_BORDERS;
 				}
@@ -283,7 +283,7 @@ void Map::setPosition(PlayerPosition pos)
 			for (int i=0; i<DIRECTION_COUNT; i++) if(a->next[i]) {
 				if( a->next[i]->state == Area::STATE_WAITING_FOR_BORDERS &&
 					a->next[i]->hasallneighbor()) {
-					to_generate.push(a->next[i]);
+					to_generate.push_back(a->next[i]);
 					a->next[i]->state = Area::STATE_GENERATE;
 					//std::cout << "rendere Area2 " << a->next[i]->pos.to_string() << std::endl;
 				}
@@ -507,7 +507,7 @@ Material Map::getBlock(BlockPosition pos){
 	if(it == areas.end())
 		throw NotLoadedException();
 	
-	if(it->second->state != Area::STATE_READY)
+	if(it->second->state < Area::STATE_WAITING_FOR_BORDERS || it->second->state > Area::STATE_READY)
 		throw NotLoadedException();
 	
 	return it->second->get(pos);
@@ -521,7 +521,7 @@ void Map::setBlock(BlockPosition pos, Material m){
 	
 	Area* a = it->second;
 	
-	if(a->state != Area::STATE_READY)
+	if(it->second->state < Area::STATE_WAITING_FOR_BORDERS || it->second->state > Area::STATE_READY)
 		throw NotLoadedException();
 
 	/*if(a->empty && m)

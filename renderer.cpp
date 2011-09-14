@@ -3,6 +3,7 @@
 #include <vector>
 #include <stack>
 #include <SDL_image.h> 
+#include <SDL_thread.h>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -255,7 +256,7 @@ void Renderer::generateArea(Area* area) {
 		area->delete_collision(c->movement->dynamicsWorld);
 	}
 	
-	if((area->needupdate_poly || area->needupdate_gl || (!area->bullet_generated && generate_bullet)) && (areasRendered <= areasPerFrame)) {
+	if((area->needupdate_gl || (!area->bullet_generated && generate_bullet)) && (areasRendered <= areasPerFrame)) {
 		
 		areasRendered++;
 		
@@ -264,8 +265,6 @@ void Renderer::generateArea(Area* area) {
 		
 		area->bullet_generated = generate_bullet;
 		
-		if(area->needupdate_poly)
-			area->recalc_polys();
 		area->needupdate_gl = 0;
 		
 		if(area->polys_list) {	
@@ -533,7 +532,14 @@ void Renderer::render(PlayerPosition pos, double eye)
 		a->show = areaInViewport(a->pos, pos);
 		areas_in_viewport += a->show;
 		if(a->state == Area::STATE_READY && (a->show || areasRendered < 0)) {
-			generateArea(a);
+			if(a->needupdate_poly) {
+				SDL_LockMutex(c->map->queue_mutex);
+				c->map->to_generate.push_front(a);
+				a->state = Area::STATE_GENERATE;
+				SDL_UnlockMutex(c->map->queue_mutex);
+			} else {
+				generateArea(a);
+			}
 		}
 		vertex_saved += a->vbo_size();
 		area_saved += AREASIZE*sizeof(Material);
@@ -591,7 +597,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	glColor4f(1,1,1,0.5);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
-		if(a->state == Area::STATE_READY && a->show) {
+		if(a->state >= Area::STATE_GENERATE && a->show) {
 			for(int d=0; d<DIRECTION_COUNT; d++) if(!a->dijsktra_direction_used[d]) {
 				renderArea(a,d);
 				vertex_displayed += a->polygons_count(d);
@@ -607,7 +613,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	glBlendFunc(GL_ZERO, GL_ONE);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
-		if(a->state == Area::STATE_READY && a->show) {
+		if(a->state >= Area::STATE_GENERATE && a->show) {
 			renderArea(a,6);
 			vertex_displayed += a->polygons_count(6);
 			displayed_vbos++;
@@ -618,7 +624,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	glBlendFunc(GL_ONE, GL_SRC_COLOR);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
-		if(a->state == Area::STATE_READY && a->show) {
+		if(a->state >= Area::STATE_GENERATE && a->show) {
 			renderArea(a,6);
 			vertex_displayed += a->polygons_count(6);
 			displayed_vbos++;
