@@ -608,6 +608,8 @@ void Renderer::render(PlayerPosition pos, double eye)
 		}
 	}
 	
+	renderObjects();
+	
 	int solid = SDL_GetTicks()-generate-init-start;
 	
 	glEnable(GL_BLEND);
@@ -638,7 +640,6 @@ void Renderer::render(PlayerPosition pos, double eye)
 	
 	int trans = SDL_GetTicks()-solid-generate-init-start;
 	
-	renderObjects();
 	
 	stats[0] = std::max<double>(stats[0]*0.99, init);
 	stats[1] = std::max<double>(stats[1]*0.99, generate);
@@ -729,8 +730,8 @@ void Renderer::renderObjects() {
 			int tex = it->first % (NUMBER_OF_MATERIALS-1) + 1;
 			
 			glTranslatef(p.x, p.y, p.z);
-			glRotatef(p.orientationVertical,0.0f,1.0f,0.0f);
-			glRotatef(-p.orientationHorizontal,0.0f,0.0f,1.0f);
+			glRotatef(p.orientationHorizontal,0.0f,0.0f,1.0f);
+			glRotatef(-p.orientationVertical,0.0f,1.0f,0.0f);
 			
 			//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
 			glBegin( GL_QUADS );
@@ -744,9 +745,9 @@ void Renderer::renderObjects() {
 						(TEXTUR_POSITION_OF_DIRECTION[i][point][1]+tex/16)/16.0
 					);
 					glVertex3f(
-						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.6,
-						(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.6,
-						(POINTS_OF_DIRECTION[i][point][2]*2-1)*1.5
+						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.6/2,
+						(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.6/2,
+						(POINTS_OF_DIRECTION[i][point][2]*2-1)*1.5/2-0.5
 					);
 				}
 			}
