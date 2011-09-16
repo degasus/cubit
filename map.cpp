@@ -250,28 +250,29 @@ void Map::setPosition(PlayerPosition pos)
 	
 	while(!network->recv_push_area_empty()){
 		bytes = network->recv_push_area(&bPos, buffer, &rev);
-		a = getOrCreate(bPos);
-		if(bytes){
-			a->revision = rev;
-			a->allocm();
-			memcpy(a->m, buffer, bytes);
-			a->empty = 0;
+		it = areas.find(bPos);
+		if(it != areas.end() && it->second->state == Area::STATE_NET_LOAD) {
+			a = it->second;
+			if(bytes){
+				a->revision = rev;
+				a->allocm();
+				memcpy(a->m, buffer, bytes);
+				a->empty = 0;
+				
+				areas[a->pos] = a;
+			}
+			else if(rev>0){
+				a->empty = 1;
+				a->revision = rev;
+			}
+			network->send_join_area(a->pos, a->revision);
+			a->recalc();
+			dijsktra_queue.push(a);
 			
-			areas[a->pos] = a;
-		}
-		else if(rev>0){
-			a->empty = 1;
-			a->revision = rev;
-		}
-		network->send_join_area(a->pos, a->revision);
-		a->recalc();
-		dijsktra_queue.push(a);
-		
-		for (int i=0; i<DIRECTION_COUNT; i++)
-			if (a->next[i])
-				a->next[i]->needupdate_poly = 1;
-			
-		if(a->state == Area::STATE_NET_LOAD) {
+			for (int i=0; i<DIRECTION_COUNT; i++)
+				if (a->next[i])
+					a->next[i]->needupdate_poly = 1;
+				
 			a->state = Area::STATE_READY;
 			if (!a->empty) {
 				if(a->hasallneighbor()) {
@@ -287,7 +288,6 @@ void Map::setPosition(PlayerPosition pos)
 					a->next[i]->hasallneighbor()) {
 					to_generate.push_back(a->next[i]);
 					a->next[i]->state = Area::STATE_GENERATE;
-					//std::cout << "rendere Area2 " << a->next[i]->pos.to_string() << std::endl;
 				}
 			}
 		} else {

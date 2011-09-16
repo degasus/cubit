@@ -305,8 +305,8 @@ void Renderer::generateArea(Area* area) {
 					
 					//std::cout << k << " " << diffx << " " << diffy << " " << diffz << std::endl;
 					
-					for(int k=0; k < sizeof(points)/sizeof(int); k++) {
-						int point = points[k];
+					for(int j=0; j < sizeof(points)/sizeof(int); j++) {
+						int point = points[j];
 						//assert(vbocounter < size);
 						
 						// texture
@@ -684,6 +684,7 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 void Renderer::renderObjects() {
 	glBindTexture( GL_TEXTURE_2D, texture[0] );
 	{
+#ifdef ENABLE_OBJETS
 		std::list<MovingObject*>::iterator it;
 		for(it = c->map->objects.begin(); it != c->map->objects.end(); it++) {
 			glPushMatrix();
@@ -715,6 +716,7 @@ void Renderer::renderObjects() {
 
 			glPopMatrix();
 		}
+#endif
 	} {
 		std::map<int, PlayerPosition>::iterator it;
 		for(it = c->map->otherPlayers.begin(); it != c->map->otherPlayers.end(); it++) {

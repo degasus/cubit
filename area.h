@@ -42,11 +42,11 @@ public:
 	
 #ifdef USE_GLLIST
 	// for saving the GL-List
-	uint gllist;
+	unsigned int gllist;
 	bool   gllist_generated;
 #endif
 #ifdef USE_VBO	
-	uint vbo[NUMBER_OF_LISTS];
+	unsigned int vbo[NUMBER_OF_LISTS];
 	bool   vbo_generated;
 #endif
 	int    vbo_length[NUMBER_OF_LISTS];

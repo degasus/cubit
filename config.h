@@ -9,11 +9,13 @@
 
 #define USE_VBO
 //#define USE_GLLIST
+#define ENABLE_OBJETS
 
 #else
 
 //#define USE_VBO
-#define USE_GLLIST
+//#define USE_GLLIST
+//#define ENABLE_OBJETS
 
 #endif
 

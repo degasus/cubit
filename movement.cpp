@@ -718,6 +718,7 @@ void Movement::removeBlock()
 }
 
 void Movement::throwBlock(){
+#ifdef ENABLE_OBJETS
 	btConvexShape* s = new btBoxShape (btVector3(0.1,0.1,0.1));
 	btVector3 localInertia(0,0,0);
 	s->calculateLocalInertia(0.01,localInertia);
@@ -752,6 +753,9 @@ void Movement::throwBlock(){
 		delete o;
 		c->map->objects.pop_front();
 	}
+#else
+	std::cout << "plz activate ENABLE_OBJETS" << std::endl;
+#endif
 }
 
 void Movement::calcElevator()

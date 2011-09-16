@@ -31,6 +31,7 @@ class AreaEmptyException {};
 
 #include "area.h"
 
+#ifdef ENABLE_OBJETS
 class MovingObject : public btRigidBody {
 public:
 	MovingObject(btRigidBodyConstructionInfo body) :  btRigidBody(body) {
@@ -40,6 +41,7 @@ public:
 	int tex;
 	btMotionState *m;
 };
+#endif
 
 /**
  * Sorgt für das Laden der Karteninformation von Server
@@ -94,7 +96,9 @@ public:
 	
 	std::set<Area*> areas_with_gllist;
 	
+#ifdef ENABLE_OBJETS
 	std::list<MovingObject*> objects;
+#endif
 	
 	std::map<int, PlayerPosition> otherPlayers;
     
