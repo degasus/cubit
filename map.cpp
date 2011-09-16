@@ -258,11 +258,21 @@ void Map::setPosition(PlayerPosition pos)
 				a->empty = 0;
 				
 				areas[a->pos] = a;
+				
+				if(storeMaps) {
+					to_save_hdd.push(a);
+				}
 			}
 			else if(rev>0){
 				a->empty = 1;
 				a->revision = rev;
+				
+				if(storeMaps) {
+					to_save_hdd.push(a);
+				}
+			} else {
 			}
+			
 			network->send_join_area(a->pos, a->revision);
 			a->recalc();
 			dijsktra_queue.push(a);
@@ -334,36 +344,6 @@ void Map::setPosition(PlayerPosition pos)
 	
 	network->send_player_position(pos);;
 	
-	/*while (!loaded_net.empty()) {
-		Area* a = loaded_net.front();
-		loaded_net.pop();
-		
-		if (a->state == Area::STATE_NET_LOADED) {
-			areas[a->pos] = a;
-			a->state = Area::STATE_READY;
-			
-			for (int i=0; i<DIRECTION_COUNT; i++)
-				if (a->next[i])
-					a->next[i]->needupdate = 1;
-				
-				if (!a->empty)
-					areas_with_gllist.insert(a);
-		}
-	}*/
-	
-	/*
-	while(!saved.empty()) {
-		Area* a = saved.front();
-		saved.pop();
-		
-		iterator it = areas.find(a->pos);
-		if(it->second->state == Area::STATE_DELETE) {
-			delete a;
-		}
-	}
-	*/
-
-	
 	BlockPosition p = pos.block().area();
 	
 	if(lastpos != p) {
@@ -372,9 +352,6 @@ void Map::setPosition(PlayerPosition pos)
 	}
 	
 	if(!inital_loaded) {
-		// reset queue
-		//while(!dijsktra_queue.empty())
-		//	dijsktra_queue.pop();
 		
 		// load actual position
 		Area* a = getOrCreate(p);
@@ -416,9 +393,16 @@ void Map::setPosition(PlayerPosition pos)
 						for(int d=0; d<DIRECTION_COUNT; d++)
 							b->dijsktra_direction_used[d] = a->dijsktra_direction_used[d] || (i==d);
 						if(b->state == Area::STATE_NEW) {
-							b->state = Area::STATE_HDD_LOAD;
-							to_load_hdd.push(b);
+							if(storeMaps) {
+								b->state = Area::STATE_HDD_LOAD;
+								to_load_hdd.push(b);
+							} else {
+								b->state = Area::STATE_NET_LOAD;
+								network->send_get_area(b->pos, b->revision);
+							}
 						} else {
+							if(b->state != Area::STATE_READY)
+								std::cout << "FIXME, found state " << b->state << std::endl;
 							dijsktra_queue.push(b);
 						}
 					}
@@ -446,11 +430,15 @@ void Map::setPosition(PlayerPosition pos)
 			areas_with_gllist.erase(a);
 			areas.erase(a->pos);
 			a->state = Area::STATE_DELETE;
-			to_save_hdd.push(a);
+			if(a->needstore && storeMaps) {
+				to_save_hdd.push(a);
+			}
+			a->needstore = 0;
 			//network->send_leave_area(a->pos);
 		} else if(a->needstore && a->state == Area::STATE_READY) {
 			a->needstore = 0;
-			to_save_hdd.push(a);
+			if(storeMaps)
+				to_save_hdd.push(a);
 		}
 	} 
 	//std::cout << "dijsktra usage: " << k << std::endl;
