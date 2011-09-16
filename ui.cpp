@@ -40,7 +40,7 @@ void UInterface::init()
 {
 
 	// load support for the JPG and PNG image formats
-	int flags=IMG_INIT_JPG|IMG_INIT_PNG;
+	int flags=IMG_INIT_JPG;
 	int initted=IMG_Init(flags);
 	if((initted & flags) != flags) {
 		printf("IMG_Init: Failed to init required jpg and png support!\n");

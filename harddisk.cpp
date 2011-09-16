@@ -14,7 +14,11 @@ namespace fs = boost::filesystem;
 Harddisk::Harddisk(std::string filename)
 {
 	if(filename == "") {
+#ifdef __WIN32__
+		fs::path home = fs::path(std::getenv("APPDATA"));
+#else
 		fs::path home = fs::path(std::getenv("HOME"));
+#endif
 		filename = (home / ".cubit" / "cubit.db").string();
 	}
 	

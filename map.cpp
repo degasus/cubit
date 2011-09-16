@@ -7,12 +7,10 @@
 #include <stdio.h>
 #include <cstdio>
 
-
 #include "config.h"
 #include "controller.h"
 
 #include "map.h"
-
 #include "zlib.h"
 #include <SDL_net.h>
 #include "harddisk.h"
@@ -72,7 +70,7 @@ void Map::config(const boost::program_options::variables_map& c)
 	
 	network = new Network(c["server"].as<std::string>().c_str(),PORT);
 	
-	disk = new Harddisk((c["workingDirectory"].as<boost::filesystem::path>() / "cubit.db").string());	
+	disk = new Harddisk(/*(c["workingDirectory"].as<boost::filesystem::path>() / "cubit.db").string()*/);	
 }
 
 int threaded_read_from_harddisk(void* param) {

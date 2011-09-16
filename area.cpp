@@ -258,6 +258,8 @@ void Area::recalc_polys()
 	}
 	if(polys_count) {
 		
+#ifdef ENABLE_POLYGON_REDUCE
+
 		for(int l=0; l<NUMBER_OF_LISTS; l++) {
 			for(int i=0; i<polys[l].size(); i++) {
 				polygon p1 = polys[l].front();
@@ -308,7 +310,7 @@ void Area::recalc_polys()
 			}
 		}
 		
-		
+#endif 
 		
 		
 		polys_list = new polygon[polys_count];
