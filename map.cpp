@@ -254,8 +254,6 @@ void Map::setPosition(PlayerPosition pos)
 			}
 			
 			network->send_join_area(a->pos, a->revision);
-			a->recalc();
-			dijsktra_queue.push(a);
 			
 			for (int i=0; i<DIRECTION_COUNT; i++)
 				if (a->next[i])
@@ -278,6 +276,9 @@ void Map::setPosition(PlayerPosition pos)
 					a->next[i]->state = Area::STATE_GENERATE;
 				}
 			}
+			
+			a->recalc();
+			dijsktra_queue.push(a);
 		} else {
 			std::cout << "push area recv but no get area send, state: " << a->state << std::endl;
 		}
@@ -304,7 +305,10 @@ void Map::setPosition(PlayerPosition pos)
 					areas_with_gllist.insert(a->next[d]);
 				}
 			}
-			dijsktra_queue.push(a);
+			if(a->state >= Area::STATE_WAITING_FOR_BORDERS)
+				dijsktra_queue.push(a);
+			else
+				std::cout << "unknown state in update_block: " << a->state << std::endl;
 		} else {
 			std::cout << "NotLoadedException recv_update_block_empty" << std::endl;
 		}
@@ -332,15 +336,17 @@ void Map::setPosition(PlayerPosition pos)
 	}
 	
 	if(!inital_loaded) {
-		
+		std::cout << "start dijstra at " << p.to_string() << std::endl;
 		// load actual position
 		Area* a = getOrCreate(p);
 		if(a->state == Area::STATE_NEW) {
 			a->state = Area::STATE_HDD_LOAD;
 			to_load_hdd.push(a);
-		} else {
+		} else if(a->state >= Area::STATE_WAITING_FOR_BORDERS){
 			// add it to queue		
 			dijsktra_queue.push(a);
+		} else {
+			std::cout << "FIXME: unknown statein initial found. state " << a->state << std::endl;
 		}
 		a->dijsktra_distance = 0;
 		inital_loaded = 1;
@@ -381,9 +387,10 @@ void Map::setPosition(PlayerPosition pos)
 								network->send_get_area(b->pos, b->revision);
 							}
 						} else {
-							if(b->state != Area::STATE_READY)
-								std::cout << "FIXME, found state " << b->state << std::endl;
-							dijsktra_queue.push(b);
+							if(b->state < Area::STATE_WAITING_FOR_BORDERS)
+								std::cout << "FIXME, found state in dijsktra: " << b->state << std::endl;
+							else
+								dijsktra_queue.push(b);
 						}
 					}
 				}
