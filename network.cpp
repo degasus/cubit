@@ -145,9 +145,7 @@ void Network::run () {
 					toremove = read_client(client) < 0;
 				}
 				if(toremove) {
-					SDL_LockMutex(mutex);
 					remove_client(client);
-					SDL_UnlockMutex(mutex);
 				} else {
 					client_sockets.push(client);
 				}
@@ -263,8 +261,10 @@ int Network::read_client ( Client* c ) {
 }
 
 void Network::remove_client(Client* client) {
+	SDL_LockMutex(mutex);
 	queue_recv_player_quit.push(client->clientid);
 	client_map.erase(client->clientid);
+	SDL_UnlockMutex(mutex);
 	if(SDLNet_TCP_DelSocket(set_socket,client->socket)==-1) {
 		printf("SDLNet_DelSocket: %s\n", SDLNet_GetError());
 		// perhaps the socket is not in the set
@@ -292,6 +292,7 @@ void Network::send_queues() {
 	SDLNet_Write16(16,buffer+1);
 	while(!queue_send_get_area.empty()) {
 		StructGetArea s = queue_send_get_area.front();
+		SDL_UnlockMutex(mutex);
 		SDLNet_Write32(s.pos.x, buffer+3);
 		SDLNet_Write32(s.pos.y, buffer+7);
 		SDLNet_Write32(s.pos.z, buffer+11);
@@ -301,12 +302,14 @@ void Network::send_queues() {
 		{
 			remove_client(it->second);
 		}
+		SDL_LockMutex(mutex);
 		queue_send_get_area.pop();
 	}
 	
 	buffer[0] = (char)PUSH_AREA;
 	while(!queue_send_push_area.empty()) {
 		StructPushArea s = queue_send_push_area.front();
+		SDL_UnlockMutex(mutex);
 		SDLNet_Write16(s.length+16,buffer+1);
 		SDLNet_Write32(s.pos.x, buffer+3);
 		SDLNet_Write32(s.pos.y, buffer+7);
@@ -319,6 +322,7 @@ void Network::send_queues() {
 		{
 			remove_client(it->second);
 		}
+		SDL_LockMutex(mutex);
 		queue_send_push_area.pop();
 	}
 	
@@ -326,6 +330,7 @@ void Network::send_queues() {
 	SDLNet_Write16(16,buffer+1);
 	while(!queue_send_join_area.empty()) {
 		StructJoinArea s = queue_send_join_area.front();
+		SDL_UnlockMutex(mutex);
 		SDLNet_Write32(s.pos.x, buffer+3);
 		SDLNet_Write32(s.pos.y, buffer+7);
 		SDLNet_Write32(s.pos.z, buffer+11);
@@ -335,6 +340,7 @@ void Network::send_queues() {
 		{
 			remove_client(it->second);
 		}
+		SDL_LockMutex(mutex);
 		queue_send_join_area.pop();
 	}
 	
@@ -342,6 +348,7 @@ void Network::send_queues() {
 	SDLNet_Write16(12,buffer+1);
 	while(!queue_send_leave_area.empty()) {
 		StructLeaveArea s = queue_send_leave_area.front();
+		SDL_UnlockMutex(mutex);
 		SDLNet_Write32(s.pos.x, buffer+3);
 		SDLNet_Write32(s.pos.y, buffer+7);
 		SDLNet_Write32(s.pos.z, buffer+11);
@@ -350,6 +357,7 @@ void Network::send_queues() {
 		{
 			remove_client(it->second);
 		}
+		SDL_LockMutex(mutex);
 		queue_send_leave_area.pop();
 	}
 	
@@ -357,6 +365,7 @@ void Network::send_queues() {
 	SDLNet_Write16(17,buffer+1);
 	while(!queue_send_update_block.empty()) {
 		StructUpdateBlock s = queue_send_update_block.front();
+		SDL_UnlockMutex(mutex);
 		SDLNet_Write32(s.pos.x, buffer+3);
 		SDLNet_Write32(s.pos.y, buffer+7);
 		SDLNet_Write32(s.pos.z, buffer+11);
@@ -367,6 +376,7 @@ void Network::send_queues() {
 		{
 			remove_client(it->second);
 		}
+		SDL_LockMutex(mutex);
 		queue_send_update_block.pop();
 	}
 	
@@ -374,6 +384,7 @@ void Network::send_queues() {
 	SDLNet_Write16(44,buffer+1);
 	while(!queue_send_player_position.empty()) {
 		StructPlayerPosition s = queue_send_player_position.front();
+		SDL_UnlockMutex(mutex);
 		SDLNet_Write32(s.playerid, buffer+3);
 		((double*)(buffer+7))[0] = s.pos.x;
 		((double*)(buffer+7))[1] = s.pos.y;
@@ -385,6 +396,7 @@ void Network::send_queues() {
 		{
 			remove_client(it->second);
 		}
+		SDL_LockMutex(mutex);
 		queue_send_player_position.pop();
 	}
 		
