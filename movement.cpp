@@ -854,3 +854,8 @@ int Movement::getLastAvailableMaterial(int startMat)
 	
 	return startMat;
 }
+
+std::string Movement::debug_msg() {
+	return std::string("Position: ") + position.to_string();
+}
+

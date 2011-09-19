@@ -107,6 +107,9 @@ public:
 
 	//Get block and plane the user is pointing on
 	bool getPointingOn(BlockPosition* block, DIRECTION* plane);
+	
+	// get the position as debug info
+	std::string debug_msg();
 
 //private:
 	//Meta

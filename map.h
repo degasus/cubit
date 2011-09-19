@@ -90,6 +90,8 @@ public:
 	void read_from_harddisk();
 	void generator();
 	
+	std::string debug_msg();
+	
 	std::map<BlockPosition, Area*> areas;
 	typedef std::map<BlockPosition, Area*>::iterator iterator;
 	

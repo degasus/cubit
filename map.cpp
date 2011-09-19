@@ -205,27 +205,7 @@ void Map::setPosition(PlayerPosition pos)
 {	
 	SDL_LockMutex(queue_mutex);
 	Area* a;
-	
-/*	std::string strings[12] = {"new", "hddload", "hddloaded", "hddnotfound", 
-								"netload", "netloaded", "netnotfound",
-								"waiting", "generate", "generated", "ready", "delete"
-	};
 		
-	int states[12];
-	for(int i=0; i<12; i++) {
-		states[i] = 0;
-	}
-	std::map<BlockPosition,Area*>::iterator myit;
-	for(myit=areas.begin(); myit!=areas.end(); myit++) {
-		states[myit->second->state]++;
-	}
-	std::cout << "States: ";
-	for(int i=0; i<12; i++) {
-		if(states[i])
-			std::cout << strings[i] << ": " << states[i] << ", ";
-	}
-	std::cout << std::endl;
-*/	
 	while(!loaded_hdd.empty()) {
 		
 		a = loaded_hdd.front();
@@ -510,4 +490,48 @@ void Map::setBlock(BlockPosition pos, Material m){
 	a->set(pos,m);*/
 	
 	network->send_update_block(pos, m);
+}
+
+std::string Map::debug_msg() {
+	std::ostringstream o;
+	
+	size_t areas_self;
+	size_t areas_materials;
+	size_t areas_polys;
+	size_t areas_vbo;
+	
+	int states[12];
+	for(int i=0; i<12; i++) {
+		states[i] = 0;
+	}
+	
+	for(iterator it=areas.begin(); it!=areas.end(); it++) {
+		areas_self += sizeof(Area);
+		if(!it->second->empty)
+			areas_materials += AREASIZE;
+		for(int i=0; i<NUMBER_OF_LISTS; i++) {
+			areas_polys += it->second->polys_list_size[i] * sizeof(polygon);
+			areas_vbo += it->second->vbo_length[i]*sizeof(float);
+		}
+		
+		
+		states[it->second->state]++;
+	}
+	areas_self /= 1024*1024;
+	areas_materials /= 1024*1024;
+	areas_polys /= 1024*1024;
+	areas_vbo /= 1024*1024;
+	
+	std::string strings[12] = {"new", "hddload", "hddloaded", "hddnotfound", 
+								"netload", "netloaded", "netnotfound",
+								"waiting", "generate", "generated", "ready", "delete"
+	};
+
+	o << "Map: " << areas_self << "+" << areas_materials << "+" << areas_polys << "+" << areas_vbo << " MB";
+	o << ", Dijstra: " << dijsktra_queue.size() << ", States: ";	
+	for(int i=0; i<12; i++) {
+		if(states[i])
+			o << strings[i] << " " << states[i] << ", ";
+	}
+	return o.str();
 }
