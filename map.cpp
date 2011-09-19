@@ -211,7 +211,7 @@ void Map::setPosition(PlayerPosition pos)
 		a = loaded_hdd.front();
 		loaded_hdd.pop();
 		a->state = Area::STATE_NET_LOAD;
-		network->send_get_area(a->pos, a->revision);
+		network->send_join_area(a->pos, a->revision);
 	}
 	
 	BlockPosition bPos;
@@ -252,8 +252,6 @@ void Map::setPosition(PlayerPosition pos)
 				}
 			} else {
 			}
-			
-			network->send_join_area(a->pos, a->revision);
 			
 			for (int i=0; i<DIRECTION_COUNT; i++)
 				if (a->next[i])
@@ -339,7 +337,7 @@ void Map::setPosition(PlayerPosition pos)
 	}
 	
 	if(!inital_loaded) {
-		std::cout << "start dijstra at " << p.to_string() << std::endl;
+		//std::cout << "start dijstra at " << p.to_string() << std::endl;
 		// load actual position
 		Area* a = getOrCreate(p);
 		if(a->state == Area::STATE_NEW) {
@@ -387,7 +385,7 @@ void Map::setPosition(PlayerPosition pos)
 								to_load_hdd.push(b);
 							} else {
 								b->state = Area::STATE_NET_LOAD;
-								network->send_get_area(b->pos, b->revision);
+								network->send_join_area(b->pos, b->revision);
 							}
 						} else if(b->state >= Area::STATE_WAITING_FOR_BORDERS) {
 							dijsktra_queue.push(b);
@@ -414,6 +412,7 @@ void Map::setPosition(PlayerPosition pos)
 		}
 		
 		if(a->dijsktra_distance > deleteRange && a->state == Area::STATE_READY) {
+			network->send_leave_area(a->pos);
 			a->deconfigure();
 			a->delete_collision(c->movement->dynamicsWorld);
 			areas_with_gllist.erase(a);
@@ -421,9 +420,10 @@ void Map::setPosition(PlayerPosition pos)
 			a->state = Area::STATE_DELETE;
 			if(a->needstore && storeMaps) {
 				to_save_hdd.push(a);
+				a->needstore = 0;
+			} else {
+				delete a;
 			}
-			a->needstore = 0;
-			//network->send_leave_area(a->pos);
 		} else if(a->needstore && a->state == Area::STATE_READY) {
 			a->needstore = 0;
 			if(storeMaps)

@@ -81,11 +81,25 @@ void UInterface::init()
 
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 	if(enableAntiAliasing){
-		std::cout << SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) << std::endl;
-		std::cout << SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4) << std::endl;
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 	}
 
-	initWindow();
+	bool success = initWindow();
+	
+	if(!success && enableAntiAliasing) {
+		enableAntiAliasing = 0;
+		std::cout << "Antialiasing not supported, so it will be disabled" << std::endl;
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+		
+		success = initWindow();
+	}
+	
+	if(!success) {
+		std::cout << "Could not create display" << std::endl;
+		SDL_Quit();
+	}
 
 	int err = glewInit();
 	if (GLEW_OK != err) {
@@ -148,7 +162,7 @@ void UInterface::config(const boost::program_options::variables_map &c)
 }
 
 
-void UInterface::initWindow()
+bool UInterface::initWindow()
 {
 	if (isFullscreen) {
 		const SDL_VideoInfo *vi = SDL_GetVideoInfo();
@@ -161,11 +175,11 @@ void UInterface::initWindow()
 		screen = SDL_SetVideoMode( screenX, screenY, 32, SDL_OPENGL | SDL_RESIZABLE );
 	}
 
-	SDL_WM_SetCaption("Cubit Alpha 0.0.4","Cubit Alpha 0.0.4");
+	SDL_WM_SetCaption("Cubit Alpha 0.0.5","Cubit Alpha 0.0.5");
 
 	if ( !screen ) {
 		printf("Unable to set video mode: %s\n", SDL_GetError());
-		SDL_Quit();
+		return 0;
 	} else {
 
 		if(catchMouse) {
@@ -177,6 +191,7 @@ void UInterface::initWindow()
 
 		glViewport(0, 0, screenX, screenY);	// Reset The Current Viewport
 	}
+	return 1;
 }
 
 /*
