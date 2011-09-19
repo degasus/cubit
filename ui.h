@@ -46,7 +46,7 @@ private:
 	//Meta
 	bool sandboxMode;
 	
-	void initWindow();
+	bool initWindow();
 	
 	void redraw();
 	

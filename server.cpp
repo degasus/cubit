@@ -130,7 +130,9 @@ void Server::run() {
 			bPos = network->recv_join_area(&rev, &connection);
 			joined_clients[bPos].insert(connection);
 			bytes = harddisk->readArea(bPos, buffer, &rev2, true, 64*1024+3);
-			if(rev != rev2)
+			if(rev == rev2)
+				network->send_push_area(bPos, 0, 0, 0, true, connection);
+			else
 				network->send_push_area(bPos, rev2, buffer, bytes, true, connection);
 		}
 		
