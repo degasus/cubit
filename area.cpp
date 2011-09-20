@@ -208,16 +208,29 @@ void Area::recalc_polys()
 	
 	int polys_count = 0;
 	
-	for(int x=pos.x; x<AREASIZE_X+pos.x; x++)
-	for(int y=pos.y; y<AREASIZE_Y+pos.y; y++)
-	for(int z=pos.z; z<AREASIZE_Z+pos.z; z++)  {
+	for(int dir=0; dir < DIRECTION_COUNT; dir++) {
+		
+		polygon array[AREASIZE_X][AREASIZE_Y][AREASIZE_Z];
+		
+		for(int x=pos.x; x<AREASIZE_X+pos.x; x++)
+		for(int y=pos.y; y<AREASIZE_Y+pos.y; y++)
+		for(int z=pos.z; z<AREASIZE_Z+pos.z; z++)  {
 
-		BlockPosition pos = BlockPosition::create(x,y,z);
-
-	 	Material now = get(pos);
-		if(now) { 
-			emptynew = 0;
-			for(int dir=0; dir < DIRECTION_COUNT; dir++) /*if(!area->dijsktra_direction_used[dir])*/{
+			BlockPosition pos = BlockPosition::create(x,y,z);
+			
+			polygon p;
+			p.posx = x-this->pos.x;
+			p.posy = y-this->pos.y;
+			p.posz = z-this->pos.z;
+			p.dir = dir;
+			p.sizex = 0;
+			p.sizey = 0;
+			p.sizez = 0;
+			p.m = 0;
+				
+			Material now = get(pos);
+			if(now) { 
+				emptynew = 0; 
 				BlockPosition next = pos+(DIRECTION)dir;
 
 				Material next_m;
@@ -230,25 +243,74 @@ void Area::recalc_polys()
 				
 				// Material 9 = water
 				if(!next_m || (next_m == 9 && now != next_m )) {
-					polygon p;
-					p.posx = x-this->pos.x;
-					p.posy = y-this->pos.y;
-					p.posz = z-this->pos.z;
 					p.sizex = 1;
 					p.sizey = 1;
 					p.sizez = 1;
-					p.dir = dir;
 					p.m = now;
-					
-					//std::cout << int(p.posx) << " " << int(p.posy) << " " << int(p.posz) << std::endl;
-					
-					if(now == 9) {
-						polys[6].push(p);
-					} else {
-						polys[dir].push(p);
-					}
-					polys_count++;
 				}
+			}
+			array[p.posx][p.posy][p.posz] = p;
+		}
+		
+#ifdef ENABLE_POLYGON_REDUCE
+		for(int x=0; x<AREASIZE_X; x++)
+		for(int y=0; y<AREASIZE_Y; y++)
+		for(int z=0; z<AREASIZE_Z; z++) {
+			while(	array[x][y][z].sizex && x+array[x][y][z].sizex < AREASIZE_X &&
+					array[x][y][z].m     == array[x+array[x][y][z].sizex][y][z].m &&
+					array[x][y][z].sizey == array[x+array[x][y][z].sizex][y][z].sizey &&
+					array[x][y][z].sizez == array[x+array[x][y][z].sizex][y][z].sizez) {
+				int posx = x+array[x][y][z].sizex;
+				array[x][y][z].sizex += array[posx][y][z].sizex;
+				array[posx][y][z].m = 0;
+				array[posx][y][z].sizex = 0;
+				array[posx][y][z].sizey = 0;
+				array[posx][y][z].sizez = 0;
+			}
+		}
+		
+		for(int x=0; x<AREASIZE_X; x++)
+		for(int y=0; y<AREASIZE_Y; y++)
+		for(int z=0; z<AREASIZE_Z; z++) {
+			while(	array[x][y][z].sizey && y+array[x][y][z].sizey < AREASIZE_Y &&
+					array[x][y][z].m     == array[x][y+array[x][y][z].sizey][z].m &&
+					array[x][y][z].sizex == array[x][y+array[x][y][z].sizey][z].sizex &&
+					array[x][y][z].sizez == array[x][y+array[x][y][z].sizey][z].sizez) {
+				int posy = y+array[x][y][z].sizey;
+				array[x][y][z].sizey += array[x][posy][z].sizey;
+				array[x][posy][z].m = 0;
+				array[x][posy][z].sizex = 0;
+				array[x][posy][z].sizey = 0;
+				array[x][posy][z].sizez = 0;
+			}
+		}
+		
+		for(int x=0; x<AREASIZE_X; x++)
+		for(int y=0; y<AREASIZE_Y; y++)
+		for(int z=0; z<AREASIZE_Z; z++) {
+			while(	array[x][y][z].sizez && z+array[x][y][z].sizez < AREASIZE_Z &&
+					array[x][y][z].m     == array[x][y][z+array[x][y][z].sizez].m &&
+					array[x][y][z].sizex == array[x][y][z+array[x][y][z].sizez].sizex &&
+					array[x][y][z].sizey == array[x][y][z+array[x][y][z].sizez].sizey) {
+				int posz = z+array[x][y][z].sizez;
+				array[x][y][z].sizez += array[x][y][posz].sizez;
+				array[x][y][posz].m = 0;
+				array[x][y][posz].sizex = 0;
+				array[x][y][posz].sizey = 0;
+				array[x][y][posz].sizez = 0;
+			}
+		}
+#endif
+		for(int x=0; x<AREASIZE_X; x++)
+		for(int y=0; y<AREASIZE_Y; y++)
+		for(int z=0; z<AREASIZE_Z; z++) {
+			if(array[x][y][z].m) {
+				if(array[x][y][z].m == 9) {
+					polys[6].push(array[x][y][z]);
+				} else {
+					polys[dir].push(array[x][y][z]);
+				}
+				polys_count++;
 			}
 		}
 	}
@@ -257,62 +319,6 @@ void Area::recalc_polys()
 		empty = 1;
 	}
 	if(polys_count) {
-		
-#ifdef ENABLE_POLYGON_REDUCE
-
-		for(int l=0; l<NUMBER_OF_LISTS; l++) {
-			for(int i=0; i<polys[l].size(); i++) {
-				polygon p1 = polys[l].front();
-				polys[l].pop();
-				
-				for(int k=0; k<polys[l].size(); k++) {
-					polygon p2 = polys[l].front();
-					polys[l].pop();
-					
-					bool toremove = false;
-					
-					if( p1.dir == p2.dir &&
-						p1.m   == p2.m
-					) {
-						if( p1.posx + p1.sizex == p2.posx &&
-							p1.posy == p2.posy && p1.sizey == p2.sizey &&
-							p1.posz == p2.posz && p1.sizez == p2.sizez
-						) {
-							p1.sizex += p2.sizex;
-							toremove = true;
-						} else
-						if( p1.posx == p2.posx && p1.sizex == p2.sizex &&
-							p1.posy + p1.sizey == p2.posy &&
-							p1.posz == p2.posz && p1.sizez == p2.sizez
-						) {
-							p1.sizey += p2.sizey;
-							toremove = true;
-						} else
-						if( p1.posx == p2.posx && p1.sizex == p2.sizex &&
-							p1.posy == p2.posy && p1.sizey == p2.sizey &&
-							p1.posz + p1.sizez == p2.posz 
-						) {
-							p1.sizez += p2.sizez;
-							toremove = true;
-						}
-					}
-					
-					if(!toremove) {
-						polys[l].push(p2);
-					} else {
-						polys_count--;
-						i = 0;
-						k = 0;
-					}
-				}
-				
-				polys[l].push(p1);
-			}
-		}
-		
-#endif 
-		
-		
 		polys_list = new polygon[polys_count];
 		polys_count = 0;
 		
