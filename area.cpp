@@ -223,9 +223,9 @@ void Area::recalc_polys()
 			p.posy = y-this->pos.y;
 			p.posz = z-this->pos.z;
 			p.dir = dir;
-			p.sizex = 0;
-			p.sizey = 0;
-			p.sizez = 0;
+			p.sizex = 1;
+			p.sizey = 1;
+			p.sizez = 1;
 			p.m = 0;
 				
 			Material now = get(pos);
@@ -243,9 +243,6 @@ void Area::recalc_polys()
 				
 				// Material 9 = water
 				if(!next_m || (next_m == 9 && now != next_m )) {
-					p.sizex = 1;
-					p.sizey = 1;
-					p.sizez = 1;
 					p.m = now;
 				}
 			}
@@ -256,48 +253,39 @@ void Area::recalc_polys()
 		for(int x=0; x<AREASIZE_X; x++)
 		for(int y=0; y<AREASIZE_Y; y++)
 		for(int z=0; z<AREASIZE_Z; z++) {
-			while(	array[x][y][z].sizex && x+array[x][y][z].sizex < AREASIZE_X &&
+			while(	array[x][y][z].m && x+array[x][y][z].sizex < AREASIZE_X &&
 					array[x][y][z].m     == array[x+array[x][y][z].sizex][y][z].m &&
 					array[x][y][z].sizey == array[x+array[x][y][z].sizex][y][z].sizey &&
 					array[x][y][z].sizez == array[x+array[x][y][z].sizex][y][z].sizez) {
 				int posx = x+array[x][y][z].sizex;
 				array[x][y][z].sizex += array[posx][y][z].sizex;
 				array[posx][y][z].m = 0;
-				array[posx][y][z].sizex = 0;
-				array[posx][y][z].sizey = 0;
-				array[posx][y][z].sizez = 0;
 			}
 		}
 		
 		for(int x=0; x<AREASIZE_X; x++)
 		for(int y=0; y<AREASIZE_Y; y++)
 		for(int z=0; z<AREASIZE_Z; z++) {
-			while(	array[x][y][z].sizey && y+array[x][y][z].sizey < AREASIZE_Y &&
+			while(	array[x][y][z].m && y+array[x][y][z].sizey < AREASIZE_Y &&
 					array[x][y][z].m     == array[x][y+array[x][y][z].sizey][z].m &&
 					array[x][y][z].sizex == array[x][y+array[x][y][z].sizey][z].sizex &&
 					array[x][y][z].sizez == array[x][y+array[x][y][z].sizey][z].sizez) {
 				int posy = y+array[x][y][z].sizey;
 				array[x][y][z].sizey += array[x][posy][z].sizey;
 				array[x][posy][z].m = 0;
-				array[x][posy][z].sizex = 0;
-				array[x][posy][z].sizey = 0;
-				array[x][posy][z].sizez = 0;
 			}
 		}
 		
 		for(int x=0; x<AREASIZE_X; x++)
 		for(int y=0; y<AREASIZE_Y; y++)
 		for(int z=0; z<AREASIZE_Z; z++) {
-			while(	array[x][y][z].sizez && z+array[x][y][z].sizez < AREASIZE_Z &&
+			while(	array[x][y][z].m && z+array[x][y][z].sizez < AREASIZE_Z &&
 					array[x][y][z].m     == array[x][y][z+array[x][y][z].sizez].m &&
 					array[x][y][z].sizex == array[x][y][z+array[x][y][z].sizez].sizex &&
 					array[x][y][z].sizey == array[x][y][z+array[x][y][z].sizez].sizey) {
 				int posz = z+array[x][y][z].sizez;
 				array[x][y][z].sizez += array[x][y][posz].sizez;
 				array[x][y][posz].m = 0;
-				array[x][y][posz].sizex = 0;
-				array[x][y][posz].sizey = 0;
-				array[x][y][posz].sizez = 0;
 			}
 		}
 #endif
