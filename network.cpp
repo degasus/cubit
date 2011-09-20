@@ -35,7 +35,6 @@ Network::Network ( std::string hostname, int port ) {
 	}
 	
 	client_sockets.push(client);
-	std::cout << "irgendwas" << client->clientid << std::endl;
 	client_map[client->clientid] = client;
 	init();
 }

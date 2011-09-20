@@ -1,4 +1,23 @@
-cubit (0.0.4) UNRELEASED; urgency=low
+cubit (0.0.5) UNRELEASED; urgency=low
+
+  New features:
+  * network (only) support
+  * variable framerate
+  * 3d display
+  * windows builds available once again
+
+  Tweak:
+  * combine polygons
+  * multithreaded generator
+  * glew extension loading
+
+  Bugfixes:
+  * some new ones are fixed
+  * better physics
+
+ -- Markus Wick <markus@selfnet.de>  Tue, 20 Sep 2011 05:13:10 +0200
+
+cubit (0.0.4) unstable; urgency=low
 
   New features:
   * VBO, but deactivated
