@@ -407,7 +407,7 @@ void UInterface::redraw()
 	//c->movement->dynamicsWorld->debugDrawWorld();
 	//glEnable(GL_DEPTH_TEST);
 
-	drawHUD();
+	drawHUD(time);
 	int hud = SDL_GetTicks()-start-movement-map-renderer;
 	
 	stats[0] = std::max<double>(stats[0]*0.99, movement);
@@ -486,7 +486,7 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 
 //float a = -10.0;
 
-void UInterface::drawHUD() {
+void UInterface::drawHUD(int time) {
 	
 	int cubeSize = 50;
 	
@@ -544,16 +544,16 @@ void UInterface::drawHUD() {
 	
 	glDisable(GL_BLEND);
 
-	cubeTurn[c->movement->getSelectedMaterial()] += 2;
+	cubeTurn[c->movement->getSelectedMaterial()] += (10/1000.)*time;
 	if(cubeTurn[c->movement->getSelectedMaterial()] > 360)
 		cubeTurn[c->movement->getSelectedMaterial()] -= 360;
 
 	int selectedMaterial = c->movement->getSelectedMaterial();
 
 	if(fadingProgress>0)
-		fadingProgress -= 10;
+		fadingProgress -= (150/1000.)*time;
 	else if(fadingProgress < 0)
-		fadingProgress += 10;
+		fadingProgress += (150/1000.)*time;
 
 	if((lastMaterial == c->movement->getLastAvailableMaterial(selectedMaterial))){
 		fadingProgress = 90;

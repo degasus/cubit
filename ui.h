@@ -55,7 +55,7 @@ private:
 	void handleMouseDownEvents(SDL_MouseButtonEvent e);
 	void handleMouseUPEvents(SDL_MouseButtonEvent e);
 	void handleMouseEvents(SDL_MouseMotionEvent e);
-	void drawHUD();
+	void drawHUD(int time);
 
 	boost::filesystem::path workingDirectory;
 	boost::filesystem::path dataDirectory;

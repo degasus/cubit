@@ -106,7 +106,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("turningSpeed", po::value<double>()->default_value(0.04), "speed factor for turning (\"mouse speed\")")
 		("jumpSpeed", po::value<double>()->default_value(0.215), "initial speed when jumping")
 #ifdef _WIN32
-		("workingDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("PROGRAMFILES")) / "Cubit"), "Folder for saving areas")
+		("workingDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("APPDATA")) / "Cubit"), "Folder for saving areas")
 		("dataDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("PROGRAMFILES")) / "Cubit"), "Folder for music and images")
 		("localDirectory", po::value<fs::path>()->default_value(fs::path(std::getenv("PROGRAMFILES")) / "Cubit"), "Folder for music and images")
 #else

@@ -69,7 +69,7 @@ void Map::config(const boost::program_options::variables_map& c)
 	mapGenerator_counts = c["generatorThreads"].as<int>();
 	
 	network = new Network(c["server"].as<std::string>().c_str(),PORT);
-	disk = new Harddisk(/*(c["workingDirectory"].as<boost::filesystem::path>() / "cubit.db").string()*/);	
+	disk = new Harddisk((c["workingDirectory"].as<boost::filesystem::path>() / (c["server"].as<std::string>() + ".db").c_str()).string());	
 }
 
 int threaded_read_from_harddisk(void* param) {
