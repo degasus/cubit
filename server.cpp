@@ -130,6 +130,11 @@ void Server::run() {
 			bPos = network->recv_join_area(&rev, &connection);
 			joined_clients[bPos].insert(connection);
 			bytes = harddisk->readArea(bPos, buffer, &rev2, true, 64*1024+3);
+			if(!rev2){
+				bytes = randomArea(bPos, buffer);
+				rev2 = 1;
+				harddisk->writeArea(bPos, buffer, rev2, true, bytes);
+			}
 			if(rev == rev2)
 				network->send_push_area(bPos, 0, 0, 0, true, connection);
 			else
