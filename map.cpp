@@ -252,7 +252,6 @@ void Map::setPosition(PlayerPosition pos)
 				}
 			} else {
 			}
-			
 			for (int i=0; i<DIRECTION_COUNT; i++)
 				if (a->next[i])
 					a->next[i]->needupdate_poly = 1;
@@ -276,9 +275,9 @@ void Map::setPosition(PlayerPosition pos)
 			}
 			
 			a->recalc();
-			if(a->state >= Area::STATE_WAITING_FOR_BORDERS)
+			if(a->state >= Area::STATE_WAITING_FOR_BORDERS) {
 				dijsktra_queue.push(a);
-			else
+			} else
 				std::cout << "unknown state in recv_push: " << a->state << std::endl;
 		} else {
 			std::cout << "push area recv but no get area send, state: " << a->state << std::endl;
@@ -341,8 +340,13 @@ void Map::setPosition(PlayerPosition pos)
 		// load actual position
 		Area* a = getOrCreate(p);
 		if(a->state == Area::STATE_NEW) {
-			a->state = Area::STATE_HDD_LOAD;
-			to_load_hdd.push(a);
+			if(storeMaps) {
+				a->state = Area::STATE_HDD_LOAD;
+				to_load_hdd.push(a);
+			} else {
+				a->state = Area::STATE_NET_LOAD;
+				network->send_join_area(a->pos, a->revision);
+			}
 		} else if(a->state >= Area::STATE_WAITING_FOR_BORDERS){
 			// add it to queue		
 			dijsktra_queue.push(a);
