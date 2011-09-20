@@ -109,9 +109,7 @@ void Movement::init()
 	}
 
 	//Bullet Physics
-	std::cout << "init phys..." <<  std::endl;
 	initPhysics();
-	std::cout << "init done" <<  std::endl;
 }
 
 void	Movement::initPhysics(){
