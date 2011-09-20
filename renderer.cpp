@@ -641,7 +641,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	stats[3] = std::max<double>(stats[3]*0.99, trans);
 	
 	std::ostringstream out1(std::ostringstream::out);
-	out1 << "Speicher: " << area_saved/1024/1024 << "+" << vertex_saved/1024/1024 << " MB, Polygone: " << vertex_displayed/1000 << " k, Areas: " << areas_in_viewport << ", VBOs: " << displayed_vbos;
+	out1 << "Polygone: " << vertex_displayed/1000 << " k, Areas: " << areas_in_viewport << ", VBOs: " << displayed_vbos;
 	debug_output[0] = out1.str();
 	
 	std::ostringstream out2(std::ostringstream::out);

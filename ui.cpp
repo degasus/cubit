@@ -650,53 +650,56 @@ void UInterface::drawHUD() {
 	
 	//a += 0.1f;
 	
-	glDisable(GL_LIGHT1);
-	glDisable(GL_LIGHT2);
-	glDisable(GL_LIGHT3);
-	glEnable(GL_LIGHT4);
-	
-	GLfloat LightPosition4[] = { screenX/2, screenY/2, 1000, 1.0f };
-	glLightfv(GL_LIGHT4, GL_POSITION, LightPosition4);
-	GLfloat LightAmbient4[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-	glLightfv(GL_LIGHT4, GL_AMBIENT, LightAmbient4);
-	GLfloat LightDiffuse4[]  = { 0.5f, 0.5f, 0.5f, 1.0f };	
-	glLightfv(GL_LIGHT4, GL_DIFFUSE,  LightDiffuse4);
-	
-	
-	glLoadIdentity();
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_LIGHTING);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glColor4f(1.0,1.0,1.0,0.5);
-	
-	glBegin(GL_QUADS);
-		glVertex3f(0.0, screenY-0.0, 0.0);
-		glVertex3f(0.0, screenY-100, 0.0);
-		glVertex3f(screenX, screenY-100, 0.0);
-		glVertex3f(screenX, screenY-0.0, 0.0);
+	if(sandboxMode) {
 		
-	glEnd();
-	glColor4f(0.0,0.0,0.0,1.0);
-	
-	int progress = c->movement->getCurrentRemoveProgress();
-	if(progress > 0){
-		std::string output = boost::lexical_cast<std::string>(progress) + "%";
-		renderText(20, 20, output.c_str());
+		glDisable(GL_LIGHT1);
+		glDisable(GL_LIGHT2);
+		glDisable(GL_LIGHT3);
+		glEnable(GL_LIGHT4);
+		
+		GLfloat LightPosition4[] = { screenX/2, screenY/2, 1000, 1.0f };
+		glLightfv(GL_LIGHT4, GL_POSITION, LightPosition4);
+		GLfloat LightAmbient4[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+		glLightfv(GL_LIGHT4, GL_AMBIENT, LightAmbient4);
+		GLfloat LightDiffuse4[]  = { 0.5f, 0.5f, 0.5f, 1.0f };	
+		glLightfv(GL_LIGHT4, GL_DIFFUSE,  LightDiffuse4);
+		
+		
+		glLoadIdentity();
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_LIGHTING);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4f(1.0,1.0,1.0,0.5);
+		
+		glBegin(GL_QUADS);
+			glVertex3f(0.0, screenY-0.0, 0.0);
+			glVertex3f(0.0, screenY-120, 0.0);
+			glVertex3f(screenX, screenY-120, 0.0);
+			glVertex3f(screenX, screenY-0.0, 0.0);
+			
+		glEnd();
+		glColor4f(0.0,0.0,0.0,1.0);
+		
+		int progress = c->movement->getCurrentRemoveProgress();
+		if(progress > 0){
+			std::string output = boost::lexical_cast<std::string>(progress) + "%";
+			renderText(20, 20, output.c_str());
+		}
+		
+		glTranslatef(0.0f, screenY, 0.0f);
+		glScalef(0.7f, 0.7f,1.0f);
+		
+		renderText(20, -30, c->movement->debug_msg().c_str());
+		renderText(20, -60, c->map->debug_msg().c_str());
+		renderText(20, -90, c->renderer->debug_output[0].c_str());
+		renderText(20, -120, c->renderer->debug_output[1].c_str());
+		
+		std::ostringstream out(std::ostringstream::out);
+		out << "Movement: " << stats[0] << ", Map: " << stats[1] << ", Renderer: " << stats[2] << ", HUD: " << stats[3];
+		renderText(20,-150, out.str().c_str());
 	}
-	
-	glTranslatef(0.0f, screenY, 0.0f);
-	glScalef(0.7f, 0.7f,1.0f);
-	
-	renderText(20, -30, c->movement->debug_msg().c_str());
-	renderText(20, -60, c->map->debug_msg().c_str());
-	renderText(20, -90, c->renderer->debug_output[0].c_str());
-	renderText(20, -120, c->renderer->debug_output[1].c_str());
-	
-	std::ostringstream out(std::ostringstream::out);
-	out << "Movement: " << stats[0] << ", Map: " << stats[1] << ", Renderer: " << stats[2] << ", HUD: " << stats[3];
-	renderText(20,-150, out.str().c_str());
 	
 	/////////////////////////////
 	//reset the view
