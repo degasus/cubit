@@ -501,8 +501,8 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 	
 	return (erg.data[0][0] > - AREASIZE_X/2*1.7321) 				// nicht hinter einem
 	    && (erg.data[0][0] < AREASIZE_X*(visualRange+0.866))	// sichtweite
-		 && (abs(erg.data[0][1])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < angleOfVision*(double(c->ui->screenX) / c->ui->screenY) )	// seitlich ausm sichtbereich
-		 && (abs(erg.data[0][2])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < angleOfVision ) // oben/unten aus dem Bildbereich
+		 && (abs(erg.data[0][1])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < 1.5*(double(c->ui->screenX) / c->ui->screenY) )	// seitlich ausm sichtbereich
+		 && (abs(erg.data[0][2])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < 1.5 ) // oben/unten aus dem Bildbereich
 		 ;
 }
 

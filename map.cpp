@@ -276,7 +276,10 @@ void Map::setPosition(PlayerPosition pos)
 			}
 			
 			a->recalc();
-			dijsktra_queue.push(a);
+			if(a->state >= Area::STATE_WAITING_FOR_BORDERS)
+				dijsktra_queue.push(a);
+			else
+				std::cout << "unknown state in recv_push: " << a->state << std::endl;
 		} else {
 			std::cout << "push area recv but no get area send, state: " << a->state << std::endl;
 		}
@@ -384,11 +387,10 @@ void Map::setPosition(PlayerPosition pos)
 								b->state = Area::STATE_NET_LOAD;
 								network->send_join_area(b->pos, b->revision);
 							}
+						} else if(b->state >= Area::STATE_WAITING_FOR_BORDERS) {
+							dijsktra_queue.push(b);
 						} else {
-							if(b->state < Area::STATE_WAITING_FOR_BORDERS)
-								std::cout << "FIXME, found state in dijsktra: " << b->state << std::endl;
-							else
-								dijsktra_queue.push(b);
+							// do nothing, will be added automaticly
 						}
 					}
 				}
@@ -502,10 +504,10 @@ void Map::setBlock(BlockPosition pos, Material m){
 std::string Map::debug_msg() {
 	std::ostringstream o;
 	
-	size_t areas_self;
-	size_t areas_materials;
-	size_t areas_polys;
-	size_t areas_vbo;
+	size_t areas_self = 0;
+	size_t areas_materials = 0;
+	size_t areas_polys = 0;
+	size_t areas_vbo = 0;
 	
 	int states[12];
 	for(int i=0; i<12; i++) {
