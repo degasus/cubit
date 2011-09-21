@@ -244,17 +244,30 @@ void Renderer::init()
 	getGlError("glCreateShader fs");
 	
 	std::string s_shader_vs = 
+"varying vec4 pos;"
+"uniform vec4 background;"
 "void main(void)"
 "{"
 "gl_TexCoord[0] = gl_MultiTexCoord0;"
 "gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
+"pos = gl_ModelViewMatrix * gl_Vertex;"
 "}";
 
 	std::string s_shader_fs = 
 "uniform sampler2D tex;"
+"uniform vec4 background;"
+"varying vec4 pos;"
+"float abstand;"
 "void main (void)"
 "{"
+"abstand = length(pos);"
+"if(abstand < 100.0) {"
 "gl_FragColor = texture2D(tex,gl_TexCoord[0].st);"
+"} else if(abstand < 125.0){"
+"gl_FragColor = (texture2D(tex,gl_TexCoord[0].st) * (125.0-abstand)/25.0) + (background * (abstand-100.0)/25.0);"
+"} else {"
+"gl_FragColor = background;"
+"}"
 "}";
 	
 	const char *shader_src = s_shader_vs.c_str();
@@ -288,8 +301,9 @@ void Renderer::init()
 	printInfoLog(shader_po);
 	
 	glUseProgram(shader_po);
-	getGlError("glUseProgram shader_po");
-	printInfoLog(shader_po);
+	
+	glUniform4fv(glGetUniformLocation(shader_po,"background"),1,bgColor);
+	
 }
 
 
@@ -567,6 +581,8 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 
 void Renderer::render(PlayerPosition pos, double eye)
 {
+	glUseProgram(shader_po);
+	
 	pos.x += -eye*std::sin(pos.orientationHorizontal/180*M_PI);
 	pos.y += eye*std::cos(pos.orientationHorizontal/180*M_PI);
 
@@ -678,7 +694,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	}
 	
 	glDepthFunc(GL_EQUAL);	
-	glBlendFunc(GL_ONE, GL_SRC_COLOR);
+	glBlendFunc(GL_ONE_MINUS_SRC_COLOR, GL_SRC_COLOR);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		if(a->state >= Area::STATE_GENERATE && a->show) {
@@ -706,6 +722,8 @@ void Renderer::render(PlayerPosition pos, double eye)
 	std::ostringstream out2(std::ostringstream::out);
 	out2 << "Init: " << stats[0] << ", Generate: " << stats[1] << ", Solid: " << stats[2] << ", Transparent: " << stats[3];
 	debug_output[1] = out2.str();
+	
+	glUseProgram(0);
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
