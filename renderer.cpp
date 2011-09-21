@@ -718,16 +718,20 @@ void Renderer::renderObjects() {
 		}
 #endif
 	} {
-		std::map<int, PlayerPosition>::iterator it;
+		std::map<int, OtherPlayer>::iterator it;
 		for(it = c->map->otherPlayers.begin(); it != c->map->otherPlayers.end(); it++) {
 			glPushMatrix();
 			
-			PlayerPosition p = it->second;
+			PlayerPosition p = it->second.pos;
+			std::string pName = it->second.name;
 			int tex = it->first % (NUMBER_OF_MATERIALS-1) + 1;
 			
 			glTranslatef(p.x, p.y, p.z);
 			glRotatef(p.orientationHorizontal,0.0f,0.0f,1.0f);
 			glRotatef(-p.orientationVertical,0.0f,1.0f,0.0f);
+			
+			
+			c->ui->renderText(0.,1,pName.c_str());
 			
 			//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
 			glBegin( GL_QUADS );

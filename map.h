@@ -43,6 +43,13 @@ public:
 };
 #endif
 
+struct OtherPlayer {
+	OtherPlayer() : pos(PlayerPosition::create(0., 0., 0., 0., 0.)) {}
+	OtherPlayer(PlayerPosition p, std::string n) : pos(p), name(n) {}
+	PlayerPosition pos;
+	std::string name;
+};
+
 /**
  * Sorgt für das Laden der Karteninformation von Server
  * und stellt sie unter einfachen Funktionen bereit.
@@ -102,7 +109,7 @@ public:
 	std::list<MovingObject*> objects;
 #endif
 	
-	std::map<int, PlayerPosition> otherPlayers;
+	std::map<int, OtherPlayer> otherPlayers;
     
 //private:
 	void store(Area* a);

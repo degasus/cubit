@@ -315,7 +315,7 @@ void Map::setPosition(PlayerPosition pos)
 	
 	while(!network->recv_player_position_empty()){
 		pPos = network->recv_player_position(&id);
-		otherPlayers[id] = pPos;
+		otherPlayers[id] = OtherPlayer(pPos, "test");
 	}
 	
 	while(!generated.empty()) {
