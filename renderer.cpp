@@ -32,6 +32,24 @@ void getGlError(std::string meldung = "") {
 	
 }
 
+void printInfoLog(GLhandleARB obj)
+{
+    int infologLength = 0;
+    int charsWritten  = 0;
+    char *infoLog;
+
+    glGetObjectParameterivARB(obj, GL_OBJECT_INFO_LOG_LENGTH_ARB,
+					 &infologLength);
+
+    if (infologLength > 0)
+    {
+	infoLog = (char *)malloc(infologLength);
+	glGetInfoLogARB(obj, infologLength, &charsWritten, infoLog);
+	printf("%s\n",infoLog);
+	free(infoLog);
+    }
+}
+
 Renderer::Renderer(Controller* controller)
 {
 	c = controller;
@@ -206,31 +224,72 @@ void Renderer::init()
 	glTexImage2D(GL_TEXTURE_2D, 0, 4, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	
 	delete [] pixels;
-	/*
+	
+	if (GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader)
+		printf("Ready for GLSL\n");
+	else {
+		printf("Not totally ready for GLSL :(  \n");
+		exit(1);
+	}
+	
 	std::cout << "Shader: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 	
-	shader_po = glCreateProgramObjectARB();
-	getGlError("glCreateProgramObjectARB");
+	shader_po = glCreateProgram();
+	getGlError("glCreateProgram");
 	
-	shader_vs = glCreateShaderObjectARB(GL_VERTEX_SHADER);
-	getGlError("glCreateShaderObjectARB vs");
+	shader_vs = glCreateShader(GL_VERTEX_SHADER);
+	getGlError("glCreateShader vs");
 	
-	shader_fs = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
-	getGlError("glCreateShaderObjectARB fs");
+	shader_fs = glCreateShader(GL_FRAGMENT_SHADER);
+	getGlError("glCreateShader fs");
 	
-	std::string shader = "";
-	const char *shader_src = shader.c_str();
-	int shader_src_length = shader.length();
-	glShaderSourceARB(shader_vs, 1, &shader_src, &shader_src_length);
-	getGlError("glShaderSourceARB");
+	std::string s_shader_vs = 
+"void main(void)"
+"{"
+"gl_TexCoord[0] = gl_MultiTexCoord0;"
+"gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
+"}";
+
+	std::string s_shader_fs = 
+"uniform sampler2D tex;"
+"void main (void)"
+"{"
+"gl_FragColor = texture2D(tex,gl_TexCoord[0].st);"
+"}";
 	
-	glCompileShaderARB(shader_vs);
-	getGlError("glCompileShaderARB vs");
+	const char *shader_src = s_shader_vs.c_str();
+	int shader_src_length = s_shader_vs.length();
+	char outputbuffer[1024];
 	
+	glShaderSource(shader_vs, 1, &shader_src, &shader_src_length);
+	getGlError("glShaderSource");
 	
-	glCompileShaderARB(shader_fs);
-	getGlError("glCompileShaderARB fs");
-	*/
+	glCompileShader(shader_vs);
+	getGlError("glCompileShader vs");
+	printInfoLog(shader_vs);
+	
+	shader_src = s_shader_fs.c_str();
+	shader_src_length = s_shader_fs.length();
+	
+	glShaderSource(shader_fs, 1, &shader_src, &shader_src_length);
+	getGlError("glShaderSource fs");
+	
+	glCompileShader(shader_fs);
+	getGlError("glCompileShader fs");
+	printInfoLog(shader_fs);
+	
+	glAttachShader(shader_po, shader_vs);
+	getGlError("glAttachShader vs");
+	glAttachShader(shader_po, shader_fs);
+	getGlError("glAttachShader fs");
+	
+	glLinkProgram(shader_po);
+	getGlError("glLinkProgram shader_po");
+	printInfoLog(shader_po);
+	
+	glUseProgram(shader_po);
+	getGlError("glUseProgram shader_po");
+	printInfoLog(shader_po);
 }
 
 
