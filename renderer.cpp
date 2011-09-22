@@ -89,7 +89,7 @@ void Renderer::init()
 //	itemPos.z = -40;
 	
 	// Set the OpenGL state
-	glEnable(GL_TEXTURE_2D);											// Enable Texture Mapping
+	glEnable(GL_TEXTURE_3D);
 	glClearColor(bgColor[0],bgColor[1], bgColor[2], bgColor[3]);	// Black Background
 	glClearDepth(1.0f);													// Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);											// Enables Depth Testing
@@ -145,13 +145,11 @@ void Renderer::init()
 
 	
 	unsigned char* pixels = new unsigned char[1024*1024*4];
-	unsigned char* pixels2 = new unsigned char[1024*1024*4];
 	for(int i=0; i<1024*1024*4; i++) {
-		pixels[i] = 127;
-		pixels2[i] = 127;
+		pixels[i] = 255;
 	}
 	
-	glGenTextures( 2, texture );
+	glGenTextures( 1, texture );
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
 		SDL_Surface *surface; // Gives us the information to make the texture
 		
@@ -177,14 +175,9 @@ void Renderer::init()
 			for(int x=0; x<64; x++) for(int y=0; y<64; y++) {
 				
 				for(int c=0; c<3; c++) 
-					pixels[c + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = p[c + x*3 + y*3*64];
+					pixels[c + x*4 + y*4*64 + i*4*64*64] = p[c + x*3 + y*3*64];
 				
-				pixels[3 + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = ((x/4)%3)&&((y/4)%3)?0:255;
-				
-				for(int c=0; c<3; c++) 
-					pixels2[c + x*4 + y*4*64 + i*4*64*64] = p[c + x*3 + y*3*64];
-				
-				pixels2[3 + x*4 + y*4*64 + i*4*64*64] = ((x/4)%3)&&((y/4)%3)?0:255;
+				pixels[3 + x*4 + y*4*64 + i*4*64*64] = ((x/4)%3)&&((y/4)%3)?0:255;
 				
 			}
 				
@@ -201,51 +194,34 @@ void Renderer::init()
 		
 	}
 	
-	// Bind the texture object
-	glBindTexture( GL_TEXTURE_2D, texture[1] );
+	glBindTexture( GL_TEXTURE_3D, texture[0] );
 	
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+	glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 	
 	// Set the texture's stretching properties
 	if ( textureFilterMethod >= 4 && glewIsSupported( "GL_EXT_texture_filter_anisotropic" ) ) {
 		float maxAni;
 		glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );  
+		glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );  
 	} 
-	if(textureFilterMethod >= 3 && glewIsSupported( "glGenerateMipmap" ) ){
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );		
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, true);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
+	if(0 && textureFilterMethod >= 3 && glewIsSupported( "GL_ARB_framebuffer_object" ) ){
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );		
+		glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, true);
 	}
 	else if(textureFilterMethod >= 2){
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	}
 	else{
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	}
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
 	
-	glBindTexture(GL_TEXTURE_2D_ARRAY,texture[0]);
-	
-	glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-	glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-	getGlError("glBindTexture");
-	glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, true);
-	getGlError("glTexParameteri");
-	glTexImage3D(GL_TEXTURE_3D, 0,GL_RGBA, 64, 64, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels2);
-	getGlError("glTexImage3D");
+	glTexImage3D(GL_TEXTURE_3D, 0,GL_RGBA, 64, 64, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	//glGenerateMipmap( GL_TEXTURE_3D);
-	getGlError("glGenerateMipmap");
 	delete [] pixels;
-	delete [] pixels2;
 	
 	if (GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader)
 		printf("Ready for GLSL\n");
@@ -279,8 +255,7 @@ void Renderer::init()
 //"#version 120\n"
 //"#extension GL_EXT_gpu_shader4 : enable\n"
 //"#extension GL_EXT_texture_array : enable\n"
-"uniform sampler3D tex3d;\n"
-"uniform sampler2D tex2d;\n"
+"uniform sampler3D tex;\n"
 "uniform vec4 background;\n"
 "varying vec4 pos;\n"
 "float abstand;\n"
@@ -288,9 +263,9 @@ void Renderer::init()
 "{\n"
 "abstand = length(pos);\n"
 "if(abstand < 100.0) {\n"
-"gl_FragColor = texture3D(tex3d,gl_TexCoord[0].xyz);\n"
+"gl_FragColor = texture3D(tex,gl_TexCoord[0].xyz);\n"
 "} else if(abstand < 125.0){\n"
-"gl_FragColor = (texture3D(tex3d,gl_TexCoord[0].xyz) * (125.0-abstand)/25.0) + (background * (abstand-100.0)/25.0);\n"
+"gl_FragColor = (texture3D(tex,gl_TexCoord[0].xyz) * (125.0-abstand)/25.0) + (background * (abstand-100.0)/25.0);\n"
 "} else {\n"
 "gl_FragColor = background;\n"
 "}\n"
@@ -329,8 +304,7 @@ void Renderer::init()
 	glUseProgram(shader_po);
 	
 	glUniform4fv(glGetUniformLocation(shader_po,"background"),1,bgColor);
-	glUniform1i(glGetUniformLocation(shader_po, "tex3d"), 1);
-	glUniform1i(glGetUniformLocation(shader_po, "tex2d"), 0);
+	glUniform1i(glGetUniformLocation(shader_po, "tex"), 0);
 	getGlError();
 }
 
@@ -700,11 +674,6 @@ void Renderer::render(PlayerPosition pos, double eye)
 	// state for rendering vbos
 //	glEnable(GL_ALPHA_TEST);
 //	glAlphaFunc(GL_GREATER, 0.3);
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D_ARRAY,texture[0]);
-	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_2D,texture[1]);
-	
 	glEnableClientState(GL_VERTEX_ARRAY);
 	//glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);				
@@ -775,7 +744,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 	glDisable(GL_LIGHT1);
 	glDisable(GL_LIGHTING);
-	glBindTexture( GL_TEXTURE_2D, texture[1] );
+	glDisable(GL_TEXTURE_3D);
 	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 
 	if(highlightWholePlane)
@@ -805,7 +774,7 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 }
 
 void Renderer::renderObjects() {
-	glBindTexture( GL_TEXTURE_2D, texture[1] );
+	glEnable(GL_TEXTURE_3D);
 	{
 #ifdef ENABLE_OBJETS
 		std::list<MovingObject*>::iterator it;
@@ -817,16 +786,16 @@ void Renderer::renderObjects() {
 			glTranslatef(trans.getOrigin().getX(),trans.getOrigin().getY(),trans.getOrigin().getZ());
 			glRotatef( trans.getRotation().getAngle()*180/M_PI, trans.getRotation().getAxis().getX(), trans.getRotation().getAxis().getY(), trans.getRotation().getAxis().getZ());
 			
-			//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
 			glBegin( GL_QUADS );
 
 			for(int i=0; i<DIRECTION_COUNT; i++) {
 				glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
 						
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
-					glTexCoord2f(
-						(TEXTUR_POSITION_OF_DIRECTION[i][point][0]+(*it)->tex%16)/16.0,
-						(TEXTUR_POSITION_OF_DIRECTION[i][point][1]+(*it)->tex/16)/16.0
+					glTexCoord3f(
+						TEXTUR_POSITION_OF_DIRECTION[i][point][0],
+						TEXTUR_POSITION_OF_DIRECTION[i][point][1],
+						((*it)->tex + 0.5)/NUMBER_OF_MATERIALS
 					);
 					glVertex3f(
 						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.1,
@@ -856,16 +825,16 @@ void Renderer::renderObjects() {
 			
 			c->ui->renderText(0.,1,pName.c_str());
 			
-			//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
 			glBegin( GL_QUADS );
 
 			for(int i=0; i<DIRECTION_COUNT; i++) {
 				glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
 						
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
-					glTexCoord2f(
-						(TEXTUR_POSITION_OF_DIRECTION[i][point][0]+tex%16)/16.0,
-						(TEXTUR_POSITION_OF_DIRECTION[i][point][1]+tex/16)/16.0
+					glTexCoord3f(
+						TEXTUR_POSITION_OF_DIRECTION[i][point][0],
+						TEXTUR_POSITION_OF_DIRECTION[i][point][1],
+						(tex + 0.5)/NUMBER_OF_MATERIALS
 					);
 					glVertex3f(
 						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.6/2,
