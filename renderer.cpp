@@ -143,9 +143,13 @@ void Renderer::init()
 		glEnable(GL_FOG);					// Enables GL_FOG
 
 
-
 	
 	unsigned char* pixels = new unsigned char[1024*1024*4];
+	unsigned char* pixels2 = new unsigned char[1024*1024*4];
+	for(int i=0; i<1024*1024*4; i++) {
+		pixels[i] = 127;
+		pixels2[i] = 127;
+	}
 	
 	glGenTextures( 2, texture );
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
@@ -177,6 +181,11 @@ void Renderer::init()
 				
 				pixels[3 + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = ((x/4)%3)&&((y/4)%3)?0:255;
 				
+				for(int c=0; c<3; c++) 
+					pixels2[c + x*4 + y*4*64 + i*4*64*64] = p[c + x*3 + y*3*64];
+				
+				pixels2[3 + x*4 + y*4*64 + i*4*64*64] = ((x/4)%3)&&((y/4)%3)?0:255;
+				
 			}
 				
 		}
@@ -191,11 +200,9 @@ void Renderer::init()
 		}
 		
 	}
-	//glBindTexture(GL_TEXTURE_2D_ARRAY,texture[1]);
-	//glTexImage3D(GL_TEXTURE_2D_ARRAY,0,GL_RGBA, 64, 64, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_FLOAT, pixels);
 	
 	// Bind the texture object
-	glBindTexture( GL_TEXTURE_2D, texture[0] );
+	glBindTexture( GL_TEXTURE_2D, texture[1] );
 	
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -221,9 +228,24 @@ void Renderer::init()
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
 	
+	glBindTexture(GL_TEXTURE_2D_ARRAY,texture[0]);
+	
+	glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+	glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+	getGlError("glBindTexture");
+	glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, true);
+	getGlError("glTexParameteri");
+	glTexImage3D(GL_TEXTURE_3D, 0,GL_RGBA, 64, 64, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels2);
+	getGlError("glTexImage3D");
+	//glGenerateMipmap( GL_TEXTURE_3D);
+	getGlError("glGenerateMipmap");
 	delete [] pixels;
+	delete [] pixels2;
 	
 	if (GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader)
 		printf("Ready for GLSL\n");
@@ -254,21 +276,25 @@ void Renderer::init()
 "}";
 
 	std::string s_shader_fs = 
-"uniform sampler2D tex;"
-"uniform vec4 background;"
-"varying vec4 pos;"
-"float abstand;"
-"void main (void)"
-"{"
-"abstand = length(pos);"
-"if(abstand < 100.0) {"
-"gl_FragColor = texture2D(tex,gl_TexCoord[0].st);"
-"} else if(abstand < 125.0){"
-"gl_FragColor = (texture2D(tex,gl_TexCoord[0].st) * (125.0-abstand)/25.0) + (background * (abstand-100.0)/25.0);"
-"} else {"
-"gl_FragColor = background;"
-"}"
-"}";
+//"#version 120\n"
+//"#extension GL_EXT_gpu_shader4 : enable\n"
+//"#extension GL_EXT_texture_array : enable\n"
+"uniform sampler3D tex3d;\n"
+"uniform sampler2D tex2d;\n"
+"uniform vec4 background;\n"
+"varying vec4 pos;\n"
+"float abstand;\n"
+"void main (void)\n"
+"{\n"
+"abstand = length(pos);\n"
+"if(abstand < 100.0) {\n"
+"gl_FragColor = texture3D(tex3d,gl_TexCoord[0].xyz);\n"
+"} else if(abstand < 125.0){\n"
+"gl_FragColor = (texture3D(tex3d,gl_TexCoord[0].xyz) * (125.0-abstand)/25.0) + (background * (abstand-100.0)/25.0);\n"
+"} else {\n"
+"gl_FragColor = background;\n"
+"}\n"
+"}\n";
 	
 	const char *shader_src = s_shader_vs.c_str();
 	int shader_src_length = s_shader_vs.length();
@@ -303,7 +329,9 @@ void Renderer::init()
 	glUseProgram(shader_po);
 	
 	glUniform4fv(glGetUniformLocation(shader_po,"background"),1,bgColor);
-	
+	glUniform1i(glGetUniformLocation(shader_po, "tex3d"), 1);
+	glUniform1i(glGetUniformLocation(shader_po, "tex2d"), 0);
+	getGlError();
 }
 
 
@@ -380,16 +408,30 @@ void Renderer::generateArea(Area* area) {
 					
 					for(int j=0; j < sizeof(points)/sizeof(int); j++) {
 						int point = points[j];
-						//assert(vbocounter < size);
+						
+						float zoomx = 1;
+						float zoomy = 1;
+						if(NORMAL_OF_DIRECTION[it.dir][0]) {
+							zoomx = it.sizey;
+							zoomy = it.sizez;
+						} else if(NORMAL_OF_DIRECTION[it.dir][1]) {
+							zoomx = it.sizex;
+							zoomy = it.sizez;
+						} else {
+							zoomx = it.sizex;
+							zoomy = it.sizey;
+							
+						}
 						
 						// texture
-						area->vbopointer[i][vbocounter+0] = (TEXTUR_POSITION_OF_DIRECTION[it.dir][point][0]+it.m%16)/16.0;
-						area->vbopointer[i][vbocounter+1] = (TEXTUR_POSITION_OF_DIRECTION[it.dir][point][1]+it.m/16)/16.0;
+						area->vbopointer[i][vbocounter+0] = zoomx * TEXTUR_POSITION_OF_DIRECTION[it.dir][point][0];
+						area->vbopointer[i][vbocounter+1] = zoomy * TEXTUR_POSITION_OF_DIRECTION[it.dir][point][1];
+						area->vbopointer[i][vbocounter+2] = (it.m+0.5)/(NUMBER_OF_MATERIALS);
 						
 						// normale
-						area->vbopointer[i][vbocounter+2] = NORMAL_OF_DIRECTION[it.dir][0];
-						area->vbopointer[i][vbocounter+3] = NORMAL_OF_DIRECTION[it.dir][1];
-						area->vbopointer[i][vbocounter+4] = NORMAL_OF_DIRECTION[it.dir][2];
+						//area->vbopointer[i][vbocounter+2] = NORMAL_OF_DIRECTION[it.dir][0];
+						//area->vbopointer[i][vbocounter+3] = NORMAL_OF_DIRECTION[it.dir][1];
+						//area->vbopointer[i][vbocounter+4] = NORMAL_OF_DIRECTION[it.dir][2];
 						
 						// vertex
 						area->vbopointer[i][vbocounter+5] = it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
@@ -505,8 +547,8 @@ void Renderer::renderArea(Area* a, int l) {
 		GLfloat* startpointer = a->vbopointer[l];
 #endif
 		//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
-		glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
+		glTexCoordPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
+		//glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
 		glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
 
 		getGlError();
@@ -658,9 +700,13 @@ void Renderer::render(PlayerPosition pos, double eye)
 	// state for rendering vbos
 //	glEnable(GL_ALPHA_TEST);
 //	glAlphaFunc(GL_GREATER, 0.3);
-	glBindTexture( GL_TEXTURE_2D, texture[0] );
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D_ARRAY,texture[0]);
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_2D,texture[1]);
+	
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
+	//glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);				
 	getGlError();
 	
@@ -759,7 +805,7 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 }
 
 void Renderer::renderObjects() {
-	glBindTexture( GL_TEXTURE_2D, texture[0] );
+	glBindTexture( GL_TEXTURE_2D, texture[1] );
 	{
 #ifdef ENABLE_OBJETS
 		std::list<MovingObject*>::iterator it;

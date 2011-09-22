@@ -519,7 +519,7 @@ void UInterface::drawHUD(int time) {
 	
 	glDisable(GL_FOG);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glBindTexture( GL_TEXTURE_2D, c->renderer->texture[0] );
+	glBindTexture( GL_TEXTURE_2D, c->renderer->texture[1] );
 
 	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
@@ -615,7 +615,7 @@ void UInterface::drawHUD(int time) {
 		glRotatef(45, 0.0, 0.0, 1.0);
 		glTranslatef(-0.5, -0.5, -0.5);
 
-		glBindTexture( GL_TEXTURE_2D, c->renderer->texture[0] );
+		glBindTexture( GL_TEXTURE_2D, c->renderer->texture[1] );
 		glBegin(GL_QUADS);
 			for(int dir=0; dir < DIRECTION_COUNT; dir++) {
 				glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer
