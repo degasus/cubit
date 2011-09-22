@@ -40,6 +40,7 @@ public:
 	GLuint texture[NUMBER_OF_MATERIALS];
 	
 	std::string debug_output[2];
+	int time;
 
 private:
 	

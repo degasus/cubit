@@ -53,6 +53,7 @@ void printInfoLog(GLhandleARB obj)
 Renderer::Renderer(Controller* controller)
 {
 	c = controller;
+	time = 0;
 	areasRendered = 0;
 }
 
@@ -144,12 +145,12 @@ void Renderer::init()
 
 
 	
-	unsigned char* pixels = new unsigned char[1024*1024*4];
-	for(int i=0; i<1024*1024*4; i++) {
+	unsigned char* pixels = new unsigned char[4*64*64*NUMBER_OF_MATERIALS];
+	for(int i=0; i<4*64*64*NUMBER_OF_MATERIALS; i++) {
 		pixels[i] = 255;
 	}
 	
-	glGenTextures( 1, texture );
+	glGenTextures( 2, texture );
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
 		SDL_Surface *surface; // Gives us the information to make the texture
 		
@@ -205,7 +206,7 @@ void Renderer::init()
 		glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni );
 		glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );  
 	} 
-	if(0 && textureFilterMethod >= 3 && glewIsSupported( "GL_ARB_framebuffer_object" ) ){
+	if(textureFilterMethod >= 3 && glewIsSupported( "GL_ARB_framebuffer_object" ) ){
 		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );		
 		glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, true);
@@ -220,8 +221,14 @@ void Renderer::init()
 	}
 	
 	glTexImage3D(GL_TEXTURE_3D, 0,GL_RGBA, 64, 64, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-	//glGenerateMipmap( GL_TEXTURE_3D);
 	delete [] pixels;
+	
+	pixels = new unsigned char[4*32*32*32*6*4];
+	
+	glBindTexture( GL_TEXTURE_1D, texture[1] );
+	glTexImage1D(GL_TEXTURE_1D, 0,GL_RGBA, 32*32*32*6*4, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	
+	glBindTexture( GL_TEXTURE_3D, texture[0] );
 	
 	if (GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader)
 		printf("Ready for GLSL\n");
@@ -241,51 +248,26 @@ void Renderer::init()
 	shader_fs = glCreateShader(GL_FRAGMENT_SHADER);
 	getGlError("glCreateShader fs");
 	
-	std::string s_shader_vs = 
-"varying vec4 pos;"
-"uniform vec4 background;"
-"void main(void)"
-"{"
-"gl_TexCoord[0] = gl_MultiTexCoord0;"
-"gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
-"pos = gl_ModelViewMatrix * gl_Vertex;"
-"}";
-
-	std::string s_shader_fs = 
-//"#version 120\n"
-//"#extension GL_EXT_gpu_shader4 : enable\n"
-//"#extension GL_EXT_texture_array : enable\n"
-"uniform sampler3D tex;\n"
-"uniform vec4 background;\n"
-"varying vec4 pos;\n"
-"float abstand;\n"
-"void main (void)\n"
-"{\n"
-"abstand = length(pos);\n"
-"if(abstand < 100.0) {\n"
-"gl_FragColor = texture3D(tex,gl_TexCoord[0].xyz);\n"
-"} else if(abstand < 125.0){\n"
-"gl_FragColor = (texture3D(tex,gl_TexCoord[0].xyz) * (125.0-abstand)/25.0) + (background * (abstand-100.0)/25.0);\n"
-"} else {\n"
-"gl_FragColor = background;\n"
-"}\n"
-"}\n";
+	char shader_src[16*1024];
+	const char *shader_pointer = shader_src;
+	int shader_src_length;
 	
-	const char *shader_src = s_shader_vs.c_str();
-	int shader_src_length = s_shader_vs.length();
-	char outputbuffer[1024];
+	std::ifstream shader_stream("shader/vertex.c");
+	shader_stream.read(shader_src, 16*1024);
+	shader_src_length = shader_stream.gcount();
 	
-	glShaderSource(shader_vs, 1, &shader_src, &shader_src_length);
+	glShaderSource(shader_vs, 1, &shader_pointer, &shader_src_length);
 	getGlError("glShaderSource");
 	
 	glCompileShader(shader_vs);
 	getGlError("glCompileShader vs");
 	printInfoLog(shader_vs);
 	
-	shader_src = s_shader_fs.c_str();
-	shader_src_length = s_shader_fs.length();
+	std::ifstream shader_stream2("shader/fragment.c");
+	shader_stream2.read(shader_src, 16*1024);
+	shader_src_length = shader_stream2.gcount();
 	
-	glShaderSource(shader_fs, 1, &shader_src, &shader_src_length);
+	glShaderSource(shader_fs, 1, &shader_pointer, &shader_src_length);
 	getGlError("glShaderSource fs");
 	
 	glCompileShader(shader_fs);
@@ -598,6 +580,7 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 void Renderer::render(PlayerPosition pos, double eye)
 {
 	glUseProgram(shader_po);
+	glUniform1f(glGetUniformLocation(shader_po, "time"), float(time)/1000);
 	
 	pos.x += -eye*std::sin(pos.orientationHorizontal/180*M_PI);
 	pos.y += eye*std::cos(pos.orientationHorizontal/180*M_PI);
