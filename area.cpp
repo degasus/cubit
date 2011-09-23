@@ -202,8 +202,10 @@ void Area::recalc_polys()
 		polys_list_start[i] = 0;
 	}
 	
-	std::queue<polygon> polys[NUMBER_OF_LISTS];
+	std::priority_queue<polygon> polys[NUMBER_OF_LISTS];
 
+	
+	
 	bool emptynew = 1;
 	
 	int polys_count = 0;
@@ -313,7 +315,7 @@ void Area::recalc_polys()
 		for(int l=0; l<NUMBER_OF_LISTS; l++) {
 			polys_list_start[l] = polys_count;
 			while(!polys[l].empty()) {
-				polys_list[polys_count++] = polys[l].front();
+				polys_list[polys_count++] = polys[l].top();
 				polys[l].pop();
 			}
 			polys_list_size[l] = polys_count - polys_list_start[l];

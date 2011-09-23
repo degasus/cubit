@@ -3,13 +3,14 @@ uniform vec4 bgColor;
 uniform float time;
 uniform float visualRange;
 uniform float fogStart;
+uniform vec3 position;
 
 // lightning
 uniform vec4 LightAmbient;
 uniform vec3 LightDiffuseDirectionA;
 uniform vec3 LightDiffuseDirectionB;
 
-varying vec4 pos;
+varying vec3 pos;
 varying vec3 normals;
 
 float abstand;
@@ -19,14 +20,13 @@ vec4 texture;
 
 void main (void)
 {
-	abstand = length(pos); 
+	abstand = length(pos-position); 
 	if(abstand < fogStart) {
 		sichtbarkeit = 1.0;
 	} else if(abstand < visualRange){
 		sichtbarkeit = (visualRange-abstand)/(visualRange-fogStart);
 	} else {
 		sichtbarkeit = 0.0;
-		//discard();
 	} 
 	
 	helligkeit = LightAmbient;

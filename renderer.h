@@ -80,11 +80,12 @@ private:
 	
 	// shader
 	struct Shader {
-		GLhandleARB po;
-		GLhandleARB vs;
-		GLhandleARB fs;
+		GLhandleARB solid_po;
+		GLhandleARB solid_vs;
+		GLhandleARB solid_fs;
 		
 		//uniform
+		GLint position;
 		GLint bgColor;
 		GLint tex;
 		GLint time;

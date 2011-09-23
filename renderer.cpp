@@ -14,6 +14,7 @@
 #include "map.h"
 
 #include "matrix.h"
+#include "utils.h"
 
 
 using namespace std;
@@ -84,11 +85,7 @@ void Renderer::config(const boost::program_options::variables_map& c)
 }
 
 void Renderer::init()
-{
-//	itemPos.x = 0;
-//	itemPos.y = 0;
-//	itemPos.z = -40;
-	
+{	
 	// Set the OpenGL state
 	glEnable(GL_TEXTURE_3D);
 	glClearColor(bgColor[0],bgColor[1], bgColor[2], bgColor[3]);	// Black Background
@@ -223,64 +220,65 @@ void Renderer::init()
 	
 	std::cout << "Shader: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 	
-	shader.po = glCreateProgram();
+	shader.solid_po = glCreateProgram();
 	getGlError("glCreateProgram");
 	
-	shader.vs = glCreateShader(GL_VERTEX_SHADER);
+	shader.solid_vs = glCreateShader(GL_VERTEX_SHADER);
 	getGlError("glCreateShader vs");
 	
-	shader.fs = glCreateShader(GL_FRAGMENT_SHADER);
+	shader.solid_fs = glCreateShader(GL_FRAGMENT_SHADER);
 	getGlError("glCreateShader fs");
 	
 	char shader_src[16*1024];
 	const char *shader_pointer = shader_src;
 	int shader_src_length;
 	
-	std::ifstream shader_stream("shader/vertex.c");
+	std::ifstream shader_stream("shader/solid_vertex.c");
 	shader_stream.read(shader_src, 16*1024);
 	shader_src_length = shader_stream.gcount();
 	
-	glShaderSource(shader.vs, 1, &shader_pointer, &shader_src_length);
+	glShaderSource(shader.solid_vs, 1, &shader_pointer, &shader_src_length);
 	getGlError("glShaderSource");
 	
-	glCompileShader(shader.vs);
+	glCompileShader(shader.solid_vs);
 	getGlError("glCompileShader vs");
-	printInfoLog(shader.vs);
+	printInfoLog(shader.solid_vs);
 	
-	std::ifstream shader_stream2("shader/fragment.c");
+	std::ifstream shader_stream2("shader/solid_fragment.c");
 	shader_stream2.read(shader_src, 16*1024);
 	shader_src_length = shader_stream2.gcount();
 	
-	glShaderSource(shader.fs, 1, &shader_pointer, &shader_src_length);
+	glShaderSource(shader.solid_fs, 1, &shader_pointer, &shader_src_length);
 	getGlError("glShaderSource fs");
 	
-	glCompileShader(shader.fs);
+	glCompileShader(shader.solid_fs);
 	getGlError("glCompileShader fs");
-	printInfoLog(shader.fs);
+	printInfoLog(shader.solid_fs);
 	
-	glAttachShader(shader.po, shader.vs);
+	glAttachShader(shader.solid_po, shader.solid_vs);
 	getGlError("glAttachShader vs");
-	glAttachShader(shader.po, shader.fs);
+	glAttachShader(shader.solid_po, shader.solid_fs);
 	getGlError("glAttachShader fs");
 	
-	glLinkProgram(shader.po);
+	glLinkProgram(shader.solid_po);
 	getGlError("glLinkProgram shader_po");
-	printInfoLog(shader.po);
+	printInfoLog(shader.solid_po);
 	
-	glUseProgram(shader.po);
+	glUseProgram(shader.solid_po);
 	
 	// get uniform vars
-	shader.bgColor = glGetUniformLocation(shader.po,"bgColor");
-	shader.tex = glGetUniformLocation(shader.po, "tex");
-	shader.time = glGetUniformLocation(shader.po, "time");
-	shader.visualRange = glGetUniformLocation(shader.po, "visualRange");
-	shader.fogStart = glGetUniformLocation(shader.po, "fogStart");
-	shader.LightAmbient = glGetUniformLocation(shader.po, "LightAmbient");
-	shader.LightDiffuseDirectionA = glGetUniformLocation(shader.po, "LightDiffuseDirectionA");
-	shader.LightDiffuseDirectionB = glGetUniformLocation(shader.po, "LightDiffuseDirectionB");
+	shader.position = glGetUniformLocation(shader.solid_po, "position");
+	shader.bgColor = glGetUniformLocation(shader.solid_po,"bgColor");
+	shader.tex = glGetUniformLocation(shader.solid_po, "tex");
+	shader.time = glGetUniformLocation(shader.solid_po, "time");
+	shader.visualRange = glGetUniformLocation(shader.solid_po, "visualRange");
+	shader.fogStart = glGetUniformLocation(shader.solid_po, "fogStart");
+	shader.LightAmbient = glGetUniformLocation(shader.solid_po, "LightAmbient");
+	shader.LightDiffuseDirectionA = glGetUniformLocation(shader.solid_po, "LightDiffuseDirectionA");
+	shader.LightDiffuseDirectionB = glGetUniformLocation(shader.solid_po, "LightDiffuseDirectionB");
 	
 	// get attribute vars
-	shader.normal = glGetAttribLocation(shader.po, "normal");
+	shader.normal = glGetAttribLocation(shader.solid_po, "normal");
 	
 	// and set it
 	glUniform4fv(shader.bgColor,1,bgColor);
@@ -288,7 +286,7 @@ void Renderer::init()
 	glUniform1f(shader.time, 0.0);
 	glUniform1f(shader.visualRange, visualRange*AREASIZE_X);
 	glUniform1f(shader.fogStart, visualRange*AREASIZE_X*fogStartFactor);
-	glUniform4f(shader.LightAmbient, 0.4, 0.4, 0.4, 1.0);
+	glUniform4f(shader.LightAmbient, 0.3, 0.3, 0.3, 1.0);
 	glUniform3f(shader.LightDiffuseDirectionA, 0.7, 0.3, sqrt(1.0-0.49-0.09));
 	glUniform3f(shader.LightDiffuseDirectionB, -0.4, -0.4, sqrt(1.0-0.16-0.16));
 	
@@ -391,9 +389,9 @@ void Renderer::generateArea(Area* area) {
 						area->vbopointer[i][vbocounter+3] = float(it.dir);
 						
 						// vertex
-						area->vbopointer[i][vbocounter+5] = it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
-						area->vbopointer[i][vbocounter+6] = it.sizey * POINTS_OF_DIRECTION[it.dir][point][1]+diffy;
-						area->vbopointer[i][vbocounter+7] = it.sizez * POINTS_OF_DIRECTION[it.dir][point][2]+diffz;
+						area->vbopointer[i][vbocounter+5] = area->pos.x + it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
+						area->vbopointer[i][vbocounter+6] = area->pos.y + it.sizey * POINTS_OF_DIRECTION[it.dir][point][1]+diffy;
+						area->vbopointer[i][vbocounter+7] = area->pos.z + it.sizez * POINTS_OF_DIRECTION[it.dir][point][2]+diffz;
 						
 						vbocounter+=8;
 					}
@@ -462,8 +460,6 @@ void Renderer::generateArea(Area* area) {
 
 void Renderer::renderArea(Area* a, int l) {
 	if(a->vbo_length[l]) {
-		glPushMatrix();
-		glTranslatef(a->pos.x,a->pos.y,a->pos.z);
 #ifdef USE_VBO
 		glBindBuffer(GL_ARRAY_BUFFER, a->vbo[l]);
 		getGlError();
@@ -481,8 +477,6 @@ void Renderer::renderArea(Area* a, int l) {
 			
 		//glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
 		getGlError();
-		
-		glPopMatrix();
 	}
 }
 
@@ -546,8 +540,9 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 
 void Renderer::render(PlayerPosition pos, double eye)
 {
-	glUseProgram(shader.po);
+	glUseProgram(shader.solid_po);
 	glUniform1f(shader.time, float(time)/1000);
+	glUniform3f(shader.position, pos.x, pos.y, pos.z);
 	
 	pos.x += -eye*std::sin(pos.orientationHorizontal/180*M_PI);
 	pos.y += eye*std::cos(pos.orientationHorizontal/180*M_PI);
@@ -595,9 +590,6 @@ void Renderer::render(PlayerPosition pos, double eye)
 	// Calculate The Aspect Ratio Of The Window
 	gluPerspective(angleOfVision/(1/360.0*M_PI), (GLfloat) c->ui->screenX / (GLfloat) c->ui->screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
 
-	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
-	
-	glLoadIdentity();							// Reset The View
 	glScalef(-1,1,1);
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
@@ -605,11 +597,12 @@ void Renderer::render(PlayerPosition pos, double eye)
 	//Mausbewegung
 	glRotatef(pos.orientationVertical,0.0f,1.0f,0.0f);
 	glRotatef(-pos.orientationHorizontal,0.0f,0.0f,1.0f);
-
 	
-
 	//Eigene Position
 	glTranslatef(-(pos.x), -(pos.y), -(pos.z));
+	
+	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
+	glLoadIdentity();							// Reset The View
 	
 	GLfloat LightPosition[] = { 10000000.0f, 6600000.0f, 25000000.0f, 1.0f };
 	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);

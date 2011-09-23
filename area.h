@@ -24,6 +24,10 @@ struct polygon {
 	unsigned char sizez;
 };
 
+inline bool operator<(const polygon &p1, const polygon &p2) {
+	return p1.m < p2.m;
+}
+
 /**
  * kleines Gebiet auf der Karte.
  * Dies ist ein einzelner Abschnitt beim Rendern
