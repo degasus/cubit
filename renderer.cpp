@@ -21,7 +21,7 @@ namespace fs = boost::filesystem;
 
 
 void getGlError(std::string meldung = "") { 
-	
+
 	GLenum errCode;
 	const GLubyte *errString;
 
@@ -104,16 +104,6 @@ void Renderer::init()
 	//LIGHT
 
 	glEnable(GL_LIGHTING);
-	
-	/*GLfloat LightAmbient[]  = { 0.5f, 0.5f, 0.5f, 1.0f };
-	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat LightPosition[] = { 0.5f, 1.0f, 5.0f, 1.0f };
-
-	//GLfloat LightPosition[] = { 0.5f, 0.1f, 1.0f, 1.0f };
-	
-	glLightfv(GL_LIGHT1, GL_AMBIENT,  LightAmbient);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE,  LightDiffuse);
-	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);*/
 
 	GLfloat LightAmbient[]  = { 0.8f, 0.8f, 0.8f, 1.0f };
 	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };	
@@ -206,7 +196,7 @@ void Renderer::init()
 		glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni );
 		glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );  
 	} 
-	if(textureFilterMethod >= 3 && glewIsSupported( "GL_ARB_framebuffer_object" ) ){
+	if(0 && textureFilterMethod >= 3 && glewIsSupported( "GL_ARB_framebuffer_object" ) ){
 		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );		
 		glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, true);
@@ -223,12 +213,6 @@ void Renderer::init()
 	glTexImage3D(GL_TEXTURE_3D, 0,GL_RGBA, 64, 64, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	delete [] pixels;
 	
-	pixels = new unsigned char[4*32*32*32*6*4];
-	
-	glBindTexture( GL_TEXTURE_1D, texture[1] );
-	glTexImage1D(GL_TEXTURE_1D, 0,GL_RGBA, 32*32*32*6*4, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-	
-	glBindTexture( GL_TEXTURE_3D, texture[0] );
 	
 	if (GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader)
 		printf("Ready for GLSL\n");
@@ -239,13 +223,13 @@ void Renderer::init()
 	
 	std::cout << "Shader: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 	
-	shader_po = glCreateProgram();
+	shader.po = glCreateProgram();
 	getGlError("glCreateProgram");
 	
-	shader_vs = glCreateShader(GL_VERTEX_SHADER);
+	shader.vs = glCreateShader(GL_VERTEX_SHADER);
 	getGlError("glCreateShader vs");
 	
-	shader_fs = glCreateShader(GL_FRAGMENT_SHADER);
+	shader.fs = glCreateShader(GL_FRAGMENT_SHADER);
 	getGlError("glCreateShader fs");
 	
 	char shader_src[16*1024];
@@ -256,37 +240,58 @@ void Renderer::init()
 	shader_stream.read(shader_src, 16*1024);
 	shader_src_length = shader_stream.gcount();
 	
-	glShaderSource(shader_vs, 1, &shader_pointer, &shader_src_length);
+	glShaderSource(shader.vs, 1, &shader_pointer, &shader_src_length);
 	getGlError("glShaderSource");
 	
-	glCompileShader(shader_vs);
+	glCompileShader(shader.vs);
 	getGlError("glCompileShader vs");
-	printInfoLog(shader_vs);
+	printInfoLog(shader.vs);
 	
 	std::ifstream shader_stream2("shader/fragment.c");
 	shader_stream2.read(shader_src, 16*1024);
 	shader_src_length = shader_stream2.gcount();
 	
-	glShaderSource(shader_fs, 1, &shader_pointer, &shader_src_length);
+	glShaderSource(shader.fs, 1, &shader_pointer, &shader_src_length);
 	getGlError("glShaderSource fs");
 	
-	glCompileShader(shader_fs);
+	glCompileShader(shader.fs);
 	getGlError("glCompileShader fs");
-	printInfoLog(shader_fs);
+	printInfoLog(shader.fs);
 	
-	glAttachShader(shader_po, shader_vs);
+	glAttachShader(shader.po, shader.vs);
 	getGlError("glAttachShader vs");
-	glAttachShader(shader_po, shader_fs);
+	glAttachShader(shader.po, shader.fs);
 	getGlError("glAttachShader fs");
 	
-	glLinkProgram(shader_po);
+	glLinkProgram(shader.po);
 	getGlError("glLinkProgram shader_po");
-	printInfoLog(shader_po);
+	printInfoLog(shader.po);
 	
-	glUseProgram(shader_po);
+	glUseProgram(shader.po);
 	
-	glUniform4fv(glGetUniformLocation(shader_po,"background"),1,bgColor);
-	glUniform1i(glGetUniformLocation(shader_po, "tex"), 0);
+	// get uniform vars
+	shader.bgColor = glGetUniformLocation(shader.po,"bgColor");
+	shader.tex = glGetUniformLocation(shader.po, "tex");
+	shader.time = glGetUniformLocation(shader.po, "time");
+	shader.visualRange = glGetUniformLocation(shader.po, "visualRange");
+	shader.fogStart = glGetUniformLocation(shader.po, "fogStart");
+	shader.LightAmbient = glGetUniformLocation(shader.po, "LightAmbient");
+	shader.LightDiffuseDirectionA = glGetUniformLocation(shader.po, "LightDiffuseDirectionA");
+	shader.LightDiffuseDirectionB = glGetUniformLocation(shader.po, "LightDiffuseDirectionB");
+	
+	// get attribute vars
+	shader.normal = glGetAttribLocation(shader.po, "normal");
+	
+	// and set it
+	glUniform4fv(shader.bgColor,1,bgColor);
+	glUniform1i(shader.tex, 0);
+	glUniform1f(shader.time, 0.0);
+	glUniform1f(shader.visualRange, visualRange*AREASIZE_X);
+	glUniform1f(shader.fogStart, visualRange*AREASIZE_X*fogStartFactor);
+	glUniform4f(shader.LightAmbient, 0.4, 0.4, 0.4, 1.0);
+	glUniform3f(shader.LightDiffuseDirectionA, 0.7, 0.3, sqrt(1.0-0.49-0.09));
+	glUniform3f(shader.LightDiffuseDirectionB, -0.4, -0.4, sqrt(1.0-0.16-0.16));
+	
 	getGlError();
 }
 
@@ -330,11 +335,6 @@ void Renderer::generateArea(Area* area) {
 #ifdef USE_VBO 
 			area->vbo_generated = 1;
 			glGenBuffers(NUMBER_OF_LISTS, area->vbo);
-#endif
-			
-#ifdef USE_GLLIST
-			area->gllist_generated = 1;
-			area->gllist = glGenLists(NUMBER_OF_LISTS);
 #endif
 			
 			int max_counts = 0;
@@ -388,6 +388,7 @@ void Renderer::generateArea(Area* area) {
 						//area->vbopointer[i][vbocounter+2] = NORMAL_OF_DIRECTION[it.dir][0];
 						//area->vbopointer[i][vbocounter+3] = NORMAL_OF_DIRECTION[it.dir][1];
 						//area->vbopointer[i][vbocounter+4] = NORMAL_OF_DIRECTION[it.dir][2];
+						area->vbopointer[i][vbocounter+3] = float(it.dir);
 						
 						// vertex
 						area->vbopointer[i][vbocounter+5] = it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
@@ -431,34 +432,6 @@ void Renderer::generateArea(Area* area) {
 #endif
 				
 				
-#ifdef USE_GLLIST
-				glNewList(area->gllist+i, GL_COMPILE);
-				getGlError();
-				
-				glPushMatrix();
-				glTranslatef(area->pos.x,area->pos.y,area->pos.z);
-
-#ifdef USE_VBO			
-				GLfloat* startpointer = 0;				
-#else
-				GLfloat* startpointer = area->vbopointer[i];
-#endif
-				glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
-				glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
-				glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
-
-				getGlError();
-				glDrawArrays(GL_TRIANGLES, 0, area->vbo_length[i]/8);
-			
-				glPopMatrix();
-				glEndList();
-				
-#ifndef USE_VBO
-				delete [] area->vbopointer[i];
-				area->vbopointer[i] = 0;
-#endif
-#endif
-
 			}
 			if(generate_bullet && has_mesh) {
 				
@@ -489,9 +462,6 @@ void Renderer::generateArea(Area* area) {
 
 void Renderer::renderArea(Area* a, int l) {
 	if(a->vbo_length[l]) {
-#ifdef USE_GLLIST
-		glCallList(a->gllist + l);
-#else		
 		glPushMatrix();
 		glTranslatef(a->pos.x,a->pos.y,a->pos.z);
 #ifdef USE_VBO
@@ -502,10 +472,9 @@ void Renderer::renderArea(Area* a, int l) {
 #else
 		GLfloat* startpointer = a->vbopointer[l];
 #endif
-		//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
 		glTexCoordPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
-		//glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
 		glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
+		glVertexAttribPointer(shader.normal,1,GL_FLOAT,GL_FALSE,sizeof(GL_FLOAT)*8,startpointer+3);
 
 		getGlError();
 		glDrawArrays(GL_TRIANGLES, 0, a->vbo_length[l]/8);
@@ -514,8 +483,6 @@ void Renderer::renderArea(Area* a, int l) {
 		getGlError();
 		
 		glPopMatrix();
-#endif
-	
 	}
 }
 
@@ -579,8 +546,8 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 
 void Renderer::render(PlayerPosition pos, double eye)
 {
-	glUseProgram(shader_po);
-	glUniform1f(glGetUniformLocation(shader_po, "time"), float(time)/1000);
+	glUseProgram(shader.po);
+	glUniform1f(shader.time, float(time)/1000);
 	
 	pos.x += -eye*std::sin(pos.orientationHorizontal/180*M_PI);
 	pos.y += eye*std::cos(pos.orientationHorizontal/180*M_PI);
@@ -659,6 +626,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 //	glAlphaFunc(GL_GREATER, 0.3);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	//glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableVertexAttribArray(shader.normal);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);				
 	getGlError();
 	

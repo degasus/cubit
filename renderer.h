@@ -78,9 +78,25 @@ private:
 	float stats[4];
 	
 	// shader
-	GLhandleARB shader_po;
-	GLhandleARB shader_vs;
-	GLhandleARB shader_fs;
+	struct Shader {
+		GLhandleARB po;
+		GLhandleARB vs;
+		GLhandleARB fs;
+		
+		//uniform
+		GLint bgColor;
+		GLint tex;
+		GLint time;
+		GLint visualRange;
+		GLint fogStart;
+		
+		GLint LightAmbient;
+		GLint LightDiffuseDirectionA;
+		GLint LightDiffuseDirectionB;
+	
+		//attribute
+		GLint normal;
+	} shader;
 	
 	 
 };

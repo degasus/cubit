@@ -1,26 +1,39 @@
-//#version 120
-//#extension GL_EXT_gpu_shader4 : enable
-//#extension GL_EXT_texture_array : enable
 uniform sampler3D tex;
-uniform vec4 background;
+uniform vec4 bgColor;
 uniform float time;
+uniform float visualRange;
+uniform float fogStart;
+
+// lightning
+uniform vec4 LightAmbient;
+uniform vec3 LightDiffuseDirectionA;
+uniform vec3 LightDiffuseDirectionB;
+
 varying vec4 pos;
+varying vec3 normals;
 
 float abstand;
 float sichtbarkeit;
+vec4 helligkeit;
 vec4 texture;
 
 void main (void)
 {
 	abstand = length(pos); 
-	if(abstand < 100.0) {
+	if(abstand < fogStart) {
 		sichtbarkeit = 1.0;
-	} else if(abstand < 125.0){
-		sichtbarkeit = (125.0-abstand)/25.0;
+	} else if(abstand < visualRange){
+		sichtbarkeit = (visualRange-abstand)/(visualRange-fogStart);
 	} else {
 		sichtbarkeit = 0.0;
+		//discard();
 	} 
 	
-	texture = texture3D(tex,gl_TexCoord[0].xyz);
-	gl_FragColor = texture * sichtbarkeit + background * (1.0 - sichtbarkeit);
+	helligkeit = LightAmbient;
+	helligkeit = helligkeit + clamp(dot(LightDiffuseDirectionA,normals),0.0,0.5);
+	helligkeit = helligkeit + clamp(dot(LightDiffuseDirectionB,normals),0.0,0.5);
+	helligkeit = clamp(helligkeit, 0.0, 1.0);
+	
+	texture = texture3D(tex,gl_TexCoord[0].xyz) * helligkeit;
+	gl_FragColor = mix(bgColor, texture, sichtbarkeit);
 }

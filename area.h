@@ -40,11 +40,6 @@ public:
 	// compairable with the server
 	int revision;
 	
-#ifdef USE_GLLIST
-	// for saving the GL-List
-	unsigned int gllist;
-	bool   gllist_generated;
-#endif
 #ifdef USE_VBO	
 	unsigned int vbo[NUMBER_OF_LISTS];
 	bool   vbo_generated;
