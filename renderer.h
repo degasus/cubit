@@ -76,6 +76,7 @@ private:
 	
 	
 	float stats[4];
+	int texture_size;
 	
 	// shader
 	struct Shader {

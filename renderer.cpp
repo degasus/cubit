@@ -72,7 +72,7 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	maxareas			= c["visualRange"].as<int>()*c["visualRange"].as<int>();
 	enableFog			= c["enableFog"].as<bool>();
 	angleOfVision 		= std::tan(c["angleOfVision"].as<double>()*(1/360.0*M_PI));
-	
+	texture_size		= c["textureSize"].as<int>();
 
 	workingDirectory = c["workingDirectory"].as<fs::path>();
 	dataDirectory = c["dataDirectory"].as<fs::path>();
@@ -135,8 +135,8 @@ void Renderer::init()
 
 
 	
-	unsigned char* pixels = new unsigned char[4*64*64*NUMBER_OF_MATERIALS];
-	for(int i=0; i<4*64*64*NUMBER_OF_MATERIALS; i++) {
+	unsigned char* pixels = new unsigned char[4*texture_size*texture_size*NUMBER_OF_MATERIALS];
+	for(int i=0; i<4*texture_size*texture_size*NUMBER_OF_MATERIALS; i++) {
 		pixels[i] = 255;
 	}
 	
@@ -163,12 +163,12 @@ void Renderer::init()
 			}
 
 			unsigned char* p = (unsigned char*)surface->pixels;
-			for(int x=0; x<64; x++) for(int y=0; y<64; y++) {
+			for(int x=0; x<texture_size; x++) for(int y=0; y<texture_size; y++) {
 				
 				for(int c=0; c<3; c++) 
-					pixels[c + x*4 + y*4*64 + i*4*64*64] = p[c + x*3 + y*3*64];
+					pixels[c + x*4 + y*4*texture_size + i*4*texture_size*texture_size] = p[c + (x*surface->w/texture_size)*3 + (y*surface->h/texture_size)*surface->pitch];
 				
-				pixels[3 + x*4 + y*4*64 + i*4*64*64] = ((x/4)%3)&&((y/4)%3)?0:255;
+				pixels[3 + x*4 + y*4*texture_size + i*4*texture_size*texture_size] = ((x/4)%3)&&((y/4)%3)?0:255;
 				
 			}
 				
@@ -210,7 +210,7 @@ void Renderer::init()
 		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	}
 	
-	glTexImage3D(GL_TEXTURE_3D, 0,GL_RGBA, 64, 64, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	glTexImage3D(GL_TEXTURE_3D, 0,GL_RGBA, texture_size, texture_size, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	delete [] pixels;
 	
 	
