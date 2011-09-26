@@ -767,7 +767,7 @@ void Renderer::renderObjects() {
 			glRotatef(-p.orientationVertical,0.0f,1.0f,0.0f);
 
 			//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
-			c->ui->renderText(0.,1,pName.c_str());
+			//c->ui->renderText(0.,1,pName.c_str());
 
 			glBegin( GL_QUADS );
 
