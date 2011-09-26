@@ -204,8 +204,6 @@ void Area::recalc_polys()
 	
 	std::priority_queue<polygon> polys[NUMBER_OF_LISTS];
 
-	
-	
 	bool emptynew = 1;
 	
 	int polys_count = 0;
@@ -252,6 +250,7 @@ void Area::recalc_polys()
 		}
 		
 #ifdef ENABLE_POLYGON_REDUCE
+		if(!DIRECTION_NEXT_BOX[dir][0])
 		for(int x=0; x<AREASIZE_X; x++)
 		for(int y=0; y<AREASIZE_Y; y++)
 		for(int z=0; z<AREASIZE_Z; z++) {
@@ -265,6 +264,7 @@ void Area::recalc_polys()
 			}
 		}
 		
+		if(!DIRECTION_NEXT_BOX[dir][1])
 		for(int x=0; x<AREASIZE_X; x++)
 		for(int y=0; y<AREASIZE_Y; y++)
 		for(int z=0; z<AREASIZE_Z; z++) {
@@ -278,6 +278,7 @@ void Area::recalc_polys()
 			}
 		}
 		
+		if(!DIRECTION_NEXT_BOX[dir][2])
 		for(int x=0; x<AREASIZE_X; x++)
 		for(int y=0; y<AREASIZE_Y; y++)
 		for(int z=0; z<AREASIZE_Z; z++) {
@@ -308,7 +309,7 @@ void Area::recalc_polys()
 		needstore = 1;
 		empty = 1;
 	}
-	if(polys_count) {
+	if(polys_count) {		
 		polys_list = new polygon[polys_count];
 		polys_count = 0;
 		
