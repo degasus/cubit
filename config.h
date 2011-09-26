@@ -1,20 +1,13 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-/*
-	if none is defined, drawarray is called in memory
-        if both are defined, an vbo will be created and copy its data to an list. so dont use it :-)
-*/
-
 #ifdef __WIN32__
 #define USE_VBO
-//#define USE_GLLIST
 //#define ENABLE_OBJETS
 #define ENABLE_POLYGON_REDUCE
 #undef main
 #else
 #define USE_VBO
-//#define USE_GLLIST
 #define ENABLE_OBJETS
 #define ENABLE_POLYGON_REDUCE
 #endif

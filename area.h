@@ -24,6 +24,10 @@ struct polygon {
 	unsigned char sizez;
 };
 
+inline bool operator<(const polygon &p1, const polygon &p2) {
+	return p1.m < p2.m;
+}
+
 /**
  * kleines Gebiet auf der Karte.
  * Dies ist ein einzelner Abschnitt beim Rendern
@@ -40,11 +44,6 @@ public:
 	// compairable with the server
 	int revision;
 	
-#ifdef USE_GLLIST
-	// for saving the GL-List
-	unsigned int gllist;
-	bool   gllist_generated;
-#endif
 #ifdef USE_VBO	
 	unsigned int vbo[NUMBER_OF_LISTS];
 	bool   vbo_generated;

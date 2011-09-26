@@ -84,6 +84,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("enableFog", po::value<bool>()->default_value(1), "enable Fog")
 		("enable3D", po::value<bool>()->default_value(0), "enable 3D")
 		("angleOfVision", po::value<double>()->default_value(60), "angle of vision in degrees")
+		("textureSize", po::value<int>()->default_value(64), "alloc texturesize")
 		("areasPerFrameRendering", po::value<int>()->default_value(20), "set the maximal rendered areas per frame")
 		("areasPerFrameLoading", po::value<int>()->default_value(100), "set the maximal from hard disk loaded areas per frame")
 		

@@ -369,6 +369,7 @@ void UInterface::redraw()
 	lastframe = start;
 	
 	c->movement->triggerNextStep(time);
+	c->renderer->time += time;
 	PlayerPosition pos = c->movement->getPosition();
 	int movement = SDL_GetTicks()-start;
 	
@@ -519,7 +520,6 @@ void UInterface::drawHUD(int time) {
 	
 	glDisable(GL_FOG);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glBindTexture( GL_TEXTURE_2D, c->renderer->texture[0] );
 
 	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 	glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
@@ -582,6 +582,8 @@ void UInterface::drawHUD(int time) {
 	///////////////////////////
 	// render the HUD cubes
 	///////////////////////////
+	
+	glEnable(GL_TEXTURE_3D);
 	for(int pos = -(numberOfHUDcubes/2); pos <= numberOfHUDcubes/2; pos++){
 		int mat = 1;
 		if(sandboxMode){
@@ -615,19 +617,19 @@ void UInterface::drawHUD(int time) {
 		glRotatef(45, 0.0, 0.0, 1.0);
 		glTranslatef(-0.5, -0.5, -0.5);
 
-		glBindTexture( GL_TEXTURE_2D, c->renderer->texture[0] );
 		glBegin(GL_QUADS);
 			for(int dir=0; dir < DIRECTION_COUNT; dir++) {
 				glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
-					glTexCoord2f(
-						(TEXTUR_POSITION_OF_DIRECTION[dir][point][0] + mat%16)/16.0,
-						(TEXTUR_POSITION_OF_DIRECTION[dir][point][1] + mat/16)/16.0
+					glTexCoord3f(
+						TEXTUR_POSITION_OF_DIRECTION[dir][point][0],
+						TEXTUR_POSITION_OF_DIRECTION[dir][point][1],
+						(mat+0.5)/NUMBER_OF_MATERIALS
 					);
 					glVertex3f(
-								POINTS_OF_DIRECTION[dir][point][0],
-								  POINTS_OF_DIRECTION[dir][point][1],
-								  POINTS_OF_DIRECTION[dir][point][2]
+						POINTS_OF_DIRECTION[dir][point][0],
+						POINTS_OF_DIRECTION[dir][point][1],
+						POINTS_OF_DIRECTION[dir][point][2]
 					);
 				}
 			}
@@ -667,7 +669,7 @@ void UInterface::drawHUD(int time) {
 		
 		glLoadIdentity();
 		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_TEXTURE_3D);
 		glDisable(GL_LIGHTING);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -710,7 +712,7 @@ void UInterface::drawHUD(int time) {
 	glEnable(GL_LIGHT2);
 	glDisable(GL_LIGHT3);
 	glDisable(GL_LIGHT4);
-	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_3D);
 	glEnable(GL_DEPTH_TEST);
 	
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);

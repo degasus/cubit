@@ -40,6 +40,7 @@ public:
 	GLuint texture[NUMBER_OF_MATERIALS];
 	
 	std::string debug_output[2];
+	int time;
 
 private:
 	
@@ -75,11 +76,29 @@ private:
 	
 	
 	float stats[4];
+	int texture_size;
 	
 	// shader
-	GLhandleARB shader_po;
-	GLhandleARB shader_vs;
-	GLhandleARB shader_fs;
+	struct Shader {
+		GLhandleARB solid_po;
+		GLhandleARB solid_vs;
+		GLhandleARB solid_fs;
+		
+		//uniform
+		GLint position;
+		GLint bgColor;
+		GLint tex;
+		GLint time;
+		GLint visualRange;
+		GLint fogStart;
+		
+		GLint LightAmbient;
+		GLint LightDiffuseDirectionA;
+		GLint LightDiffuseDirectionB;
+	
+		//attribute
+		GLint normal;
+	} shader;
 	
 	 
 };

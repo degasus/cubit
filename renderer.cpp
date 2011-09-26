@@ -14,6 +14,7 @@
 #include "map.h"
 
 #include "matrix.h"
+#include "utils.h"
 
 
 using namespace std;
@@ -21,7 +22,7 @@ namespace fs = boost::filesystem;
 
 
 void getGlError(std::string meldung = "") { 
-	
+
 	GLenum errCode;
 	const GLubyte *errString;
 
@@ -32,9 +33,28 @@ void getGlError(std::string meldung = "") {
 	
 }
 
+void printInfoLog(GLhandleARB obj)
+{
+    int infologLength = 0;
+    int charsWritten  = 0;
+    char *infoLog;
+
+    glGetObjectParameterivARB(obj, GL_OBJECT_INFO_LOG_LENGTH_ARB,
+					 &infologLength);
+
+    if (infologLength > 0)
+    {
+	infoLog = (char *)malloc(infologLength);
+	glGetInfoLogARB(obj, infologLength, &charsWritten, infoLog);
+	printf("%s\n",infoLog);
+	free(infoLog);
+    }
+}
+
 Renderer::Renderer(Controller* controller)
 {
 	c = controller;
+	time = 0;
 	areasRendered = 0;
 }
 
@@ -53,7 +73,7 @@ void Renderer::config(const boost::program_options::variables_map& c)
 	maxareas			= c["visualRange"].as<int>()*c["visualRange"].as<int>();
 	enableFog			= c["enableFog"].as<bool>();
 	angleOfVision 		= std::tan(c["angleOfVision"].as<double>()*(1/360.0*M_PI));
-	
+	texture_size		= c["textureSize"].as<int>();
 
 	workingDirectory = c["workingDirectory"].as<fs::path>();
 	dataDirectory = c["dataDirectory"].as<fs::path>();
@@ -65,13 +85,9 @@ void Renderer::config(const boost::program_options::variables_map& c)
 }
 
 void Renderer::init()
-{
-//	itemPos.x = 0;
-//	itemPos.y = 0;
-//	itemPos.z = -40;
-	
+{	
 	// Set the OpenGL state
-	glEnable(GL_TEXTURE_2D);											// Enable Texture Mapping
+	glEnable(GL_TEXTURE_3D);
 	glClearColor(bgColor[0],bgColor[1], bgColor[2], bgColor[3]);	// Black Background
 	glClearDepth(1.0f);													// Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);											// Enables Depth Testing
@@ -85,16 +101,6 @@ void Renderer::init()
 	//LIGHT
 
 	glEnable(GL_LIGHTING);
-	
-	/*GLfloat LightAmbient[]  = { 0.5f, 0.5f, 0.5f, 1.0f };
-	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat LightPosition[] = { 0.5f, 1.0f, 5.0f, 1.0f };
-
-	//GLfloat LightPosition[] = { 0.5f, 0.1f, 1.0f, 1.0f };
-	
-	glLightfv(GL_LIGHT1, GL_AMBIENT,  LightAmbient);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE,  LightDiffuse);
-	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);*/
 
 	GLfloat LightAmbient[]  = { 0.8f, 0.8f, 0.8f, 1.0f };
 	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };	
@@ -125,9 +131,11 @@ void Renderer::init()
 		glEnable(GL_FOG);					// Enables GL_FOG
 
 
-
 	
-	unsigned char* pixels = new unsigned char[1024*1024*4];
+	unsigned char* pixels = new unsigned char[4*texture_size*texture_size*NUMBER_OF_MATERIALS];
+	for(int i=0; i<4*texture_size*texture_size*NUMBER_OF_MATERIALS; i++) {
+		pixels[i] = 255;
+	}
 	
 	glGenTextures( 2, texture );
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
@@ -152,12 +160,12 @@ void Renderer::init()
 			}
 
 			unsigned char* p = (unsigned char*)surface->pixels;
-			for(int x=0; x<64; x++) for(int y=0; y<64; y++) {
+			for(int x=0; x<texture_size; x++) for(int y=0; y<texture_size; y++) {
 				
 				for(int c=0; c<3; c++) 
-					pixels[c + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = p[c + x*3 + y*3*64];
+					pixels[c + x*4 + y*4*texture_size + i*4*texture_size*texture_size] = p[c + (x*surface->w/texture_size)*3 + (y*surface->h/texture_size)*surface->pitch];
 				
-				pixels[3 + x*4 + y*4*1024 + (i%16)*64*4 + (i/16) * (1024*64*4)] = ((x/4)%3)&&((y/4)%3)?0:255;
+				pixels[3 + x*4 + y*4*texture_size + i*4*texture_size*texture_size] = ((x/4)%3)&&((y/4)%3)?0:255;
 				
 			}
 				
@@ -173,64 +181,116 @@ void Renderer::init()
 		}
 		
 	}
-	//glBindTexture(GL_TEXTURE_2D_ARRAY,texture[1]);
-	//glTexImage3D(GL_TEXTURE_2D_ARRAY,0,GL_RGBA, 64, 64, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_FLOAT, pixels);
 	
-	// Bind the texture object
-	glBindTexture( GL_TEXTURE_2D, texture[0] );
+	glBindTexture( GL_TEXTURE_3D, texture[0] );
 	
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+	glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 	
 	// Set the texture's stretching properties
 	if ( textureFilterMethod >= 4 && glewIsSupported( "GL_EXT_texture_filter_anisotropic" ) ) {
 		float maxAni;
 		glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );  
+		glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );  
 	} 
-	if(textureFilterMethod >= 3 && glewIsSupported( "glGenerateMipmap" ) ){
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );		
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, true);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
+	if(0 && textureFilterMethod >= 3 && glewIsSupported( "GL_ARB_framebuffer_object" ) ){
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );		
+		glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, true);
 	}
 	else if(textureFilterMethod >= 2){
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	}
 	else{
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	}
-
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	
+	glTexImage3D(GL_TEXTURE_3D, 0,GL_RGBA, texture_size, texture_size, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	delete [] pixels;
-	/*
+	
+	
+	if (GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader)
+		printf("Ready for GLSL\n");
+	else {
+		printf("Not totally ready for GLSL :(  \n");
+		exit(1);
+	}
+	
 	std::cout << "Shader: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 	
-	shader_po = glCreateProgramObjectARB();
-	getGlError("glCreateProgramObjectARB");
+	shader.solid_po = glCreateProgram();
+	getGlError("glCreateProgram");
 	
-	shader_vs = glCreateShaderObjectARB(GL_VERTEX_SHADER);
-	getGlError("glCreateShaderObjectARB vs");
+	shader.solid_vs = glCreateShader(GL_VERTEX_SHADER);
+	getGlError("glCreateShader vs");
 	
-	shader_fs = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
-	getGlError("glCreateShaderObjectARB fs");
+	shader.solid_fs = glCreateShader(GL_FRAGMENT_SHADER);
+	getGlError("glCreateShader fs");
 	
-	std::string shader = "";
-	const char *shader_src = shader.c_str();
-	int shader_src_length = shader.length();
-	glShaderSourceARB(shader_vs, 1, &shader_src, &shader_src_length);
-	getGlError("glShaderSourceARB");
+	char shader_src[16*1024];
+	const char *shader_pointer = shader_src;
+	int shader_src_length;
 	
-	glCompileShaderARB(shader_vs);
-	getGlError("glCompileShaderARB vs");
+	std::ifstream shader_stream("shader/solid_vertex.c");
+	shader_stream.read(shader_src, 16*1024);
+	shader_src_length = shader_stream.gcount();
 	
+	glShaderSource(shader.solid_vs, 1, &shader_pointer, &shader_src_length);
+	getGlError("glShaderSource");
 	
-	glCompileShaderARB(shader_fs);
-	getGlError("glCompileShaderARB fs");
-	*/
+	glCompileShader(shader.solid_vs);
+	getGlError("glCompileShader vs");
+	printInfoLog(shader.solid_vs);
+	
+	std::ifstream shader_stream2("shader/solid_fragment.c");
+	shader_stream2.read(shader_src, 16*1024);
+	shader_src_length = shader_stream2.gcount();
+	
+	glShaderSource(shader.solid_fs, 1, &shader_pointer, &shader_src_length);
+	getGlError("glShaderSource fs");
+	
+	glCompileShader(shader.solid_fs);
+	getGlError("glCompileShader fs");
+	printInfoLog(shader.solid_fs);
+	
+	glAttachShader(shader.solid_po, shader.solid_vs);
+	getGlError("glAttachShader vs");
+	glAttachShader(shader.solid_po, shader.solid_fs);
+	getGlError("glAttachShader fs");
+	
+	glLinkProgram(shader.solid_po);
+	getGlError("glLinkProgram shader_po");
+	printInfoLog(shader.solid_po);
+	
+	glUseProgram(shader.solid_po);
+	
+	// get uniform vars
+	shader.position = glGetUniformLocation(shader.solid_po, "position");
+	shader.bgColor = glGetUniformLocation(shader.solid_po,"bgColor");
+	shader.tex = glGetUniformLocation(shader.solid_po, "tex");
+	shader.time = glGetUniformLocation(shader.solid_po, "time");
+	shader.visualRange = glGetUniformLocation(shader.solid_po, "visualRange");
+	shader.fogStart = glGetUniformLocation(shader.solid_po, "fogStart");
+	shader.LightAmbient = glGetUniformLocation(shader.solid_po, "LightAmbient");
+	shader.LightDiffuseDirectionA = glGetUniformLocation(shader.solid_po, "LightDiffuseDirectionA");
+	shader.LightDiffuseDirectionB = glGetUniformLocation(shader.solid_po, "LightDiffuseDirectionB");
+	
+	// get attribute vars
+	shader.normal = glGetAttribLocation(shader.solid_po, "normal");
+	
+	// and set it
+	glUniform4fv(shader.bgColor,1,bgColor);
+	glUniform1i(shader.tex, 0);
+	glUniform1f(shader.time, 0.0);
+	glUniform1f(shader.visualRange, visualRange*AREASIZE_X);
+	glUniform1f(shader.fogStart, visualRange*AREASIZE_X*fogStartFactor);
+	glUniform4f(shader.LightAmbient, 0.3, 0.3, 0.3, 1.0);
+	glUniform3f(shader.LightDiffuseDirectionA, 0.7, 0.3, sqrt(1.0-0.49-0.09));
+	glUniform3f(shader.LightDiffuseDirectionB, -0.4, -0.4, sqrt(1.0-0.16-0.16));
+	
+	getGlError();
 }
 
 
@@ -275,11 +335,6 @@ void Renderer::generateArea(Area* area) {
 			glGenBuffers(NUMBER_OF_LISTS, area->vbo);
 #endif
 			
-#ifdef USE_GLLIST
-			area->gllist_generated = 1;
-			area->gllist = glGenLists(NUMBER_OF_LISTS);
-#endif
-			
 			int max_counts = 0;
       
 			for(int i=0; i<NUMBER_OF_LISTS; i++) {
@@ -307,21 +362,36 @@ void Renderer::generateArea(Area* area) {
 					
 					for(int j=0; j < sizeof(points)/sizeof(int); j++) {
 						int point = points[j];
-						//assert(vbocounter < size);
+						
+						float zoomx = 1;
+						float zoomy = 1;
+						if(NORMAL_OF_DIRECTION[it.dir][0]) {
+							zoomx = it.sizey;
+							zoomy = it.sizez;
+						} else if(NORMAL_OF_DIRECTION[it.dir][1]) {
+							zoomx = it.sizex;
+							zoomy = it.sizez;
+						} else {
+							zoomx = it.sizex;
+							zoomy = it.sizey;
+							
+						}
 						
 						// texture
-						area->vbopointer[i][vbocounter+0] = (TEXTUR_POSITION_OF_DIRECTION[it.dir][point][0]+it.m%16)/16.0;
-						area->vbopointer[i][vbocounter+1] = (TEXTUR_POSITION_OF_DIRECTION[it.dir][point][1]+it.m/16)/16.0;
+						area->vbopointer[i][vbocounter+0] = zoomx * TEXTUR_POSITION_OF_DIRECTION[it.dir][point][0];
+						area->vbopointer[i][vbocounter+1] = zoomy * TEXTUR_POSITION_OF_DIRECTION[it.dir][point][1];
+						area->vbopointer[i][vbocounter+2] = (it.m+0.5)/(NUMBER_OF_MATERIALS);
 						
 						// normale
-						area->vbopointer[i][vbocounter+2] = NORMAL_OF_DIRECTION[it.dir][0];
-						area->vbopointer[i][vbocounter+3] = NORMAL_OF_DIRECTION[it.dir][1];
-						area->vbopointer[i][vbocounter+4] = NORMAL_OF_DIRECTION[it.dir][2];
+						//area->vbopointer[i][vbocounter+2] = NORMAL_OF_DIRECTION[it.dir][0];
+						//area->vbopointer[i][vbocounter+3] = NORMAL_OF_DIRECTION[it.dir][1];
+						//area->vbopointer[i][vbocounter+4] = NORMAL_OF_DIRECTION[it.dir][2];
+						area->vbopointer[i][vbocounter+3] = float(it.dir);
 						
 						// vertex
-						area->vbopointer[i][vbocounter+5] = it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
-						area->vbopointer[i][vbocounter+6] = it.sizey * POINTS_OF_DIRECTION[it.dir][point][1]+diffy;
-						area->vbopointer[i][vbocounter+7] = it.sizez * POINTS_OF_DIRECTION[it.dir][point][2]+diffz;
+						area->vbopointer[i][vbocounter+5] = area->pos.x + it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
+						area->vbopointer[i][vbocounter+6] = area->pos.y + it.sizey * POINTS_OF_DIRECTION[it.dir][point][1]+diffy;
+						area->vbopointer[i][vbocounter+7] = area->pos.z + it.sizez * POINTS_OF_DIRECTION[it.dir][point][2]+diffz;
 						
 						vbocounter+=8;
 					}
@@ -360,34 +430,6 @@ void Renderer::generateArea(Area* area) {
 #endif
 				
 				
-#ifdef USE_GLLIST
-				glNewList(area->gllist+i, GL_COMPILE);
-				getGlError();
-				
-				glPushMatrix();
-				glTranslatef(area->pos.x,area->pos.y,area->pos.z);
-
-#ifdef USE_VBO			
-				GLfloat* startpointer = 0;				
-#else
-				GLfloat* startpointer = area->vbopointer[i];
-#endif
-				glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
-				glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
-				glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
-
-				getGlError();
-				glDrawArrays(GL_TRIANGLES, 0, area->vbo_length[i]/8);
-			
-				glPopMatrix();
-				glEndList();
-				
-#ifndef USE_VBO
-				delete [] area->vbopointer[i];
-				area->vbopointer[i] = 0;
-#endif
-#endif
-
 			}
 			if(generate_bullet && has_mesh) {
 				
@@ -418,11 +460,6 @@ void Renderer::generateArea(Area* area) {
 
 void Renderer::renderArea(Area* a, int l) {
 	if(a->vbo_length[l]) {
-#ifdef USE_GLLIST
-		glCallList(a->gllist + l);
-#else		
-		glPushMatrix();
-		glTranslatef(a->pos.x,a->pos.y,a->pos.z);
 #ifdef USE_VBO
 		glBindBuffer(GL_ARRAY_BUFFER, a->vbo[l]);
 		getGlError();
@@ -431,20 +468,15 @@ void Renderer::renderArea(Area* a, int l) {
 #else
 		GLfloat* startpointer = a->vbopointer[l];
 #endif
-		//glInterleavedArrays(GL_T2F_N3F_V3F, sizeof(GLfloat)*8, startpointer);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
-		glNormalPointer(GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+2);
+		glTexCoordPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer);
 		glVertexPointer(3, GL_FLOAT, sizeof(GL_FLOAT)*8, startpointer+5);
+		glVertexAttribPointer(shader.normal,1,GL_FLOAT,GL_FALSE,sizeof(GL_FLOAT)*8,startpointer+3);
 
 		getGlError();
 		glDrawArrays(GL_TRIANGLES, 0, a->vbo_length[l]/8);
 			
 		//glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
 		getGlError();
-		
-		glPopMatrix();
-#endif
-	
 	}
 }
 
@@ -508,6 +540,10 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 
 void Renderer::render(PlayerPosition pos, double eye)
 {
+	glUseProgram(shader.solid_po);
+	glUniform1f(shader.time, float(time)/1000);
+	glUniform3f(shader.position, pos.x, pos.y, pos.z);
+	
 	pos.x += -eye*std::sin(pos.orientationHorizontal/180*M_PI);
 	pos.y += eye*std::cos(pos.orientationHorizontal/180*M_PI);
 
@@ -554,9 +590,6 @@ void Renderer::render(PlayerPosition pos, double eye)
 	// Calculate The Aspect Ratio Of The Window
 	gluPerspective(angleOfVision/(1/360.0*M_PI), (GLfloat) c->ui->screenX / (GLfloat) c->ui->screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
 
-	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
-	
-	glLoadIdentity();							// Reset The View
 	glScalef(-1,1,1);
 	glRotatef(90.0,0.0f,0.0f,1.0f);
 	glRotatef(90.0,0.0f,1.0f,0.0f);
@@ -564,11 +597,12 @@ void Renderer::render(PlayerPosition pos, double eye)
 	//Mausbewegung
 	glRotatef(pos.orientationVertical,0.0f,1.0f,0.0f);
 	glRotatef(-pos.orientationHorizontal,0.0f,0.0f,1.0f);
-
 	
-
 	//Eigene Position
 	glTranslatef(-(pos.x), -(pos.y), -(pos.z));
+	
+	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
+	glLoadIdentity();							// Reset The View
 	
 	GLfloat LightPosition[] = { 10000000.0f, 6600000.0f, 25000000.0f, 1.0f };
 	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
@@ -583,9 +617,9 @@ void Renderer::render(PlayerPosition pos, double eye)
 	// state for rendering vbos
 //	glEnable(GL_ALPHA_TEST);
 //	glAlphaFunc(GL_GREATER, 0.3);
-	glBindTexture( GL_TEXTURE_2D, texture[0] );
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
+	//glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableVertexAttribArray(shader.normal);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);				
 	getGlError();
 	
@@ -619,7 +653,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	}
 	
 	glDepthFunc(GL_EQUAL);	
-	glBlendFunc(GL_ONE, GL_SRC_COLOR);
+	glBlendFunc(GL_ONE_MINUS_SRC_COLOR, GL_SRC_COLOR);
 	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		if(a->state >= Area::STATE_GENERATE && a->show) {
@@ -647,12 +681,14 @@ void Renderer::render(PlayerPosition pos, double eye)
 	std::ostringstream out2(std::ostringstream::out);
 	out2 << "Init: " << stats[0] << ", Generate: " << stats[1] << ", Solid: " << stats[2] << ", Transparent: " << stats[3];
 	debug_output[1] = out2.str();
+	
+	glUseProgram(0);
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 	glDisable(GL_LIGHT1);
 	glDisable(GL_LIGHTING);
-	glBindTexture( GL_TEXTURE_2D, texture[1] );
+	glDisable(GL_TEXTURE_3D);
 	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 
 	if(highlightWholePlane)
@@ -682,7 +718,7 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 }
 
 void Renderer::renderObjects() {
-	glBindTexture( GL_TEXTURE_2D, texture[0] );
+	glEnable(GL_TEXTURE_3D);
 	{
 #ifdef ENABLE_OBJETS
 		std::list<MovingObject*>::iterator it;
@@ -694,16 +730,16 @@ void Renderer::renderObjects() {
 			glTranslatef(trans.getOrigin().getX(),trans.getOrigin().getY(),trans.getOrigin().getZ());
 			glRotatef( trans.getRotation().getAngle()*180/M_PI, trans.getRotation().getAxis().getX(), trans.getRotation().getAxis().getY(), trans.getRotation().getAxis().getZ());
 			
-			//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
 			glBegin( GL_QUADS );
 
 			for(int i=0; i<DIRECTION_COUNT; i++) {
 				glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
 						
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
-					glTexCoord2f(
-						(TEXTUR_POSITION_OF_DIRECTION[i][point][0]+(*it)->tex%16)/16.0,
-						(TEXTUR_POSITION_OF_DIRECTION[i][point][1]+(*it)->tex/16)/16.0
+					glTexCoord3f(
+						TEXTUR_POSITION_OF_DIRECTION[i][point][0],
+						TEXTUR_POSITION_OF_DIRECTION[i][point][1],
+						((*it)->tex + 0.5)/NUMBER_OF_MATERIALS
 					);
 					glVertex3f(
 						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.1,
@@ -729,17 +765,20 @@ void Renderer::renderObjects() {
 			glTranslatef(p.x, p.y, p.z);
 			glRotatef(p.orientationHorizontal,0.0f,0.0f,1.0f);
 			glRotatef(-p.orientationVertical,0.0f,1.0f,0.0f);
-			
+
 			//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
+			c->ui->renderText(0.,1,pName.c_str());
+
 			glBegin( GL_QUADS );
 
 			for(int i=0; i<DIRECTION_COUNT; i++) {
 				glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
 						
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
-					glTexCoord2f(
-						(TEXTUR_POSITION_OF_DIRECTION[i][point][0]+tex%16)/16.0,
-						(TEXTUR_POSITION_OF_DIRECTION[i][point][1]+tex/16)/16.0
+					glTexCoord3f(
+						TEXTUR_POSITION_OF_DIRECTION[i][point][0],
+						TEXTUR_POSITION_OF_DIRECTION[i][point][1],
+						(tex + 0.5)/NUMBER_OF_MATERIALS
 					);
 					glVertex3f(
 						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.6/2,
