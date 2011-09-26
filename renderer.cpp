@@ -730,9 +730,6 @@ void Renderer::renderObjects() {
 			glRotatef(p.orientationHorizontal,0.0f,0.0f,1.0f);
 			glRotatef(-p.orientationVertical,0.0f,1.0f,0.0f);
 			
-			
-			c->ui->renderText(0.,1,pName.c_str());
-			
 			//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
 			glBegin( GL_QUADS );
 
@@ -752,7 +749,14 @@ void Renderer::renderObjects() {
 				}
 			}
 			glEnd();
-
+			glTranslatef(0,0.3,0.35);
+			glRotatef(-90,0,0,1);
+			glRotatef(90,1,0,0);
+			glScalef(0.01,0.01,0.01);
+			glDisable(GL_CULL_FACE);
+			c->ui->renderText(0.,0,pName.c_str());
+			glEnable(GL_CULL_FACE);
+			
 			glPopMatrix();
 		}
 	}
