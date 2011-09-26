@@ -34,7 +34,8 @@ public:
 	void run();
 	
 	//Text
-	FTTextureFont *font;
+	FTFont *font;
+	//FTTextureFont *font;
 	void renderText(double x, double y, const char* text);
 	
 	//Frame conditions

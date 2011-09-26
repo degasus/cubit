@@ -62,13 +62,13 @@ void UInterface::init()
 	}
 	
 	// Create a pixmap font from a TrueType file.
-	font = new FTTextureFont((dataDirectory/"fonts"/"FreeSans.ttf").string().c_str());
+	font = new FTPolygonFont((dataDirectory/"fonts"/"FreeSans.ttf").string().c_str());
 	if(font->Error()) {
-		font = new FTTextureFont((workingDirectory/"fonts"/"FreeSans.ttf").string().c_str());
+		font = new FTPolygonFont((workingDirectory/"fonts"/"FreeSans.ttf").string().c_str());
 		if(font->Error()) {
-			font = new FTTextureFont((localDirectory/"fonts"/"FreeSans.ttf").string().c_str());
+			font = new FTPolygonFont((localDirectory/"fonts"/"FreeSans.ttf").string().c_str());
 			if(font->Error()) {
-				font = new FTTextureFont((fs::path("fonts")/"FreeSans.ttf").string().c_str());
+				font = new FTPolygonFont((fs::path("fonts")/"FreeSans.ttf").string().c_str());
 				if(font->Error()) {
 					printf("Unable to open Font!\n");
 				}
