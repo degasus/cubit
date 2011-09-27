@@ -389,7 +389,10 @@ void Renderer::generateArea(Area* area) {
 						// texture
 						area->vbopointer[i][vbocounter+0] = zoomx * TEXTUR_POSITION_OF_DIRECTION[it.dir][point][0];
 						area->vbopointer[i][vbocounter+1] = zoomy * TEXTUR_POSITION_OF_DIRECTION[it.dir][point][1];
-						area->vbopointer[i][vbocounter+2] = it.m;
+						if(TEXTURE_TYPE == GL_TEXTURE_3D)
+							area->vbopointer[i][vbocounter+2] = (it.m+0.5)/NUMBER_OF_MATERIALS;
+						else
+							area->vbopointer[i][vbocounter+2] = it.m;
 						
 						// normale
 						//area->vbopointer[i][vbocounter+2] = NORMAL_OF_DIRECTION[it.dir][0];
@@ -730,10 +733,16 @@ void Renderer::renderObjects() {
 				glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
 						
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
+					float z;
+					if(TEXTURE_TYPE == GL_TEXTURE_3D)
+						z = ((*it)->tex+0.5)/NUMBER_OF_MATERIALS;
+					else
+						z = (*it)->tex;
+					
 					glTexCoord3f(
 						TEXTUR_POSITION_OF_DIRECTION[i][point][0],
 						TEXTUR_POSITION_OF_DIRECTION[i][point][1],
-						(*it)->tex
+						z
 					);
 					glVertex3f(
 						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.1,
@@ -769,10 +778,16 @@ void Renderer::renderObjects() {
 				glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
 						
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
+					float z;
+					if(TEXTURE_TYPE == GL_TEXTURE_3D)
+						z = (tex+0.5)/NUMBER_OF_MATERIALS;
+					else
+						z = tex;
+					
 					glTexCoord3f(
 						TEXTUR_POSITION_OF_DIRECTION[i][point][0],
 						TEXTUR_POSITION_OF_DIRECTION[i][point][1],
-						tex
+						z
 					);
 					glVertex3f(
 						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.6/2,
