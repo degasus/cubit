@@ -1,4 +1,11 @@
+
+#ifdef GL_EXT_texture_array
+#extension GL_EXT_texture_array : enable
+uniform sampler2DArray tex;
+#else
 uniform sampler3D tex;
+#endif
+
 uniform vec4 bgColor;
 uniform float time;
 uniform float visualRange;
@@ -27,7 +34,11 @@ void main (void)
 	helligkeit = helligkeit + clamp(dot(LightDiffuseDirectionA,normals),0.0,0.5);
 	helligkeit = helligkeit + clamp(dot(LightDiffuseDirectionB,normals),0.0,0.5);
 	helligkeit = clamp(helligkeit, 0.0, 1.0);
-	
+
+#ifdef GL_EXT_texture_array
+	texture = texture2DArray(tex,gl_TexCoord[0].xyz) * helligkeit;
+#else
 	texture = texture3D(tex,gl_TexCoord[0].xyz) * helligkeit;
+#endif
 	gl_FragColor = mix(bgColor, texture, sichtbarkeit);
 }
