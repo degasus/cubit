@@ -69,7 +69,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("visualRange", po::value<int>()->default_value(4), "maximal distance for rendering")
 		//Net
 		("server", po::value<std::string>()->default_value("cubit-project.com"), "Server to connect to.")
-		("nick", po::value<std::string>()->default_value(std::getenv("USERNAME")), "Nickname to show to other players.");
+		("nick", po::value<std::string>()->default_value(std::getenv("USER")), "Nickname to show to other players.");
 	
 	po::options_description advanced("Advanced options");
 	advanced.add_options()

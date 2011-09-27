@@ -475,6 +475,7 @@ void Renderer::generateArea(Area* area) {
 
 void Renderer::renderArea(Area* a, int l) {
 	if(a->vbo_length[l]) {
+		getGlError();
 		glPushMatrix();
 		glTranslatef(a->pos.x,a->pos.y,a->pos.z);
 #ifdef USE_VBO
@@ -646,8 +647,10 @@ void Renderer::render(PlayerPosition pos, double eye)
 		}
 	}
 	
+	getGlError();
 	renderObjects();
 	
+	getGlError();
 	int solid = SDL_GetTicks()-generate-init-start;
 	
 	glEnable(GL_BLEND);
@@ -741,25 +744,21 @@ void Renderer::renderObjects() {
 			glBegin( GL_QUADS );
 
 			for(int i=0; i<DIRECTION_COUNT; i++) {
-				glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
-						
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
-					float z;
-					if(TEXTURE_TYPE == GL_TEXTURE_3D)
-						z = ((*it)->tex+0.5)/NUMBER_OF_MATERIALS;
-					else
-						z = (*it)->tex;
-					
-					glTexCoord3f(
+					glVertexAttrib3f( shader.tPos,
 						TEXTUR_POSITION_OF_DIRECTION[i][point][0],
 						TEXTUR_POSITION_OF_DIRECTION[i][point][1],
-						z
+						(*it)->tex
 					);
-					glVertex3f(
+		getGlError();
+					glVertexAttrib3f( shader.bPos,
 						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.1,
 						(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.1,
 						(POINTS_OF_DIRECTION[i][point][2]*2-1)*0.1
 					);
+		getGlError();
+					glVertexAttrib1f( shader.normal,i);
+		getGlError();
 				}
 			}
 			glEnd();
@@ -767,7 +766,9 @@ void Renderer::renderObjects() {
 			glPopMatrix();
 		}
 #endif
-	} {
+	} 
+		getGlError();
+	{
 		std::map<int, OtherPlayer>::iterator it;
 		for(it = c->map->otherPlayers.begin(); it != c->map->otherPlayers.end(); it++) {
 			if(it->second.visible){
@@ -785,39 +786,34 @@ void Renderer::renderObjects() {
 				//c->ui->renderText(0.,1,pName.c_str());
 
 				glBegin( GL_QUADS );
-
+				
 				for(int i=0; i<DIRECTION_COUNT; i++) {
-					glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
-							
 					for(int point=0; point < POINTS_PER_POLYGON; point++) {
-						float z;
-						if(TEXTURE_TYPE == GL_TEXTURE_3D)
-							z = (tex+0.5)/NUMBER_OF_MATERIALS;
-						else
-							z = tex;
-						
-						glTexCoord3f(
+						glVertexAttrib3f( shader.tPos,
 							TEXTUR_POSITION_OF_DIRECTION[i][point][0],
 							TEXTUR_POSITION_OF_DIRECTION[i][point][1],
-							z
+							tex
 						);
-						glVertex3f(
+						glVertexAttrib3f( shader.bPos,
 							(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.6/2,
 							(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.6/2,
 							(POINTS_OF_DIRECTION[i][point][2]*2-1)*1.5/2-0.5
 						);
+						glVertexAttrib1f( shader.normal,i);
 					}
-					glEnd();
-					glTranslatef(0,0.3,0.35);
-					glRotatef(-90,0,0,1);
-					glRotatef(90,1,0,0);
-					glScalef(0.01,0.01,0.01);
-					glDisable(GL_CULL_FACE);
-					c->ui->renderText(0.,0,pName.c_str());
-					glEnable(GL_CULL_FACE);
-					
-					glPopMatrix();
 				}
+		getGlError();
+				glEnd();
+		getGlError();
+				glTranslatef(0,0.3,0.35);
+				glRotatef(-90,0,0,1);
+				glRotatef(90,1,0,0);
+				glScalef(0.01,0.01,0.01);
+				glDisable(GL_CULL_FACE);
+				c->ui->renderText(0.,0,pName.c_str());
+				glEnable(GL_CULL_FACE);
+				
+				glPopMatrix();
 			}
 		}
 	}
