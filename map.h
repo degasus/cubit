@@ -103,7 +103,7 @@ public:
 	typedef std::map<BlockPosition, Area*>::iterator iterator;
 	
 	
-	std::set<Area*> areas_with_gllist;
+	std::list<Area*> areas_with_gllist;
 	
 #ifdef ENABLE_OBJETS
 	std::list<MovingObject*> objects;

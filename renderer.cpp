@@ -194,7 +194,7 @@ void Renderer::init()
 		glTexParameterf( GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );  
 	} 
 	if(0 && textureFilterMethod >= 3 && glewIsSupported( "GL_ARB_framebuffer_object" ) ){
-		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
 		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );		
 		glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, true);
 	}
@@ -205,6 +205,10 @@ void Renderer::init()
 	else{
 		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 		glTexParameteri( GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+	}
+	
+	if(glewIsSupported("GL_EXT_texture_array")) {
+		std::cout << "GL_EXT_texture_array is supported" << std::endl;
 	}
 	
 	glTexImage3D(GL_TEXTURE_3D, 0,GL_RGBA, texture_size, texture_size, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
@@ -559,7 +563,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	areasRendered -= areasPerFrame;
 	generateViewPort(pos);
 	
-	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
+	for(std::list<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		a->show = areaInViewport(a->pos, pos);
 		areas_in_viewport += a->show;
@@ -625,7 +629,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	
 	int k=0;
 	glColor4f(1,1,1,0.5);
-	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
+	for(std::list<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		if(a->state >= Area::STATE_GENERATE && a->show) {
 			for(int d=0; d<DIRECTION_COUNT; d++) if(!a->dijsktra_direction_used[d]) {
@@ -643,7 +647,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
 	glBlendFunc(GL_ZERO, GL_ONE);
-	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
+	for(std::list<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		if(a->state >= Area::STATE_GENERATE && a->show) {
 			renderArea(a,6);
@@ -654,7 +658,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	
 	glDepthFunc(GL_EQUAL);	
 	glBlendFunc(GL_ONE_MINUS_SRC_COLOR, GL_SRC_COLOR);
-	for(std::set<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
+	for(std::list<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		if(a->state >= Area::STATE_GENERATE && a->show) {
 			renderArea(a,6);

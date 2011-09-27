@@ -200,6 +200,10 @@ Area* Map::getOrCreate(BlockPosition pos) {
 	return *a;
 }
 
+bool distance(Area *a, Area *b) {
+	return a->dijsktra_distance < b->dijsktra_distance;
+}
+
 void Map::setPosition(PlayerPosition pos)
 {	
 	SDL_LockMutex(queue_mutex);
@@ -296,12 +300,15 @@ void Map::setPosition(PlayerPosition pos)
 		it = areas.find(bPos.area());
 		if(it != areas.end()) {
 			a = it->second;
-			if(a->empty && m)
-				areas_with_gllist.insert(a);
+			if(a->empty && m) {
+				areas_with_gllist.remove(a);
+				areas_with_gllist.push_back(a);
+			}
 			a->set(bPos, m);
 			for(int d=0; d<DIRECTION_COUNT && !m; d++) {
 				if(a->next[d] && a->next[d]->full && *(a->next[d]) << bPos+DIRECTION(d)) {
-					areas_with_gllist.insert(a->next[d]);
+					areas_with_gllist.remove(a->next[d]);
+					areas_with_gllist.push_back(a->next[d]);
 				}
 			}
 			if(a->state >= Area::STATE_WAITING_FOR_BORDERS)
@@ -322,7 +329,8 @@ void Map::setPosition(PlayerPosition pos)
 		Area *a = generated.front();
 		generated.pop();
 		a->state = Area::STATE_READY;
-		areas_with_gllist.insert(a);
+		areas_with_gllist.remove(a);
+		areas_with_gllist.push_back(a);
 	}
 	
 	network->send_player_position(pos);;
@@ -418,7 +426,7 @@ void Map::setPosition(PlayerPosition pos)
 			network->send_leave_area(a->pos);
 			a->deconfigure();
 			a->delete_collision(c->movement->dynamicsWorld);
-			areas_with_gllist.erase(a);
+			areas_with_gllist.remove(a);
 			areas.erase(a->pos);
 			a->state = Area::STATE_DELETE;
 			if(a->needstore && storeMaps) {
@@ -435,6 +443,8 @@ void Map::setPosition(PlayerPosition pos)
 	} 
 	//std::cout << "dijsktra usage: " << k << std::endl;
 	SDL_UnlockMutex(queue_mutex);
+	
+	areas_with_gllist.sort(distance);
 }
 
 void Map::store(Area *a) {

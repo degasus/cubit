@@ -21,13 +21,7 @@ vec4 texture;
 void main (void)
 {
 	abstand = length(pos-position); 
-	if(abstand < fogStart) {
-		sichtbarkeit = 1.0;
-	} else if(abstand < visualRange){
-		sichtbarkeit = (visualRange-abstand)/(visualRange-fogStart);
-	} else {
-		sichtbarkeit = 0.0;
-	} 
+	sichtbarkeit = clamp((visualRange-abstand)/(visualRange-fogStart),0.0, 1.0);
 	
 	helligkeit = LightAmbient;
 	helligkeit = helligkeit + clamp(dot(LightDiffuseDirectionA,normals),0.0,0.5);
