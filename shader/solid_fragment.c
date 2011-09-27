@@ -38,7 +38,7 @@ void main (void)
 #ifdef GL_EXT_texture_array
 	texture = texture2DArray(tex,gl_TexCoord[0].xyz) * helligkeit;
 #else
-	texture = texture3D(tex,gl_TexCoord[0].xyz) * helligkeit;
+	texture = texture3D(tex,vec3(gl_TexCoord[0].xy,(gl_TexCoord[0].z+0.5)/109.0)) * helligkeit;
 #endif
 	gl_FragColor = mix(bgColor, texture, sichtbarkeit);
 }

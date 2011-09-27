@@ -1,7 +1,8 @@
 uniform float time;
 
 attribute float normal;
-attribute vec4 bPos;
+attribute vec3 bPos;
+attribute vec3 tPos;
 
 varying vec3 pos;
 varying vec3 normals;
@@ -21,7 +22,7 @@ void main(void)
 	else
 		normals = vec3(0.0, 0.0, -1.0);
 	
-	gl_TexCoord[0] = gl_MultiTexCoord0;
-	pos = (gl_ModelViewMatrix * gl_Vertex).xyz;
-	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+	gl_TexCoord[0] = vec4(tPos,0.0);
+	pos = (gl_ModelViewMatrix * vec4(bPos,1.0)).xyz;
+	gl_Position = gl_ModelViewProjectionMatrix * vec4(bPos,1.0);
 }

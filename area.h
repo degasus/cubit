@@ -49,7 +49,7 @@ public:
 	bool   vbo_generated;
 #endif
 	int    vbo_length[NUMBER_OF_LISTS];
-	float* vbopointer[NUMBER_OF_LISTS];
+	unsigned char* vbopointer[NUMBER_OF_LISTS];
 	
 	bool bullet_generated;
 	bool needupdate_gl;
@@ -99,7 +99,7 @@ public:
 	inline int vbo_size() {
 		int s = 0;
 		for(int i=0; i<NUMBER_OF_LISTS; i++)
-			s+=vbo_length[i]*sizeof(float);
+			s+=vbo_length[i];
 		return s;
 	}
 	

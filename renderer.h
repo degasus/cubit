@@ -99,7 +99,8 @@ private:
 	
 		//attribute
 		GLint normal;
-    GLint bPos;
+		GLint bPos;
+		GLint tPos;
 	} shader;
 	
 	 
