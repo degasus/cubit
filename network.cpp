@@ -7,10 +7,11 @@
 int Client::next_client_id = 0;
 
 // Client
-Network::Network ( std::string hostname, int port ) {
+Network::Network ( std::string hostname, std::string nick, int port ) {
 	serversocket_is_connected = 0;
 	Client *client = new Client();
 	IPaddress ip;
+	this->nick = nick;
 	
 	if(SDLNet_ResolveHost(&ip,hostname.c_str(),port)==-1) {
 		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
@@ -36,6 +37,7 @@ Network::Network ( std::string hostname, int port ) {
 	
 	client_sockets.push(client);
 	client_map[client->clientid] = client;
+	send_hello(nick);
 	init();
 }
 
@@ -176,6 +178,7 @@ int Network::read_client ( Client* c ) {
 			int posx, posy, posz, rev, playerid, len;
 			Material material;
 			double pposx, pposy, pposz, pposh, pposv;
+			std::string name;
 			
 			SDL_LockMutex(mutex);
 			
@@ -247,8 +250,19 @@ int Network::read_client ( Client* c ) {
 				pPos = PlayerPosition::create(pposx, pposy, pposz, pposh, pposv);
 				queue_recv_player_position.push(StructPlayerPosition(pPos, playerid, c->clientid));
 			break;
+			case HELLO:
+				playerid = SDLNet_Read32(c->buffer+3);
+				if(maxlen <= 64*1024+3)
+					c->buffer[maxlen+1] = 0;
+				else
+					c->buffer[maxlen] = 0;
+				name = (c->buffer+7);
+				queue_recv_hello.push(StructHello(name, playerid, c->clientid));
+				printf("received HELLO from %s\n", name.c_str());
+				break;
 			default:
 				printf("UNKNOWN COMMAND\n");
+				printf("buffer[0], %d\n", c->buffer[0]);
 			break;
 			}
 			c->buffer_usage = 0;
@@ -398,6 +412,29 @@ void Network::send_queues() {
 		SDL_LockMutex(mutex);
 		queue_send_player_position.pop();
 	}
+	
+	buffer[0] = (char)HELLO;
+	while(!queue_send_hello.empty()) {
+		StructHello s = queue_send_hello.front();
+		SDL_UnlockMutex(mutex);
+		//datalength
+		SDLNet_Write16(4+s.name.size()+1,buffer+1);
+		//playerid
+		SDLNet_Write32(s.playerid, buffer+3);
+		//nickname
+		memcpy(buffer+7,s.name.c_str(), std::min<int>(s.name.size()+1,64*1024+2-7));
+		//string end bit
+		buffer[64*1024+2] = 0;
+		//send data
+		if((it = client_map.find(s.client_id)) != client_map.end() &&
+			SDLNet_TCP_Send(it->second->socket, buffer, 7+s.name.size()+1) != 7+s.name.size()+1) 
+		{
+			remove_client(it->second);
+		}
+		SDL_LockMutex(mutex);
+		queue_send_hello.pop();
+		std::cout << "hello'd to server" << std::endl;
+	}
 		
 	SDL_UnlockMutex(mutex);
 }
@@ -497,6 +534,19 @@ PlayerPosition Network::recv_player_position(int* playerid, int* connection) {
 	return s.pos;
 }
 
+std::string Network::recv_hello(int* playerid, int* connection) {
+	SDL_LockMutex(mutex);
+	assert(!queue_recv_hello.empty());
+	StructHello s = queue_recv_hello.front();
+	queue_recv_hello.pop();
+	SDL_UnlockMutex(mutex);
+	
+	if(playerid)   *playerid   = s.playerid;
+	if(connection) *connection = s.client_id;
+	
+	return s.name;
+}
+
 int Network::recv_player_quit() {
 	int connection;
 	SDL_LockMutex(mutex);
@@ -548,5 +598,11 @@ void Network::send_update_block(BlockPosition pos, Material m, int revision, int
 void Network::send_player_position(PlayerPosition pos, int playerid, int connection) {
 	SDL_LockMutex(mutex);
 	queue_send_player_position.push(StructPlayerPosition(pos, playerid, connection));
+	SDL_UnlockMutex(mutex);
+}
+
+void Network::send_hello(std::string name, int playerid, int connection) {
+	SDL_LockMutex(mutex);
+	queue_send_hello.push(StructHello(name, playerid, connection));
 	SDL_UnlockMutex(mutex);
 }

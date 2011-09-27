@@ -45,9 +45,10 @@ public:
 
 struct OtherPlayer {
 	OtherPlayer() : pos(PlayerPosition::create(0., 0., 0., 0., 0.)) {}
-	OtherPlayer(PlayerPosition p, std::string n) : pos(p), name(n) {}
+	OtherPlayer(PlayerPosition p, std::string n, bool visible) : pos(p), name(n), visible(visible) {}
 	PlayerPosition pos;
 	std::string name;
+	int visible;
 };
 
 /**

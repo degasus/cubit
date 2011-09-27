@@ -21,6 +21,8 @@ enum Commands {
   LEAVE_AREA = 4,
   UPDATE_BLOCK = 5,
   PLAYER_POSITION = 6,
+  HELLO = 7,
+  PLAYER_QUIT = 8,
 };
 
 // including Air == 0

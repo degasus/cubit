@@ -104,7 +104,9 @@ void Server::run() {
 	int rev, rev2, bytes, connection, id;
 	Material m;
 	std::map<BlockPosition, std::set<int> >::iterator it;
+	std::map<int, Player >::iterator itclients;
 	std::set<int>::iterator it2;
+	std::string nick;
 
 	while(!stop) {
 		SDL_Delay(10);
@@ -186,6 +188,12 @@ void Server::run() {
 				joined_clients.erase(to_delete.front());
 				to_delete.pop();
 			}
+			
+			Player p = clients.find(connection)->second;
+			clients.erase(connection);
+			/*FIXME for(itclients = clients.begin(); itclients != clients.end(); itclients++) {
+				network->send_player_quit(p.playerid, *itclients->first);
+			}*/
 		}
 		
 		while(!network->recv_player_position_empty()){
@@ -197,6 +205,15 @@ void Server::run() {
 						network->send_player_position(pPos, connection, *it2);
 				}
 			}
+		}
+		
+		while(!network->recv_hello_empty()){
+			nick = network->recv_hello(&id, &connection);
+			for(itclients = clients.begin(); itclients != clients.end(); itclients++) {
+				network->send_hello(nick, itclients->second.playerid, itclients->first);
+				network->send_hello(nick, itclients->second.playerid, connection);
+			}
+			clients[connection] = Player(nick, connection);
 		}
 	}
 }

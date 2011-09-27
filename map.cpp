@@ -68,7 +68,7 @@ void Map::config(const boost::program_options::variables_map& c)
 
 	mapGenerator_counts = c["generatorThreads"].as<int>();
 	
-	network = new Network(c["server"].as<std::string>().c_str(),PORT);
+	network = new Network(c["server"].as<std::string>().c_str(),c["nick"].as<std::string>().c_str(),PORT);
 	disk = new Harddisk((c["workingDirectory"].as<boost::filesystem::path>() / (c["server"].as<std::string>() + ".db").c_str()).string());	
 }
 
@@ -224,6 +224,8 @@ void Map::setPosition(PlayerPosition pos)
 	Material m;
 	std::map<BlockPosition, Area* >::iterator it;
 	std::set<int>::iterator it2;
+	std::map<int, OtherPlayer>::iterator itOtherPlayers;
+	std::string str;
 	
 	while(!network->recv_get_area_empty()){
 		bPos = network->recv_get_area(&rev);
@@ -322,7 +324,16 @@ void Map::setPosition(PlayerPosition pos)
 	
 	while(!network->recv_player_position_empty()){
 		pPos = network->recv_player_position(&id);
-		otherPlayers[id] = OtherPlayer(pPos, "test");
+		itOtherPlayers = otherPlayers.find(id);
+		if(itOtherPlayers != otherPlayers.end()) {
+			itOtherPlayers->second.pos = pPos;
+			itOtherPlayers->second.visible = 1;
+		}
+	}
+	
+	while(!network->recv_hello_empty()){
+		str = network->recv_hello(&id);
+		otherPlayers[id] = OtherPlayer(PlayerPosition(), str, 0);
 	}
 	
 	while(!generated.empty()) {

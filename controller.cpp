@@ -66,7 +66,10 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 	common.add_options()
 		("help", "produce this short help message, add --verbose for the full help page")
 		("fullscreen", po::value<bool>()->default_value(0), "start in fullscreen")
-		("visualRange", po::value<int>()->default_value(4), "maximal distance for rendering");
+		("visualRange", po::value<int>()->default_value(4), "maximal distance for rendering")
+		//Net
+		("server", po::value<std::string>()->default_value("cubit-project.com"), "Server to connect to.")
+		("nick", po::value<std::string>()->default_value(std::getenv("USERNAME")), "Nickname to show to other players.");
 	
 	po::options_description advanced("Advanced options");
 	advanced.add_options()
@@ -115,9 +118,6 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("dataDirectory", po::value<fs::path>()->default_value(fs::path(CMAKE_INSTALL_PREFIX) / "share" / "games" / "cubit"), "Folder for music and images")
 		("localDirectory", po::value<fs::path>()->default_value(fs::path(argv[0]).remove_filename()), "Folder for music and images")
 #endif
-                
-                //Net
-                ("server", po::value<std::string>()->default_value("cubit-project.com"), "Server to connect to.")
 
 		//Movement
 		("enableFX", po::value<bool>()->default_value(1), "enable sound FX")

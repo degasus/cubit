@@ -76,10 +76,17 @@ struct StructPlayerPosition {
 	int client_id;
 };
 
+struct StructHello {
+	StructHello(std::string n, int pl, int c) : name(n), playerid(pl), client_id(c) {}
+	std::string name;
+	int playerid;
+	int client_id;
+};
+
 class Network {
 public:
 	// Client
-	Network(std::string hostname, int port=PORT);
+	Network(std::string hostname, std::string nick, int port=PORT);
 	
 	// Server
 	Network(int port=PORT);
@@ -92,6 +99,7 @@ public:
 	void send_leave_area(BlockPosition pos, int connection=0);
 	void send_update_block(BlockPosition pos, Material m, int revision=0, int connection=0);
 	void send_player_position(PlayerPosition pos, int playerid=0, int connection=0);
+	void send_hello(std::string pos, int playerid=0, int connection=0);
 	
 	///////////////////////
 	
@@ -101,6 +109,7 @@ public:
 	BlockPosition recv_leave_area(int *connection=0);
 	Material recv_update_block(BlockPosition *pos, int *revision=0, int *connection=0);
 	PlayerPosition recv_player_position(int *playerid=0, int *connection=0);
+	std::string recv_hello(int *playerid=0, int *connection=0);
 	int recv_player_quit();
 	
 	///////////////////////
@@ -112,6 +121,7 @@ public:
 	bool recv_update_block_empty() { return queue_recv_update_block.empty();}
 	bool recv_player_position_empty() { return queue_recv_player_position.empty();}
 	bool recv_player_quit_empty() { return queue_recv_player_quit.empty(); };
+	bool recv_hello_empty() { return queue_recv_hello.empty(); };
 	
 	void run();
 private:
@@ -146,6 +156,7 @@ private:
 	std::queue<StructLeaveArea> queue_recv_leave_area;
 	std::queue<StructUpdateBlock> queue_recv_update_block;
 	std::queue<StructPlayerPosition> queue_recv_player_position;
+	std::queue<StructHello> queue_recv_hello;
 	std::queue<int> queue_recv_player_quit;
 	
 	std::queue<StructGetArea> queue_send_get_area;
@@ -154,6 +165,10 @@ private:
 	std::queue<StructLeaveArea> queue_send_leave_area;
 	std::queue<StructUpdateBlock> queue_send_update_block;
 	std::queue<StructPlayerPosition> queue_send_player_position;
+	std::queue<StructHello> queue_send_hello;
+	
+	//Config
+	std::string nick;
 
 };
 

@@ -760,47 +760,49 @@ void Renderer::renderObjects() {
 	} {
 		std::map<int, OtherPlayer>::iterator it;
 		for(it = c->map->otherPlayers.begin(); it != c->map->otherPlayers.end(); it++) {
-			glPushMatrix();
-			
-			PlayerPosition p = it->second.pos;
-			std::string pName = it->second.name;
-			int tex = it->first % (NUMBER_OF_MATERIALS-1) + 1;
-			
-			glTranslatef(p.x, p.y, p.z);
-			glRotatef(p.orientationHorizontal,0.0f,0.0f,1.0f);
-			glRotatef(-p.orientationVertical,0.0f,1.0f,0.0f);
+			if(it->second.visible){
+				glPushMatrix();
+				
+				PlayerPosition p = it->second.pos;
+				std::string pName = it->second.name;
+				int tex = it->first % (NUMBER_OF_MATERIALS-1) + 1;
+				
+				glTranslatef(p.x, p.y, p.z);
+				glRotatef(p.orientationHorizontal,0.0f,0.0f,1.0f);
+				glRotatef(-p.orientationVertical,0.0f,1.0f,0.0f);
 
-			//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
-			//c->ui->renderText(0.,1,pName.c_str());
+				//glBindTexture( GL_TEXTURE_2D, texture[(*it)->tex] );
+				//c->ui->renderText(0.,1,pName.c_str());
 
-			glBegin( GL_QUADS );
+				glBegin( GL_QUADS );
 
-			for(int i=0; i<DIRECTION_COUNT; i++) {
-				glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
-						
-				for(int point=0; point < POINTS_PER_POLYGON; point++) {
-					glTexCoord3f(
-						TEXTUR_POSITION_OF_DIRECTION[i][point][0],
-						TEXTUR_POSITION_OF_DIRECTION[i][point][1],
-						(tex + 0.5)/NUMBER_OF_MATERIALS
-					);
-					glVertex3f(
-						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.6/2,
-						(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.6/2,
-						(POINTS_OF_DIRECTION[i][point][2]*2-1)*1.5/2-0.5
-					);
+				for(int i=0; i<DIRECTION_COUNT; i++) {
+					glNormal3f( NORMAL_OF_DIRECTION[i][0], NORMAL_OF_DIRECTION[i][1], NORMAL_OF_DIRECTION[i][2]);                                     // Normal Pointing Towards Viewer
+							
+					for(int point=0; point < POINTS_PER_POLYGON; point++) {
+						glTexCoord3f(
+							TEXTUR_POSITION_OF_DIRECTION[i][point][0],
+							TEXTUR_POSITION_OF_DIRECTION[i][point][1],
+							(tex + 0.5)/NUMBER_OF_MATERIALS
+						);
+						glVertex3f(
+							(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.6/2,
+							(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.6/2,
+							(POINTS_OF_DIRECTION[i][point][2]*2-1)*1.5/2-0.5
+						);
+					}
 				}
+				glEnd();
+				glTranslatef(0,0.3,0.35);
+				glRotatef(-90,0,0,1);
+				glRotatef(90,1,0,0);
+				glScalef(0.01,0.01,0.01);
+				glDisable(GL_CULL_FACE);
+				c->ui->renderText(0.,0,pName.c_str());
+				glEnable(GL_CULL_FACE);
+				
+				glPopMatrix();
 			}
-			glEnd();
-			glTranslatef(0,0.3,0.35);
-			glRotatef(-90,0,0,1);
-			glRotatef(90,1,0,0);
-			glScalef(0.01,0.01,0.01);
-			glDisable(GL_CULL_FACE);
-			c->ui->renderText(0.,0,pName.c_str());
-			glEnable(GL_CULL_FACE);
-			
-			glPopMatrix();
 		}
 	}
 }
