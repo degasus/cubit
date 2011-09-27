@@ -273,6 +273,8 @@ void Renderer::init()
 	glAttachShader(shader.solid_po, shader.solid_fs);
 	getGlError("glAttachShader fs");
 	
+	glBindAttribLocation(shader.solid_po,0,"bPos");
+	
 	glLinkProgram(shader.solid_po);
 	getGlError("glLinkProgram shader_po");
 	printInfoLog(shader.solid_po);
@@ -744,21 +746,18 @@ void Renderer::renderObjects() {
 			glBegin( GL_QUADS );
 
 			for(int i=0; i<DIRECTION_COUNT; i++) {
+				glVertexAttrib1f( shader.normal,i);
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
 					glVertexAttrib3f( shader.tPos,
 						TEXTUR_POSITION_OF_DIRECTION[i][point][0],
 						TEXTUR_POSITION_OF_DIRECTION[i][point][1],
 						(*it)->tex
 					);
-		getGlError();
 					glVertexAttrib3f( shader.bPos,
 						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.1,
 						(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.1,
 						(POINTS_OF_DIRECTION[i][point][2]*2-1)*0.1
 					);
-		getGlError();
-					glVertexAttrib1f( shader.normal,i);
-		getGlError();
 				}
 			}
 			glEnd();
@@ -788,6 +787,7 @@ void Renderer::renderObjects() {
 				glBegin( GL_QUADS );
 				
 				for(int i=0; i<DIRECTION_COUNT; i++) {
+					glVertexAttrib1f( shader.normal,i);
 					for(int point=0; point < POINTS_PER_POLYGON; point++) {
 						glVertexAttrib3f( shader.tPos,
 							TEXTUR_POSITION_OF_DIRECTION[i][point][0],
@@ -799,7 +799,6 @@ void Renderer::renderObjects() {
 							(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.6/2,
 							(POINTS_OF_DIRECTION[i][point][2]*2-1)*1.5/2-0.5
 						);
-						glVertexAttrib1f( shader.normal,i);
 					}
 				}
 		getGlError();
@@ -810,7 +809,9 @@ void Renderer::renderObjects() {
 				glRotatef(90,1,0,0);
 				glScalef(0.01,0.01,0.01);
 				glDisable(GL_CULL_FACE);
+				glUseProgram(0);
 				c->ui->renderText(0.,0,pName.c_str());
+				glUseProgram(shader.solid_po);
 				glEnable(GL_CULL_FACE);
 				
 				glPopMatrix();

@@ -22,6 +22,8 @@ void main(void)
 	else
 		normals = vec3(0.0, 0.0, -1.0);
 	
+	normals = (gl_ModelViewMatrix * vec4(normals,0.0)).xyz;
+	
 	gl_TexCoord[0] = vec4(tPos,0.0);
 	pos = (gl_ModelViewMatrix * vec4(bPos,1.0)).xyz;
 	gl_Position = gl_ModelViewProjectionMatrix * vec4(bPos,1.0);
