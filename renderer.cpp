@@ -202,7 +202,7 @@ void Renderer::init()
 		glTexParameterf( TEXTURE_TYPE, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );  
 	} 
 	if(textureFilterMethod >= 3 && glewIsSupported("GL_EXT_texture_array") && glewIsSupported( "GL_ARB_framebuffer_object" ) ){
-		glTexParameteri( TEXTURE_TYPE, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
+		glTexParameteri( TEXTURE_TYPE, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 		glTexParameteri( TEXTURE_TYPE, GL_TEXTURE_MAG_FILTER, GL_LINEAR );		
 		glTexParameteri( TEXTURE_TYPE, GL_GENERATE_MIPMAP, true);
 	}
@@ -288,7 +288,7 @@ void Renderer::init()
 	
 	// get attribute vars
 	shader.normal = glGetAttribLocation(shader.solid_po, "normal");
-	
+
 	// and set it
 	glUniform4fv(shader.bgColor,1,bgColor);
 	glUniform1i(shader.tex, 0);
