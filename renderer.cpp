@@ -404,9 +404,9 @@ void Renderer::generateArea(Area* area) {
 						area->vbopointer[i][vbocounter+3] = it.dir;
 						
 						// vertex
-						area->vbopointer[i][vbocounter+5] = it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
-						area->vbopointer[i][vbocounter+6] = it.sizey * POINTS_OF_DIRECTION[it.dir][point][1]+diffy;
-						area->vbopointer[i][vbocounter+7] = it.sizez * POINTS_OF_DIRECTION[it.dir][point][2]+diffz;
+						area->vbopointer[i][vbocounter+4] = it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
+						area->vbopointer[i][vbocounter+5] = it.sizey * POINTS_OF_DIRECTION[it.dir][point][1]+diffy;
+						area->vbopointer[i][vbocounter+6] = it.sizez * POINTS_OF_DIRECTION[it.dir][point][2]+diffz;
 						
 						vbocounter+=8;
 					}
@@ -488,7 +488,7 @@ void Renderer::renderArea(Area* a, int l) {
 		//glTexCoordPointer(3, GL_UNSIGNED_BYTE, 8, startpointer);
 		//glVertexPointer(3, GL_UNSIGNED_BYTE, 8, startpointer+5);
 		
-		glVertexAttribPointer(shader.bPos,3,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+5);
+		glVertexAttribPointer(shader.bPos,3,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+4);
 		glVertexAttribPointer(shader.normal,1,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+3);
 		glVertexAttribPointer(shader.tPos,3,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+0);
 
