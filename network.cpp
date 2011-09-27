@@ -37,8 +37,8 @@ Network::Network ( std::string hostname, std::string nick, int port ) {
 	
 	client_sockets.push(client);
 	client_map[client->clientid] = client;
-	send_hello(nick);
 	init();
+	send_hello(nick);
 }
 
 // Host
@@ -253,7 +253,7 @@ int Network::read_client ( Client* c ) {
 			case HELLO:
 				playerid = SDLNet_Read32(c->buffer+3);
 				if(maxlen <= 64*1024+3)
-					c->buffer[maxlen+1] = 0;
+					c->buffer[maxlen+4] = 0;
 				else
 					c->buffer[maxlen] = 0;
 				name = (c->buffer+7);
@@ -300,6 +300,7 @@ void Network::send_queues() {
 	
 	char buffer[64*1024+3];
 	std::map<int, Client*>::iterator it;
+	int len;
 	
 	buffer[0] = (char)GET_AREA;
 	SDLNet_Write16(16,buffer+1);
@@ -417,23 +418,24 @@ void Network::send_queues() {
 	while(!queue_send_hello.empty()) {
 		StructHello s = queue_send_hello.front();
 		SDL_UnlockMutex(mutex);
+		len = std::min<int>(s.name.size(),64*1024+3-7-1);
 		//datalength
-		SDLNet_Write16(4+s.name.size()+1,buffer+1);
+		SDLNet_Write16(4+len+1,buffer+1);
 		//playerid
 		SDLNet_Write32(s.playerid, buffer+3);
 		//nickname
-		memcpy(buffer+7,s.name.c_str(), std::min<int>(s.name.size()+1,64*1024+2-7));
+		memcpy(buffer+7,s.name.c_str(), len);
 		//string end bit
-		buffer[64*1024+2] = 0;
+		buffer[7+len] = 0;
 		//send data
 		if((it = client_map.find(s.client_id)) != client_map.end() &&
-			SDLNet_TCP_Send(it->second->socket, buffer, 7+s.name.size()+1) != 7+s.name.size()+1) 
+			SDLNet_TCP_Send(it->second->socket, buffer, 7+len+1) != 7+len+1) 
 		{
 			remove_client(it->second);
 		}
 		SDL_LockMutex(mutex);
 		queue_send_hello.pop();
-		std::cout << "hello'd to server" << std::endl;
+		std::cout << "hello'd to server with " << buffer+7 << std::endl;
 	}
 		
 	SDL_UnlockMutex(mutex);
