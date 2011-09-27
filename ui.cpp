@@ -583,7 +583,6 @@ void UInterface::drawHUD(int time) {
 	// render the HUD cubes
 	///////////////////////////
 	
-	glEnable(GL_TEXTURE_3D);
 	for(int pos = -(numberOfHUDcubes/2); pos <= numberOfHUDcubes/2; pos++){
 		int mat = 1;
 		if(sandboxMode){
@@ -624,7 +623,7 @@ void UInterface::drawHUD(int time) {
 					glTexCoord3f(
 						TEXTUR_POSITION_OF_DIRECTION[dir][point][0],
 						TEXTUR_POSITION_OF_DIRECTION[dir][point][1],
-						(mat+0.5)/NUMBER_OF_MATERIALS
+						mat
 					);
 					glVertex3f(
 						POINTS_OF_DIRECTION[dir][point][0],
@@ -669,7 +668,6 @@ void UInterface::drawHUD(int time) {
 		
 		glLoadIdentity();
 		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_TEXTURE_3D);
 		glDisable(GL_LIGHTING);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -712,7 +710,6 @@ void UInterface::drawHUD(int time) {
 	glEnable(GL_LIGHT2);
 	glDisable(GL_LIGHT3);
 	glDisable(GL_LIGHT4);
-	glEnable(GL_TEXTURE_3D);
 	glEnable(GL_DEPTH_TEST);
 	
 	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);

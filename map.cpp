@@ -544,7 +544,7 @@ std::string Map::debug_msg() {
 			areas_materials += AREASIZE;
 		for(int i=0; i<NUMBER_OF_LISTS; i++) {
 			areas_polys += it->second->polys_list_size[i] * sizeof(polygon);
-			areas_vbo += it->second->vbo_length[i]*sizeof(float);
+			areas_vbo += it->second->vbo_length[i];
 		}
 		
 		
