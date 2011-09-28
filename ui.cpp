@@ -583,6 +583,9 @@ void UInterface::drawHUD(int time) {
 	// render the HUD cubes
 	///////////////////////////
 	
+	glUseProgram(c->renderer->shader.solid_po);
+	glUniform1f(c->renderer->shader.visualRange, 0);
+	
 	for(int pos = -(numberOfHUDcubes/2); pos <= numberOfHUDcubes/2; pos++){
 		int mat = 1;
 		if(sandboxMode){
@@ -618,17 +621,18 @@ void UInterface::drawHUD(int time) {
 
 		glBegin(GL_QUADS);
 			for(int dir=0; dir < DIRECTION_COUNT; dir++) {
-				glNormal3f( NORMAL_OF_DIRECTION[dir][0], NORMAL_OF_DIRECTION[dir][1], NORMAL_OF_DIRECTION[dir][2]);					// Normal Pointing Towards Viewer
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
-					glTexCoord3f(
+					glVertexAttrib4f( c->renderer->shader.tPos,
 						TEXTUR_POSITION_OF_DIRECTION[dir][point][0],
 						TEXTUR_POSITION_OF_DIRECTION[dir][point][1],
-						mat
+						mat,
+						dir
 					);
-					glVertex3f(
-						POINTS_OF_DIRECTION[dir][point][0],
-						POINTS_OF_DIRECTION[dir][point][1],
-						POINTS_OF_DIRECTION[dir][point][2]
+					glVertexAttrib4f( c->renderer->shader.bPos,
+						(POINTS_OF_DIRECTION[dir][point][0]),
+						(POINTS_OF_DIRECTION[dir][point][1]),
+						(POINTS_OF_DIRECTION[dir][point][2]),
+						1.0
 					);
 				}
 			}
@@ -644,6 +648,9 @@ void UInterface::drawHUD(int time) {
 			startMatSBMode = c->movement->getNextAvailableMaterial(startMatSBMode);
 		}
 	}
+	
+	glUniform1f(c->renderer->shader.visualRange, visualRange*AREASIZE_X);
+	glUseProgram(0);
 
 	///////////////////////////////////
 	//print some Text

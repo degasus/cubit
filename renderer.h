@@ -42,6 +42,31 @@ public:
 	std::string debug_output[2];
 	int time;
 
+	// shader
+	struct Shader {
+		GLhandleARB solid_po;
+		GLhandleARB solid_vs;
+		GLhandleARB solid_fs;
+		
+		//uniform
+		GLint position;
+		GLint bgColor;
+		GLint tex;
+		GLint time;
+		GLint visualRange;
+		GLint fogStart;
+		
+		GLint LightAmbient;
+		GLint LightDiffuseDirectionA;
+		GLint LightDiffuseDirectionB;
+	
+		//attribute
+		GLint normal;
+		GLint bPos;
+		GLint tPos;
+	} shader;
+	
+	
 private:
 	
 	void renderArea(Area* area, bool *dirs);
@@ -79,29 +104,6 @@ private:
 	int texture_size;
 	int TEXTURE_TYPE;
 	
-	// shader
-	struct Shader {
-		GLhandleARB solid_po;
-		GLhandleARB solid_vs;
-		GLhandleARB solid_fs;
-		
-		//uniform
-		GLint position;
-		GLint bgColor;
-		GLint tex;
-		GLint time;
-		GLint visualRange;
-		GLint fogStart;
-		
-		GLint LightAmbient;
-		GLint LightDiffuseDirectionA;
-		GLint LightDiffuseDirectionB;
-	
-		//attribute
-		GLint normal;
-		GLint bPos;
-		GLint tPos;
-	} shader;
 	
 	 
 };

@@ -22,8 +22,7 @@ namespace fs = boost::filesystem;
 
 
 void getGlError(std::string meldung = "") { 
-
-	
+#ifndef NDEBUG
 	GLenum errCode;
 	const GLubyte *errString;
 
@@ -32,7 +31,7 @@ void getGlError(std::string meldung = "") {
 		fprintf (stderr, "%s OpenGL Error: %s\n",meldung.c_str(), errString);
 		//throw std::exception();
 	}
-	
+#endif
 }
 
 void printInfoLog(GLhandleARB obj)
