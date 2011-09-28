@@ -279,7 +279,7 @@ int Network::read_client ( Client* c ) {
 
 void Network::remove_client(Client* client) {
 	SDL_LockMutex(mutex);
-	queue_recv_player_quit.push(client->clientid);
+	queue_recv_player_quit.push(StructPlayerQuit(client->clientid,client->clientid));
 	client_map.erase(client->clientid);
 	SDL_UnlockMutex(mutex);
 	if(SDLNet_TCP_DelSocket(set_socket,client->socket)==-1) {
@@ -571,14 +571,16 @@ std::string Network::recv_hello(int* playerid, int* connection) {
 	return s.name;
 }
 
-int Network::recv_player_quit() {
-	int connection;
+int Network::recv_player_quit(int connection) {
+	int playerid;
 	SDL_LockMutex(mutex);
 	assert(!queue_recv_player_quit.empty());
-	connection = queue_recv_player_quit.front();
+	StructPlayerQuit s = queue_recv_player_quit.front();
+	playerid = s.playerid;
+	connection = s.client_id;
 	queue_recv_player_quit.pop();
 	SDL_UnlockMutex(mutex);
-	return connection;
+	return playerid;
 }
 
 void Network::send_get_area(BlockPosition pos, int revision, int connection) {
@@ -628,5 +630,11 @@ void Network::send_player_position(PlayerPosition pos, int playerid, int connect
 void Network::send_hello(std::string name, int playerid, int connection) {
 	SDL_LockMutex(mutex);
 	queue_send_hello.push(StructHello(name, playerid, connection));
+	SDL_UnlockMutex(mutex);
+}
+
+void Network::send_player_quit(int playerid, int connection) {
+	SDL_LockMutex(mutex);
+	queue_send_player_quit.push(StructPlayerQuit(playerid, connection));
 	SDL_UnlockMutex(mutex);
 }

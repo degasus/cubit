@@ -129,7 +129,6 @@ public:
 	bool recv_player_position_empty() { return queue_recv_player_position.empty();}
 	bool recv_player_quit_empty() { return queue_recv_player_quit.empty(); };
 	bool recv_hello_empty() { return queue_recv_hello.empty(); };
-	bool recv_quit_empty() { return queue_recv_player_quit.empty(); };
 	
 	void run();
 private:
@@ -165,7 +164,7 @@ private:
 	std::queue<StructUpdateBlock> queue_recv_update_block;
 	std::queue<StructPlayerPosition> queue_recv_player_position;
 	std::queue<StructHello> queue_recv_hello;
-	std::queue<StructQuit> queue_recv_player_quit;
+	std::queue<StructPlayerQuit> queue_recv_player_quit;
 	
 	std::queue<StructGetArea> queue_send_get_area;
 	std::queue<StructPushArea> queue_send_push_area;
@@ -174,7 +173,7 @@ private:
 	std::queue<StructUpdateBlock> queue_send_update_block;
 	std::queue<StructPlayerPosition> queue_send_player_position;
 	std::queue<StructHello> queue_send_hello;
-	std::queue<StructQuit> queue_send_player_quit;
+	std::queue<StructPlayerQuit> queue_send_player_quit;
 	
 	//Config
 	std::string nick;
