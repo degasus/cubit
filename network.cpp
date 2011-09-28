@@ -452,7 +452,7 @@ void Network::send_queues() {
 		SDLNet_Write32(s.playerid, buffer+3);
 		//send data
 		if((it = client_map.find(s.client_id)) != client_map.end() &&
-			SDLNet_TCP_Send(it->second->socket, buffer, 7+len+1) != 7+len+1) 
+			SDLNet_TCP_Send(it->second->socket, buffer, 7) != 7) 
 		{
 			remove_client(it->second);
 		}
