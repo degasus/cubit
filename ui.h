@@ -117,6 +117,8 @@ private:
 	
 	
 	float stats[4];
+	std::string maps_debug;
+	int debug_time;
 };
 
 

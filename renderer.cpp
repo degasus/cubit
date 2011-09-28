@@ -384,7 +384,8 @@ void Renderer::generateArea(Area* area) {
 						area->vbopointer[i][vbocounter+4] = it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
 						area->vbopointer[i][vbocounter+5] = it.sizey * POINTS_OF_DIRECTION[it.dir][point][1]+diffy;
 						area->vbopointer[i][vbocounter+6] = it.sizez * POINTS_OF_DIRECTION[it.dir][point][2]+diffz;
-						
+						area->vbopointer[i][vbocounter+7] = 1.0;
+
 						vbocounter+=8;
 					}
 
@@ -464,9 +465,8 @@ void Renderer::renderArea(Area* a, bool* dirs) {
 #else
 		startpointer = a->vbopointer[l];
 #endif		
-		glVertexAttribPointer(shader.bPos,3,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+4);
-		glVertexAttribPointer(shader.normal,1,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+3);
-		glVertexAttribPointer(shader.tPos,3,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+0);
+		glVertexAttribPointer(shader.bPos,4,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+4);
+		glVertexAttribPointer(shader.tPos,4,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+0);
 
 		getGlError();
 		glDrawArrays(GL_TRIANGLES, 0, a->vbo_length[l]/8);
@@ -603,7 +603,6 @@ void Renderer::render(PlayerPosition pos, double eye)
 	// state for rendering vbos
 	//glEnable(GL_ALPHA_TEST);
 	//glAlphaFunc(GL_GREATER, 0.3);			
-	glEnableVertexAttribArray(shader.normal);
 	glEnableVertexAttribArray(shader.bPos);
 	glEnableVertexAttribArray(shader.tPos);
 	getGlError();
@@ -678,7 +677,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	debug_output[0] = out1.str();
 	
 	std::ostringstream out2(std::ostringstream::out);
-	out2 << "Init: " << stats[0] << ", Generate: " << stats[1] << ", Solid: " << stats[2] << ", Transparent: " << stats[3];
+	out2 << "Init: " << int(stats[0]) << ", Generate: " << int(stats[1]) << ", Solid: " << int(stats[2]) << ", Transparent: " << int(stats[3]);
 	debug_output[1] = out2.str();
 	
 	glUseProgram(0);
@@ -721,17 +720,18 @@ void Renderer::renderObjects() {
 			glBegin( GL_QUADS );
 
 			for(int i=0; i<DIRECTION_COUNT; i++) {
-				glVertexAttrib1f( shader.normal,i);
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
-					glVertexAttrib3f( shader.tPos,
+					glVertexAttrib4f( shader.tPos,
 						TEXTUR_POSITION_OF_DIRECTION[i][point][0],
 						TEXTUR_POSITION_OF_DIRECTION[i][point][1],
-						(*it)->tex
+						(*it)->tex,
+						i
 					);
-					glVertexAttrib3f( shader.bPos,
+					glVertexAttrib4f( shader.bPos,
 						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.1,
 						(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.1,
-						(POINTS_OF_DIRECTION[i][point][2]*2-1)*0.1
+						(POINTS_OF_DIRECTION[i][point][2]*2-1)*0.1,
+						1.0
 					);
 				}
 			}
@@ -762,17 +762,18 @@ void Renderer::renderObjects() {
 				glBegin( GL_QUADS );
 				
 				for(int i=0; i<DIRECTION_COUNT; i++) {
-					glVertexAttrib1f( shader.normal,i);
 					for(int point=0; point < POINTS_PER_POLYGON; point++) {
-						glVertexAttrib3f( shader.tPos,
+						glVertexAttrib4f( shader.tPos,
 							TEXTUR_POSITION_OF_DIRECTION[i][point][0],
 							TEXTUR_POSITION_OF_DIRECTION[i][point][1],
-							tex
+							tex,
+							i
 						);
-						glVertexAttrib3f( shader.bPos,
+						glVertexAttrib4f( shader.bPos,
 							(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.6/2,
 							(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.6/2,
-							(POINTS_OF_DIRECTION[i][point][2]*2-1)*1.5/2-0.5
+							(POINTS_OF_DIRECTION[i][point][2]*2-1)*1.5/2-0.5,
+							1.0
 						);
 					}
 				}

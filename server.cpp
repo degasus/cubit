@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "SDL_thread.h"
 #include <queue>
 #include <iostream>

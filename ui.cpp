@@ -691,13 +691,19 @@ void UInterface::drawHUD(int time) {
 		glTranslatef(0.0f, screenY, 0.0f);
 		glScalef(0.7f, 0.7f,1.0f);
 		
+		debug_time += time;
+		if(debug_time > 1000) {
+			debug_time = 0;
+			maps_debug = c->map->debug_msg();
+		}
+
 		renderText(20, -30, c->movement->debug_msg().c_str());
-		renderText(20, -60, c->map->debug_msg().c_str());
+		renderText(20, -60, maps_debug.c_str());
 		renderText(20, -90, c->renderer->debug_output[0].c_str());
 		renderText(20, -120, c->renderer->debug_output[1].c_str());
 		
 		std::ostringstream out(std::ostringstream::out);
-		out << "Movement: " << stats[0] << ", Map: " << stats[1] << ", Renderer: " << stats[2] << ", HUD: " << stats[3];
+		out << "Movement: " << int(stats[0]) << ", Map: " << int(stats[1]) << ", Renderer: " << int(stats[2]) << ", HUD: " << int(stats[3]);
 		renderText(20,-150, out.str().c_str());
 	}
 	

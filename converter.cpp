@@ -5,13 +5,15 @@
 #include <assert.h>
 
 #include <sqlite3.h>
+#include <SDL.h>
 #include <SDL_thread.h>
 
 #include "zlib.h"
 #include "harddisk.h"
 #include "utils.h"
+#include "config.h"
+
 #include <queue>
-#include <SDL.h>
 
 Harddisk* disk;
 
