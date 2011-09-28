@@ -190,6 +190,10 @@ void Server::run() {
 				joined_clients.erase(to_delete.front());
 				to_delete.pop();
 			}
+
+			for(itclients = clients.begin(); itclients != clients.end(); itclients++) {
+				network->send_player_quit(connection, itclients->first);
+			}
 			
 			Player p = clients.find(connection)->second;
 			clients.erase(connection);
@@ -217,5 +221,6 @@ void Server::run() {
 			}
 			clients[connection] = Player(nick, connection);
 		}
+
 	}
 }

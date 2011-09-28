@@ -335,6 +335,14 @@ void Map::setPosition(PlayerPosition pos)
 		str = network->recv_hello(&id);
 		otherPlayers[id] = OtherPlayer(PlayerPosition(), str, 0);
 	}
+
+	while(!network->recv_player_quit_empty()){
+		id = network->recv_player_quit();
+		itOtherPlayers = otherPlayers.find(id);
+		if(itOtherPlayers != otherPlayers.end()) {
+			itOtherPlayers->second.visible = 0;
+		}
+	}
 	
 	while(!generated.empty()) {
 		Area *a = generated.front();

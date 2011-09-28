@@ -83,6 +83,12 @@ struct StructHello {
 	int client_id;
 };
 
+struct StructPlayerQuit {
+	StructPlayerQuit(int pl, int c) : playerid(pl), client_id(c) {}
+	int playerid;
+	int client_id;
+};
+
 class Network {
 public:
 	// Client
@@ -100,6 +106,7 @@ public:
 	void send_update_block(BlockPosition pos, Material m, int revision=0, int connection=0);
 	void send_player_position(PlayerPosition pos, int playerid=0, int connection=0);
 	void send_hello(std::string pos, int playerid=0, int connection=0);
+	void send_player_quit(int playerid=0, int connection=0);
 	
 	///////////////////////
 	
@@ -110,7 +117,7 @@ public:
 	Material recv_update_block(BlockPosition *pos, int *revision=0, int *connection=0);
 	PlayerPosition recv_player_position(int *playerid=0, int *connection=0);
 	std::string recv_hello(int *playerid=0, int *connection=0);
-	int recv_player_quit();
+	int recv_player_quit(int connection=0);
 	
 	///////////////////////
 	
@@ -122,6 +129,7 @@ public:
 	bool recv_player_position_empty() { return queue_recv_player_position.empty();}
 	bool recv_player_quit_empty() { return queue_recv_player_quit.empty(); };
 	bool recv_hello_empty() { return queue_recv_hello.empty(); };
+	bool recv_quit_empty() { return queue_recv_player_quit.empty(); };
 	
 	void run();
 private:
@@ -157,7 +165,7 @@ private:
 	std::queue<StructUpdateBlock> queue_recv_update_block;
 	std::queue<StructPlayerPosition> queue_recv_player_position;
 	std::queue<StructHello> queue_recv_hello;
-	std::queue<int> queue_recv_player_quit;
+	std::queue<StructQuit> queue_recv_player_quit;
 	
 	std::queue<StructGetArea> queue_send_get_area;
 	std::queue<StructPushArea> queue_send_push_area;
@@ -166,6 +174,7 @@ private:
 	std::queue<StructUpdateBlock> queue_send_update_block;
 	std::queue<StructPlayerPosition> queue_send_player_position;
 	std::queue<StructHello> queue_send_hello;
+	std::queue<StructQuit> queue_send_player_quit;
 	
 	//Config
 	std::string nick;

@@ -260,6 +260,10 @@ int Network::read_client ( Client* c ) {
 				queue_recv_hello.push(StructHello(name, playerid, c->clientid));
 				printf("received HELLO from %s\n", name.c_str());
 				break;
+			case PLAYER_QUIT:
+				playerid = SDLNet_Read32(c->buffer+3);
+				queue_recv_player_quit.push(StructPlayerQuit(playerid, c->clientid));
+				break;
 			default:
 				printf("UNKNOWN COMMAND\n");
 				printf("buffer[0], %d\n", c->buffer[0]);
@@ -436,6 +440,24 @@ void Network::send_queues() {
 		SDL_LockMutex(mutex);
 		queue_send_hello.pop();
 		std::cout << "hello'd to server with " << buffer+7 << std::endl;
+	}
+
+	buffer[0] = (char)PLAYER_QUIT;
+	while(!queue_send_player_quit.empty()) {
+		StructPlayerQuit s = queue_send_player_quit.front();
+		SDL_UnlockMutex(mutex);
+		//datalength
+		SDLNet_Write16(4,buffer+1);
+		//playerid
+		SDLNet_Write32(s.playerid, buffer+3);
+		//send data
+		if((it = client_map.find(s.client_id)) != client_map.end() &&
+			SDLNet_TCP_Send(it->second->socket, buffer, 7+len+1) != 7+len+1) 
+		{
+			remove_client(it->second);
+		}
+		SDL_LockMutex(mutex);
+		queue_send_player_quit.pop();
 	}
 		
 	SDL_UnlockMutex(mutex);
