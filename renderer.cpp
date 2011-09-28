@@ -101,40 +101,6 @@ void Renderer::init()
 	glDisable(GL_DITHER);
 	glEnable(GL_CULL_FACE);
 	
-	//LIGHT
-
-	glEnable(GL_LIGHTING);
-
-	GLfloat LightAmbient[]  = { 0.8f, 0.8f, 0.8f, 1.0f };
-	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };	
-	
-	glLightfv(GL_LIGHT1, GL_AMBIENT,  LightAmbient);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE,  LightDiffuse);
-	glEnable(GL_LIGHT1);
-
-	glLightfv(GL_LIGHT2, GL_AMBIENT,  LightAmbient);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE,  LightDiffuse);
-	glEnable(GL_LIGHT2);
-
-	//Global Ambient
-	/*GLfloat global_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);*/
-	
-
-	
-	//FOG
-	
-	glFogi(GL_FOG_MODE, GL_LINEAR);		// Fog Mode
-	glFogfv(GL_FOG_COLOR, bgColor);	// Set Fog Color
-	glFogf(GL_FOG_DENSITY, fogDense);	// How Dense Will The Fog Be
-	glHint(GL_FOG_HINT, GL_FASTEST); 
-	glFogf(GL_FOG_START, visualRange*fogStartFactor*AREASIZE_X);
-	glFogf(GL_FOG_END, visualRange*AREASIZE_X);
-	if(enableFog && visualRange > 0)
-		glEnable(GL_FOG);					// Enables GL_FOG
-
-	getGlError();
-	
 	unsigned char* pixels = new unsigned char[4*texture_size*texture_size*NUMBER_OF_MATERIALS];
 	for(int i=0; i<4*texture_size*texture_size*NUMBER_OF_MATERIALS; i++) {
 		pixels[i] = 255;
@@ -196,16 +162,23 @@ void Renderer::init()
 	glBindTexture( TEXTURE_TYPE, texture[0] );
 	getGlError("glBindTexture");
 
+	// Set the texture's stretching properties
 	glTexParameterf( TEXTURE_TYPE, GL_TEXTURE_WRAP_S, GL_REPEAT );
 	glTexParameterf( TEXTURE_TYPE, GL_TEXTURE_WRAP_T, GL_REPEAT );
 	
-	// Set the texture's stretching properties
-	if ( textureFilterMethod >= 4 && glewIsSupported( "GL_EXT_texture_filter_anisotropic" ) ) {
+	if(!glewIsSupported("GL_EXT_texture_array") && textureFilterMethod > 2)
+		textureFilterMethod = 2;
+	if(!glewIsSupported( "GL_ARB_framebuffer_object") && textureFilterMethod > 2)
+		textureFilterMethod = 2;
+	if(!glewIsSupported( "GL_EXT_texture_filter_anisotropic") && textureFilterMethod > 3)
+		textureFilterMethod = 3;
+	
+	if ( textureFilterMethod >= 4) {
 		float maxAni;
 		glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni );
 		glTexParameterf( TEXTURE_TYPE, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );  
 	} 
-	if(textureFilterMethod >= 3 && glewIsSupported("GL_EXT_texture_array") && glewIsSupported( "GL_ARB_framebuffer_object" ) ){
+	if(textureFilterMethod >= 3){
 		glTexParameteri( TEXTURE_TYPE, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 		glTexParameteri( TEXTURE_TYPE, GL_TEXTURE_MAG_FILTER, GL_LINEAR );		
 		glTexParameteri( TEXTURE_TYPE, GL_GENERATE_MIPMAP, true);
@@ -218,7 +191,6 @@ void Renderer::init()
 		glTexParameteri( TEXTURE_TYPE, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 		glTexParameteri( TEXTURE_TYPE, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	}
-	getGlError("glTexParameteri");
 	
 	glTexImage3D(TEXTURE_TYPE, 0,GL_RGBA, texture_size, texture_size, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	delete [] pixels;
@@ -487,10 +459,7 @@ void Renderer::renderArea(Area* a, int l) {
 		unsigned char* startpointer = 0;				
 #else
 		unsigned char* startpointer = a->vbopointer[l];
-#endif
-		//glTexCoordPointer(3, GL_UNSIGNED_BYTE, 8, startpointer);
-		//glVertexPointer(3, GL_UNSIGNED_BYTE, 8, startpointer+5);
-		
+#endif		
 		glVertexAttribPointer(shader.bPos,3,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+4);
 		glVertexAttribPointer(shader.normal,1,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+3);
 		glVertexAttribPointer(shader.tPos,3,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+0);
@@ -627,10 +596,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	
 	// state for rendering vbos
 	//glEnable(GL_ALPHA_TEST);
-	//glAlphaFunc(GL_GREATER, 0.3);
-	//glEnableClientState(GL_VERTEX_ARRAY);
-	//glEnableClientState(GL_NORMAL_ARRAY);
-	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);				
+	//glAlphaFunc(GL_GREATER, 0.3);			
 	glEnableVertexAttribArray(shader.normal);
 	glEnableVertexAttribArray(shader.bPos);
 	glEnableVertexAttribArray(shader.tPos);
@@ -701,10 +667,6 @@ void Renderer::render(PlayerPosition pos, double eye)
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
-	glDisable(GL_LIGHT1);
-	glDisable(GL_LIGHTING);
-	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
-
 	if(highlightWholePlane)
 		glDisable(GL_DEPTH_TEST);
 	else
@@ -724,11 +686,6 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 	glDisable(GL_BLEND);
 	
 	glEnable(GL_DEPTH_TEST);
-	
-	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
-
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHTING);
 }
 
 void Renderer::renderObjects() {

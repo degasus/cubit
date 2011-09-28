@@ -6,6 +6,7 @@ attribute vec3 tPos;
 
 varying vec3 pos;
 varying vec3 normals;
+varying vec3 texPos;
 
 void main(void)
 {
@@ -24,7 +25,8 @@ void main(void)
 	
 	normals = (gl_ModelViewMatrix * vec4(normals,0.0)).xyz;
 	
-	gl_TexCoord[0] = vec4(tPos,0.0);
+	texPos = tPos;
+	
 	pos = (gl_ModelViewMatrix * vec4(bPos,1.0)).xyz;
 	gl_Position = gl_ModelViewProjectionMatrix * vec4(bPos,1.0);
 }
