@@ -210,8 +210,8 @@ void Server::run() {
 		while(!network->recv_hello_empty()){
 			nick = network->recv_hello(&id, &connection);
 			for(itclients = clients.begin(); itclients != clients.end(); itclients++) {
-				network->send_hello(nick, itclients->second.playerid, itclients->first);
-				network->send_hello(nick, itclients->second.playerid, connection);
+				network->send_hello(nick, connection, itclients->first);
+				network->send_hello(itclients->second.nick, itclients->second.playerid, connection);
 			}
 			clients[connection] = Player(nick, connection);
 		}
