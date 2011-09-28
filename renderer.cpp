@@ -101,18 +101,28 @@ void Renderer::init()
 	glDisable(GL_DITHER);
 	glEnable(GL_CULL_FACE);
 	
+	if(glewIsSupported("GL_EXT_texture_array")) {
+	TEXTURE_TYPE = GL_TEXTURE_2D_ARRAY;
+		std::cout << "GL_EXT_texture_array is supported" << std::endl;
+	} else {
+		TEXTURE_TYPE = GL_TEXTURE_3D;
+		std::cout << "disabling texture arrays" << std::endl;
+	}
+	
+  	if(!glewIsSupported("GL_EXT_texture_array") && textureFilterMethod > 2)
+		textureFilterMethod = 2;
+	if(!glewIsSupported("GL_EXT_texture_array") && texture_size > 32)
+		texture_size = 32;
+	if(!glewIsSupported( "GL_ARB_framebuffer_object") && textureFilterMethod > 2)
+		textureFilterMethod = 2;
+	if(!glewIsSupported( "GL_EXT_texture_filter_anisotropic") && textureFilterMethod > 3)
+		textureFilterMethod = 3;
+	
+	
 	unsigned char* pixels = new unsigned char[4*texture_size*texture_size*NUMBER_OF_MATERIALS];
 	for(int i=0; i<4*texture_size*texture_size*NUMBER_OF_MATERIALS; i++) {
 		pixels[i] = 255;
 	}
-
-	if(glewIsSupported("GL_EXT_texture_array")) {
-    TEXTURE_TYPE = GL_TEXTURE_2D_ARRAY;
-		std::cout << "GL_EXT_texture_array is supported" << std::endl;
-  } else {
-    TEXTURE_TYPE = GL_TEXTURE_3D;
-    std::cout << "disabling texture arrays" << std::endl;
-  }
 
 	glGenTextures( 2, texture );
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
@@ -165,13 +175,6 @@ void Renderer::init()
 	// Set the texture's stretching properties
 	glTexParameterf( TEXTURE_TYPE, GL_TEXTURE_WRAP_S, GL_REPEAT );
 	glTexParameterf( TEXTURE_TYPE, GL_TEXTURE_WRAP_T, GL_REPEAT );
-	
-	if(!glewIsSupported("GL_EXT_texture_array") && textureFilterMethod > 2)
-		textureFilterMethod = 2;
-	if(!glewIsSupported( "GL_ARB_framebuffer_object") && textureFilterMethod > 2)
-		textureFilterMethod = 2;
-	if(!glewIsSupported( "GL_EXT_texture_filter_anisotropic") && textureFilterMethod > 3)
-		textureFilterMethod = 3;
 	
 	if ( textureFilterMethod >= 4) {
 		float maxAni;
@@ -447,18 +450,19 @@ void Renderer::generateArea(Area* area) {
 
 
 
-void Renderer::renderArea(Area* a, int l) {
-	if(a->vbo_length[l]) {
-		getGlError();
-		glPushMatrix();
-		glTranslatef(a->pos.x,a->pos.y,a->pos.z);
+void Renderer::renderArea(Area* a, bool* dirs) {
+	bool init = 0;
+	unsigned char* startpointer = 0;
+	for(int l=0; l<NUMBER_OF_LISTS; l++) if(dirs[l] && a->vbo_length[l]){
+		if(!init) {
+			init = 1;
+			glPushMatrix();
+			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
+		}
 #ifdef USE_VBO
 		glBindBuffer(GL_ARRAY_BUFFER, a->vbo[l]);
-		getGlError();
-	
-		unsigned char* startpointer = 0;				
 #else
-		unsigned char* startpointer = a->vbopointer[l];
+		startpointer = a->vbopointer[l];
 #endif		
 		glVertexAttribPointer(shader.bPos,3,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+4);
 		glVertexAttribPointer(shader.normal,1,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+3);
@@ -469,6 +473,8 @@ void Renderer::renderArea(Area* a, int l) {
 			
 		//glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
 		getGlError();
+	}
+	if(init) {
 		glPopMatrix();
 	}
 }
@@ -607,11 +613,18 @@ void Renderer::render(PlayerPosition pos, double eye)
 	for(std::list<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		if(a->state >= Area::STATE_GENERATE && a->show) {
-			for(int d=0; d<DIRECTION_COUNT; d++) if(!a->dijsktra_direction_used[d]) {
-				renderArea(a,d);
-				vertex_displayed += a->polygons_count(d);
-				displayed_vbos++;
+			bool dirs[NUMBER_OF_LISTS];
+			dirs[6] = 0;
+			for(int d=0; d<DIRECTION_COUNT; d++) {
+				if(!a->dijsktra_direction_used[d]) {
+					vertex_displayed += a->polygons_count(d);
+					displayed_vbos++;
+					dirs[d] = 1;
+				} else {
+					dirs[d] = 0;
+				}
 			}
+			renderArea(a,dirs);
 		}
 	}
 	
@@ -624,10 +637,15 @@ void Renderer::render(PlayerPosition pos, double eye)
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
 	glBlendFunc(GL_ZERO, GL_ONE);
+	
+	bool dirs[NUMBER_OF_LISTS];
+	for(int d=0; d<NUMBER_OF_LISTS; d++) dirs[d] = 0;
+	dirs[6] = 1;
+	
 	for(std::list<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		if(a->state >= Area::STATE_GENERATE && a->show) {
-			renderArea(a,6);
+			renderArea(a,dirs);
 			vertex_displayed += a->polygons_count(6);
 			displayed_vbos++;
 		}
@@ -638,7 +656,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	for(std::list<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		if(a->state >= Area::STATE_GENERATE && a->show) {
-			renderArea(a,6);
+			renderArea(a,dirs);
 			vertex_displayed += a->polygons_count(6);
 			displayed_vbos++;
 		}
