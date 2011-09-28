@@ -44,7 +44,7 @@ public:
 
 private:
 	
-	void renderArea(Area* area, int l);
+	void renderArea(Area* area, bool *dirs);
 	void generateArea(Area* area);
 	void renderObjects();
 	bool areaInViewport(BlockPosition apos, PlayerPosition ppos);
@@ -77,7 +77,7 @@ private:
 	
 	float stats[4];
 	int texture_size;
-  int TEXTURE_TYPE;
+	int TEXTURE_TYPE;
 	
 	// shader
 	struct Shader {

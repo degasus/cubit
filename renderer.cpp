@@ -101,52 +101,28 @@ void Renderer::init()
 	glDisable(GL_DITHER);
 	glEnable(GL_CULL_FACE);
 	
-	//LIGHT
-
-	glEnable(GL_LIGHTING);
-
-	GLfloat LightAmbient[]  = { 0.8f, 0.8f, 0.8f, 1.0f };
-	GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };	
+	if(glewIsSupported("GL_EXT_texture_array")) {
+	TEXTURE_TYPE = GL_TEXTURE_2D_ARRAY;
+		std::cout << "GL_EXT_texture_array is supported" << std::endl;
+	} else {
+		TEXTURE_TYPE = GL_TEXTURE_3D;
+		std::cout << "disabling texture arrays" << std::endl;
+	}
 	
-	glLightfv(GL_LIGHT1, GL_AMBIENT,  LightAmbient);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE,  LightDiffuse);
-	glEnable(GL_LIGHT1);
-
-	glLightfv(GL_LIGHT2, GL_AMBIENT,  LightAmbient);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE,  LightDiffuse);
-	glEnable(GL_LIGHT2);
-
-	//Global Ambient
-	/*GLfloat global_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);*/
+  	if(!glewIsSupported("GL_EXT_texture_array") && textureFilterMethod > 2)
+		textureFilterMethod = 2;
+	if(!glewIsSupported("GL_EXT_texture_array") && texture_size > 32)
+		texture_size = 32;
+	if(!glewIsSupported( "GL_ARB_framebuffer_object") && textureFilterMethod > 2)
+		textureFilterMethod = 2;
+	if(!glewIsSupported( "GL_EXT_texture_filter_anisotropic") && textureFilterMethod > 3)
+		textureFilterMethod = 3;
 	
-
-	
-	//FOG
-	
-	glFogi(GL_FOG_MODE, GL_LINEAR);		// Fog Mode
-	glFogfv(GL_FOG_COLOR, bgColor);	// Set Fog Color
-	glFogf(GL_FOG_DENSITY, fogDense);	// How Dense Will The Fog Be
-	glHint(GL_FOG_HINT, GL_FASTEST); 
-	glFogf(GL_FOG_START, visualRange*fogStartFactor*AREASIZE_X);
-	glFogf(GL_FOG_END, visualRange*AREASIZE_X);
-	if(enableFog && visualRange > 0)
-		glEnable(GL_FOG);					// Enables GL_FOG
-
-	getGlError();
 	
 	unsigned char* pixels = new unsigned char[4*texture_size*texture_size*NUMBER_OF_MATERIALS];
 	for(int i=0; i<4*texture_size*texture_size*NUMBER_OF_MATERIALS; i++) {
 		pixels[i] = 255;
 	}
-
-	if(glewIsSupported("GL_EXT_texture_array")) {
-    TEXTURE_TYPE = GL_TEXTURE_2D_ARRAY;
-		std::cout << "GL_EXT_texture_array is supported" << std::endl;
-  } else {
-    TEXTURE_TYPE = GL_TEXTURE_3D;
-    std::cout << "disabling texture arrays" << std::endl;
-  }
 
 	glGenTextures( 2, texture );
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
@@ -196,16 +172,16 @@ void Renderer::init()
 	glBindTexture( TEXTURE_TYPE, texture[0] );
 	getGlError("glBindTexture");
 
+	// Set the texture's stretching properties
 	glTexParameterf( TEXTURE_TYPE, GL_TEXTURE_WRAP_S, GL_REPEAT );
 	glTexParameterf( TEXTURE_TYPE, GL_TEXTURE_WRAP_T, GL_REPEAT );
 	
-	// Set the texture's stretching properties
-	if ( textureFilterMethod >= 4 && glewIsSupported( "GL_EXT_texture_filter_anisotropic" ) ) {
+	if ( textureFilterMethod >= 4) {
 		float maxAni;
 		glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni );
 		glTexParameterf( TEXTURE_TYPE, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAni );  
 	} 
-	if(textureFilterMethod >= 3 && glewIsSupported("GL_EXT_texture_array") && glewIsSupported( "GL_ARB_framebuffer_object" ) ){
+	if(textureFilterMethod >= 3){
 		glTexParameteri( TEXTURE_TYPE, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 		glTexParameteri( TEXTURE_TYPE, GL_TEXTURE_MAG_FILTER, GL_LINEAR );		
 		glTexParameteri( TEXTURE_TYPE, GL_GENERATE_MIPMAP, true);
@@ -218,7 +194,6 @@ void Renderer::init()
 		glTexParameteri( TEXTURE_TYPE, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 		glTexParameteri( TEXTURE_TYPE, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	}
-	getGlError("glTexParameteri");
 	
 	glTexImage3D(TEXTURE_TYPE, 0,GL_RGBA, texture_size, texture_size, NUMBER_OF_MATERIALS, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	delete [] pixels;
@@ -409,7 +384,8 @@ void Renderer::generateArea(Area* area) {
 						area->vbopointer[i][vbocounter+4] = it.sizex * POINTS_OF_DIRECTION[it.dir][point][0]+diffx;
 						area->vbopointer[i][vbocounter+5] = it.sizey * POINTS_OF_DIRECTION[it.dir][point][1]+diffy;
 						area->vbopointer[i][vbocounter+6] = it.sizez * POINTS_OF_DIRECTION[it.dir][point][2]+diffz;
-						
+						area->vbopointer[i][vbocounter+7] = 1.0;
+
 						vbocounter+=8;
 					}
 
@@ -475,31 +451,30 @@ void Renderer::generateArea(Area* area) {
 
 
 
-void Renderer::renderArea(Area* a, int l) {
-	if(a->vbo_length[l]) {
-		getGlError();
-		glPushMatrix();
-		glTranslatef(a->pos.x,a->pos.y,a->pos.z);
+void Renderer::renderArea(Area* a, bool* dirs) {
+	bool init = 0;
+	unsigned char* startpointer = 0;
+	for(int l=0; l<NUMBER_OF_LISTS; l++) if(dirs[l] && a->vbo_length[l]){
+		if(!init) {
+			init = 1;
+			glPushMatrix();
+			glTranslatef(a->pos.x,a->pos.y,a->pos.z);
+		}
 #ifdef USE_VBO
 		glBindBuffer(GL_ARRAY_BUFFER, a->vbo[l]);
-		getGlError();
-	
-		unsigned char* startpointer = 0;				
 #else
-		unsigned char* startpointer = a->vbopointer[l];
-#endif
-		//glTexCoordPointer(3, GL_UNSIGNED_BYTE, 8, startpointer);
-		//glVertexPointer(3, GL_UNSIGNED_BYTE, 8, startpointer+5);
-		
-		glVertexAttribPointer(shader.bPos,3,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+4);
-		glVertexAttribPointer(shader.normal,1,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+3);
-		glVertexAttribPointer(shader.tPos,3,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+0);
+		startpointer = a->vbopointer[l];
+#endif		
+		glVertexAttribPointer(shader.bPos,4,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+4);
+		glVertexAttribPointer(shader.tPos,4,GL_UNSIGNED_BYTE,GL_FALSE,8,startpointer+0);
 
 		getGlError();
 		glDrawArrays(GL_TRIANGLES, 0, a->vbo_length[l]/8);
 			
 		//glDrawElements(GL_QUADS, area->vbo_created[i], GL_UNSIGNED_SHORT, 0);   //The starting point of the IBO
 		getGlError();
+	}
+	if(init) {
 		glPopMatrix();
 	}
 }
@@ -627,11 +602,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	
 	// state for rendering vbos
 	//glEnable(GL_ALPHA_TEST);
-	//glAlphaFunc(GL_GREATER, 0.3);
-	//glEnableClientState(GL_VERTEX_ARRAY);
-	//glEnableClientState(GL_NORMAL_ARRAY);
-	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);				
-	glEnableVertexAttribArray(shader.normal);
+	//glAlphaFunc(GL_GREATER, 0.3);			
 	glEnableVertexAttribArray(shader.bPos);
 	glEnableVertexAttribArray(shader.tPos);
 	getGlError();
@@ -641,11 +612,18 @@ void Renderer::render(PlayerPosition pos, double eye)
 	for(std::list<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		if(a->state >= Area::STATE_GENERATE && a->show) {
-			for(int d=0; d<DIRECTION_COUNT; d++) if(!a->dijsktra_direction_used[d]) {
-				renderArea(a,d);
-				vertex_displayed += a->polygons_count(d);
-				displayed_vbos++;
+			bool dirs[NUMBER_OF_LISTS];
+			dirs[6] = 0;
+			for(int d=0; d<DIRECTION_COUNT; d++) {
+				if(!a->dijsktra_direction_used[d]) {
+					vertex_displayed += a->polygons_count(d);
+					displayed_vbos++;
+					dirs[d] = 1;
+				} else {
+					dirs[d] = 0;
+				}
 			}
+			renderArea(a,dirs);
 		}
 	}
 	
@@ -658,10 +636,15 @@ void Renderer::render(PlayerPosition pos, double eye)
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
 	glBlendFunc(GL_ZERO, GL_ONE);
+	
+	bool dirs[NUMBER_OF_LISTS];
+	for(int d=0; d<NUMBER_OF_LISTS; d++) dirs[d] = 0;
+	dirs[6] = 1;
+	
 	for(std::list<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		if(a->state >= Area::STATE_GENERATE && a->show) {
-			renderArea(a,6);
+			renderArea(a,dirs);
 			vertex_displayed += a->polygons_count(6);
 			displayed_vbos++;
 		}
@@ -672,7 +655,7 @@ void Renderer::render(PlayerPosition pos, double eye)
 	for(std::list<Area*>::iterator it = c->map->areas_with_gllist.begin(); it != c->map->areas_with_gllist.end(); it++)	{
 		Area* a = *it;
 		if(a->state >= Area::STATE_GENERATE && a->show) {
-			renderArea(a,6);
+			renderArea(a,dirs);
 			vertex_displayed += a->polygons_count(6);
 			displayed_vbos++;
 		}
@@ -694,17 +677,13 @@ void Renderer::render(PlayerPosition pos, double eye)
 	debug_output[0] = out1.str();
 	
 	std::ostringstream out2(std::ostringstream::out);
-	out2 << "Init: " << stats[0] << ", Generate: " << stats[1] << ", Solid: " << stats[2] << ", Transparent: " << stats[3];
+	out2 << "Init: " << int(stats[0]) << ", Generate: " << int(stats[1]) << ", Solid: " << int(stats[2]) << ", Transparent: " << int(stats[3]);
 	debug_output[1] = out2.str();
 	
 	glUseProgram(0);
 }
 
 void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
-	glDisable(GL_LIGHT1);
-	glDisable(GL_LIGHTING);
-	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
-
 	if(highlightWholePlane)
 		glDisable(GL_DEPTH_TEST);
 	else
@@ -724,11 +703,6 @@ void Renderer::highlightBlockDirection(BlockPosition block, DIRECTION direct){
 	glDisable(GL_BLEND);
 	
 	glEnable(GL_DEPTH_TEST);
-	
-	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
-
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHTING);
 }
 
 void Renderer::renderObjects() {
@@ -746,17 +720,18 @@ void Renderer::renderObjects() {
 			glBegin( GL_QUADS );
 
 			for(int i=0; i<DIRECTION_COUNT; i++) {
-				glVertexAttrib1f( shader.normal,i);
 				for(int point=0; point < POINTS_PER_POLYGON; point++) {
-					glVertexAttrib3f( shader.tPos,
+					glVertexAttrib4f( shader.tPos,
 						TEXTUR_POSITION_OF_DIRECTION[i][point][0],
 						TEXTUR_POSITION_OF_DIRECTION[i][point][1],
-						(*it)->tex
+						(*it)->tex,
+						i
 					);
-					glVertexAttrib3f( shader.bPos,
+					glVertexAttrib4f( shader.bPos,
 						(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.1,
 						(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.1,
-						(POINTS_OF_DIRECTION[i][point][2]*2-1)*0.1
+						(POINTS_OF_DIRECTION[i][point][2]*2-1)*0.1,
+						1.0
 					);
 				}
 			}
@@ -787,17 +762,18 @@ void Renderer::renderObjects() {
 				glBegin( GL_QUADS );
 				
 				for(int i=0; i<DIRECTION_COUNT; i++) {
-					glVertexAttrib1f( shader.normal,i);
 					for(int point=0; point < POINTS_PER_POLYGON; point++) {
-						glVertexAttrib3f( shader.tPos,
+						glVertexAttrib4f( shader.tPos,
 							TEXTUR_POSITION_OF_DIRECTION[i][point][0],
 							TEXTUR_POSITION_OF_DIRECTION[i][point][1],
-							tex
+							tex,
+							i
 						);
-						glVertexAttrib3f( shader.bPos,
+						glVertexAttrib4f( shader.bPos,
 							(POINTS_OF_DIRECTION[i][point][0]*2-1)*0.6/2,
 							(POINTS_OF_DIRECTION[i][point][1]*2-1)*0.6/2,
-							(POINTS_OF_DIRECTION[i][point][2]*2-1)*1.5/2-0.5
+							(POINTS_OF_DIRECTION[i][point][2]*2-1)*1.5/2-0.5,
+							1.0
 						);
 					}
 				}
