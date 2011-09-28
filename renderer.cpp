@@ -516,6 +516,12 @@ void Renderer::generateViewPort(PlayerPosition pos) {
 
 bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 	
+	if ((apos.x + AREASIZE_X/2 - ppos.x) * (apos.x + AREASIZE_X/2 - ppos.x)
+	+(apos.y + AREASIZE_Y/2 - ppos.y) * (apos.y + AREASIZE_Y/2 - ppos.y)
+	+(apos.z + AREASIZE_Z/2 - ppos.z) * (apos.z + AREASIZE_Z/2 - ppos.z)
+	> AREASIZE_X*AREASIZE_X*(visualRange+0.866)*(visualRange+0.866))
+		return 0;
+	
 	Matrix<double,1,3> pos;
 	pos.data[0][0] = apos.x - ppos.x + AREASIZE_X/2;
 	pos.data[0][1] = apos.y - ppos.y + AREASIZE_Y/2;
@@ -530,8 +536,7 @@ bool Renderer::areaInViewport(BlockPosition apos, PlayerPosition ppos) {
 //	erg.to_str();
 //	std::cout << std::endl;
 	
-	return (erg.data[0][0] > - AREASIZE_X/2*1.7321) 				// nicht hinter einem
-	    && (erg.data[0][0] < AREASIZE_X*(visualRange+0.866))	// sichtweite
+	return (erg.data[0][0] > -AREASIZE_X/2*1.7321) 				// nicht hinter einem
 		 && (abs(erg.data[0][1])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < 1.5*(double(c->ui->screenX) / c->ui->screenY) )	// seitlich ausm sichtbereich
 		 && (abs(erg.data[0][2])/(abs(erg.data[0][0])+AREASIZE_X*1.7321) < 1.5 ) // oben/unten aus dem Bildbereich
 		 ;
