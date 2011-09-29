@@ -66,6 +66,9 @@ struct ActionEvent {
 		//flying
 		PRESS_FLY, RELEASE_FLY,
 
+		//autowalk
+		PRESS_TOGGLE_WALK, RELEASE_TOGGLE_WALK,
+
 		//Select a Material
 		SELECT_MATERIAL,
 	} name;
@@ -191,6 +194,7 @@ public:
 	bool moveFast;
 	bool fastPressed;
 	bool throwPressed;
+	bool autoWalk;
 
 	void calcBuilding();
 	void calcNewSpeed();

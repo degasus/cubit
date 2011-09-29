@@ -33,6 +33,7 @@ UInterface::UInterface(Controller *controller)
 	fadingProgress = 0;
 	lastMaterial = 1;
 	musicPlaying = false;
+	debugBar = false;
 	lastframe = 0;
 }
 
@@ -157,6 +158,8 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	k_selMat			= c["k_selMat"].as<int>();
 	k_quit			= c["k_quit"].as<int>();
 	k_music			= c["k_music"].as<int>();
+	k_toggle_debug	= c["k_toggle_debug"].as<int>();
+	k_toggle_walk	= c["k_toggle_walk"].as<int>();
 
 	turningSpeed	= c["turningSpeed"].as<double>();
 }
@@ -246,7 +249,7 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	int nextMat;
 
 	int code = (int)e.keysym.sym;
-	//std::cout << "KeyPressed: " << code << std::endl;
+	std::cout << "KeyPressed: " << code << std::endl;
 
 	if(code == k_forward){
 		ae.name = ActionEvent::PRESS_FORWARD;
@@ -284,6 +287,15 @@ void UInterface::handleKeyDownEvents(SDL_KeyboardEvent e)
 	if(code == k_fly){
 		ae.name = ActionEvent::PRESS_FLY;
 	}
+	if(code == k_toggle_walk){
+		ae.name = ActionEvent::PRESS_TOGGLE_WALK;
+	}
+	if(code == k_toggle_debug && f_key_pressed){
+		debugBar = !debugBar;
+	}
+	if(code == 306){ //F-Key
+		f_key_pressed = true;
+	}
 	if(code == k_nextMat){
 		ae.name = ActionEvent::SELECT_MATERIAL;
 		ae.iValue = c->movement->getNextAvailableMaterial(c->movement->getSelectedMaterial());
@@ -315,7 +327,7 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	ae.name = ActionEvent::NONE;
 
 	int code = (int)e.keysym.sym;
-	//std::cout << "KeyReleased: " << code << std::endl;
+	std::cout << "KeyReleased: " << code << std::endl;
 
 	if(code == k_forward){
 		ae.name = ActionEvent::RELEASE_FORWARD;
@@ -340,6 +352,12 @@ void UInterface::handleKeyUpEvents(SDL_KeyboardEvent e)
 	}
 	if(code == k_duck){
 		ae.name = ActionEvent::RELEASE_DUCK;
+	}
+	if(code == k_toggle_walk){
+		ae.name = ActionEvent::RELEASE_TOGGLE_WALK;
+	}
+	if(code == 306){ //F-Key
+		f_key_pressed = false;
 	}
 //#ifndef _WIN32
 	if(code == k_music){
@@ -658,7 +676,7 @@ void UInterface::drawHUD(int time) {
 	
 	//a += 0.1f;
 	
-	if(sandboxMode) {
+	if(debugBar) {
 		
 		glDisable(GL_LIGHT1);
 		glDisable(GL_LIGHT2);
@@ -685,12 +703,12 @@ void UInterface::drawHUD(int time) {
 			glVertex3f(0.0, screenY-120, 0.0);
 			glVertex3f(screenX, screenY-120, 0.0);
 			glVertex3f(screenX, screenY-0.0, 0.0);
-			
 		glEnd();
+
 		glColor4f(0.0,0.0,0.0,1.0);
 		
 		int progress = c->movement->getCurrentRemoveProgress();
-		if(progress > 0){
+		if(progress > 0) {
 			std::string output = boost::lexical_cast<std::string>(progress) + "%";
 			renderText(20, 20, output.c_str());
 		}

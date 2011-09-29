@@ -105,6 +105,10 @@ private:
 	int k_quit;
 	int k_catchMouse;
 	int k_music;
+	int k_toggle_walk;
+	int k_toggle_debug;
+	bool f_key_pressed;
+	bool debugBar;
 
 	//HUD
 	double cubeTurn[NUMBER_OF_MATERIALS];

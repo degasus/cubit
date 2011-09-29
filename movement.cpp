@@ -36,6 +36,7 @@ Movement::Movement(Controller* controller)
 	moveFast = false;
 	isPointingOn = false;
 	enableFly = false;
+	autoWalk = false;
 	lastBuild = 0;
 	lastRemove = 0;
 	normalMaxRemove = 400;
@@ -200,7 +201,7 @@ void Movement::calcCharacter()
 		walkDirection -= leftDir*speedRight;
 	}
 	
-	if (forwardPressed || backwardsPressed){
+	if (forwardPressed || backwardsPressed ||autoWalk){
 		walkDirection += forwardDir*speedForward;
 	}
 
@@ -274,6 +275,7 @@ void Movement::performAction(ActionEvent event)
 			break;
 		case ActionEvent::RELEASE_FORWARD:
 			forwardPressed = false;
+			autoWalk = 0;
 			//Steps
 			if(!duckPressed)
 				personSize = personSizeNormal;
@@ -384,6 +386,18 @@ void Movement::performAction(ActionEvent event)
 			throwPressed = false;
 			break;
 
+		case ActionEvent::PRESS_TOGGLE_WALK:
+			autoWalk = !autoWalk;
+			if(!autoWalk){
+				if(!duckPressed)
+					personSize = personSizeNormal;
+				else
+					personSize = personSizeDucked;
+			}
+			break;
+		case ActionEvent::RELEASE_TOGGLE_WALK:
+			break;
+
 		case ActionEvent::ROTATE_HORIZONTAL:
 			//std::cout << "r_hor: " << event.value << std::endl;
 			position.orientationHorizontal += event.value;
@@ -460,7 +474,7 @@ void Movement::calcDuckingAndSteps(){
 			personSize = personSizeNormal;
 	}
 	//Steps
-	if((rightPressed || leftPressed || forwardPressed || backwardsPressed) && kinCon->onGround() && !duckPressed){
+	if((rightPressed || leftPressed || forwardPressed || backwardsPressed || autoWalk) && kinCon->onGround() && !duckPressed){
 		stepProgress+=time;
 		if(stepProgress > 300){
 			stepProgress = 1;
@@ -554,7 +568,7 @@ DIRECTION Movement::calcPointingOnInBlock(PlayerPosition* posIn, BlockPosition b
 
 void Movement::calcNewSpeed()
 {
-	if(forwardPressed){
+	if(forwardPressed || autoWalk){
 		if(speedForward <= movementSpeed)
 			speedForward += accelHorizontal;
 		else
