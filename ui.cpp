@@ -718,24 +718,5 @@ void UInterface::drawHUD(int time) {
 	//reset the view
 	////////////////////////////
 	glDisable(GL_BLEND);	
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHT2);
-	glDisable(GL_LIGHT3);
-	glDisable(GL_LIGHT4);
 	glEnable(GL_DEPTH_TEST);
-	
-	glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
-
-	glDisable(GL_FOG);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	
-	glMatrixMode(GL_PROJECTION);		// Select The Projection Matrix
-	glLoadIdentity();					// Reset The Projection Matrix
-	
-	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(angleOfVision, (GLfloat) screenX / (GLfloat) screenY, 0.01f, (visualRange>0?visualRange:1.0) * AREASIZE_X);
-	
-	glMatrixMode(GL_MODELVIEW);	// Select The Modelview Matrix
-	glLoadIdentity();					// Reset The Projection Matrix
 }
