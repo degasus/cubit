@@ -32,6 +32,8 @@ public:
 	void config(const boost::program_options::variables_map &c);
 	
 	void run();
+
+	void show_message(std::string msg);
 	
 	//Text
 	FTFont *font;
@@ -118,7 +120,11 @@ private:
 	//Music
 	Mix_Music *ingameMusic;
 	bool musicPlaying;
-	
+
+	//Message
+	int cur_msg_timeout;
+	int msg_display_time;
+	std::string msg;
 	
 	float stats[4];
 	std::string maps_debug;

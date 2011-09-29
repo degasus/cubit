@@ -23,8 +23,6 @@ UInterface::UInterface(Controller *controller)
 		printf("Unable to initialize SDL-NET: %s\n", SDLNet_GetError());
 	}
 	
-
-	
 	c = controller;
 	done = 0;
 	catchMouse = 1;
@@ -35,6 +33,8 @@ UInterface::UInterface(Controller *controller)
 	musicPlaying = false;
 	debugBar = false;
 	lastframe = 0;
+	cur_msg_timeout = 10000;
+	msg = "Welcome to Cubit! Check out http://www.cubit-project.com/";
 }
 
 void UInterface::init()
@@ -162,6 +162,8 @@ void UInterface::config(const boost::program_options::variables_map &c)
 	k_toggle_walk	= c["k_toggle_walk"].as<int>();
 
 	turningSpeed	= c["turningSpeed"].as<double>();
+
+	msg_display_time= c["msg_display_time"].as<int>();
 }
 
 
@@ -503,6 +505,11 @@ void UInterface::handleMouseEvents(SDL_MouseMotionEvent e)
 	}
 }
 
+void UInterface::show_message(std::string msg) {
+	cur_msg_timeout = msg_display_time;
+	this->msg = msg;
+}
+
 //float a = -10.0;
 
 void UInterface::drawHUD(int time) {
@@ -730,6 +737,28 @@ void UInterface::drawHUD(int time) {
 		std::ostringstream out(std::ostringstream::out);
 		out << "Movement: " << int(stats[0]) << ", Map: " << int(stats[1]) << ", Renderer: " << int(stats[2]) << ", HUD: " << int(stats[3]);
 		renderText(20,-150, out.str().c_str());
+	}
+
+	if(cur_msg_timeout > 0){
+		glLoadIdentity();
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_LIGHTING);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4f(1.0,1.0,1.0,0.5);
+		
+		glBegin(GL_QUADS);
+			glVertex3f(0.0, 70.0, 0.0);
+			glVertex3f(0.0, 40.0, 0.0);
+			glVertex3f(screenX, 40.0, 0.0);
+			glVertex3f(screenX, 70.0, 0.0);
+		glEnd();
+
+		glColor4f(0.0,0.0,0.0,1.0);
+
+		renderText(20,50, msg.c_str());
+
+		cur_msg_timeout -= time;
 	}
 	
 	/////////////////////////////

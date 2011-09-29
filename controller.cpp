@@ -132,6 +132,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		
 		//UI
 		("highlightWholePlane", po::value<bool>()->default_value(1), "highlight the pointing on plane without depth test")
+		("msg_display_time", po::value<int>()->default_value(3000), "Time to display messages in milliseconds")
 
 		//Keys
 		("k_forward", po::value<int>()->default_value(119), "KeyCode for moving forward (W)")

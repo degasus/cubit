@@ -334,6 +334,7 @@ void Map::setPosition(PlayerPosition pos)
 	while(!network->recv_hello_empty()){
 		str = network->recv_hello(&id);
 		otherPlayers[id] = OtherPlayer(PlayerPosition(), str, 0);
+		c->ui->show_message(str + " joined the game!");
 	}
 
 	while(!network->recv_player_quit_empty()){
@@ -341,6 +342,7 @@ void Map::setPosition(PlayerPosition pos)
 		itOtherPlayers = otherPlayers.find(id);
 		if(itOtherPlayers != otherPlayers.end()) {
 			itOtherPlayers->second.visible = 0;
+			c->ui->show_message(itOtherPlayers->second.name + " left the game!");
 		}
 	}
 	
