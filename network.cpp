@@ -4,7 +4,7 @@
 #include "network.h"
 #include <assert.h>
 
-int Client::next_client_id = 0;
+int Client::next_client_id = 1;
 
 // Client
 Network::Network ( std::string hostname, std::string nick, int port ) {
