@@ -143,7 +143,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("k_catchMouse", po::value<int>()->default_value(109), "KeyCode for catching mouse (M)")
 		("k_jump", po::value<int>()->default_value(32), "KeyCode for jumping (Space)")
 		("k_throw", po::value<int>()->default_value(116), "KeyCode for throwing blocks (T)")
-		("k_toggle_debug", po::value<int>()->default_value(111), "KeyCode for enabling/disabling debug bar (F3) - only F-Keys possible")
+		("k_toggle_debug", po::value<int>()->default_value(284), "KeyCode for enabling/disabling debug bar (F3) - only F-Keys possible")
 		("k_toggle_walk", po::value<int>()->default_value(113), "KeyCode for enabling/disabling auto walk (Q)")
 		("k_fly", po::value<int>()->default_value(60), "KeyCode for enabling/disabling fly (<)")
 		("k_duck", po::value<int>()->default_value(304), "KeyCode for ducking (Left-Shift)")

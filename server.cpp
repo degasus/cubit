@@ -109,6 +109,7 @@ void Server::run() {
 	std::map<int, Player >::iterator itclients;
 	std::set<int>::iterator it2;
 	std::string nick;
+	Player p;
 
 	while(!stop) {
 		SDL_Delay(10);
@@ -185,7 +186,7 @@ void Server::run() {
 					to_delete.push(it->first);
 				}
 			}
-			std::cout << "delete areas: " << to_delete.size() << " because of player " << connection << std::endl;
+			
 			while(!to_delete.empty()) {
 				joined_clients.erase(to_delete.front());
 				to_delete.pop();
@@ -195,11 +196,14 @@ void Server::run() {
 				network->send_player_quit(connection, itclients->first);
 			}
 			
-			Player p = clients.find(connection)->second;
+			itclients = clients.find(connection);
+			if(itclients != clients.end())
+			  p = itclients->second;
+			
+			std::cout << "delete areas: " << to_delete.size() << " because of player " 
+			<< connection << "(" << p.nick << ")" << std::endl;
+			
 			clients.erase(connection);
-			/*FIXME for(itclients = clients.begin(); itclients != clients.end(); itclients++) {
-				network->send_player_quit(p.playerid, *itclients->first);
-			}*/
 		}
 		
 		while(!network->recv_player_position_empty()){

@@ -569,7 +569,7 @@ void UInterface::drawHUD(int time) {
 	
 	glDisable(GL_BLEND);
 
-	cubeTurn[c->movement->getSelectedMaterial()] += (250/1000.)*time;
+	cubeTurn[c->movement->getSelectedMaterial()] += (500/1000.)*time;
 	if(cubeTurn[c->movement->getSelectedMaterial()] > 360)
 		cubeTurn[c->movement->getSelectedMaterial()] -= 360;
 
