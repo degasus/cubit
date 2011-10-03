@@ -99,14 +99,14 @@ public:
 	
 	~Network();
 	
-	void send_get_area(BlockPosition pos, int revision=0, int connection=0);
-	void send_push_area(BlockPosition pos, int revision, char* data, int length=AREASIZE, bool compressed=false, int connection=0);
-	void send_join_area(BlockPosition pos, int revision=0, int connection=0);
-	void send_leave_area(BlockPosition pos, int connection=0);
-	void send_update_block(BlockPosition pos, Material m, int revision=0, int connection=0);
-	void send_player_position(PlayerPosition pos, int playerid=0, int connection=0);
-	void send_hello(std::string pos, int playerid=0, int connection=0);
-	void send_player_quit(int playerid=0, int connection=0);
+	void send_get_area(BlockPosition pos, int revision=0, int connection=1);
+	void send_push_area(BlockPosition pos, int revision, char* data, int length=AREASIZE, bool compressed=false, int connection=1);
+	void send_join_area(BlockPosition pos, int revision=0, int connection=1);
+	void send_leave_area(BlockPosition pos, int connection=1);
+	void send_update_block(BlockPosition pos, Material m, int revision=0, int connection=1);
+	void send_player_position(PlayerPosition pos, int playerid=0, int connection=1);
+	void send_hello(std::string pos, int playerid=0, int connection=1);
+	void send_player_quit(int playerid=0, int connection=1);
 	
 	///////////////////////
 	
