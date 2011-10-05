@@ -35,6 +35,8 @@ public:
 	Movement *movement;
 	Map *map;
 	
+	std::string find_file(std::string str);
+	
 	
 private:
 	

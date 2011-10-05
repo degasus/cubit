@@ -237,6 +237,7 @@ void Map::setPosition(PlayerPosition pos)
 		if(it != areas.end() && it->second->state == Area::STATE_NET_LOAD) {
 			a = it->second;
 			if(bytes){
+				//std::cout << "cache miss: " << a->pos.to_string() << std::endl;
 				a->revision = rev;
 				a->allocm();
 				memcpy(a->m, buffer, bytes);
@@ -247,8 +248,8 @@ void Map::setPosition(PlayerPosition pos)
 				if(storeMaps) {
 					to_save_hdd.push(a);
 				}
-			}
-			else if(rev>0){
+			} else if(rev>0){
+				//std::cout << "empty: " << a->pos.to_string() << std::endl;
 				a->empty = 1;
 				a->revision = rev;
 				
@@ -256,6 +257,7 @@ void Map::setPosition(PlayerPosition pos)
 					to_save_hdd.push(a);
 				}
 			} else {
+				//std::cout << "cache hit: " << a->pos.to_string() << std::endl;
 			}
 			for (int i=0; i<DIRECTION_COUNT; i++)
 				if (a->next[i])

@@ -1,4 +1,19 @@
-cubit (0.0.5) UNRELEASED; urgency=low
+cubit (0.0.6) UNREALEASED; urgency=low
+
+  New features:
+  * selfwritten shader, so better fog
+  * correct textures
+  * you can see playernames
+  
+  Tweak:
+  * faster generator
+
+  Bugfixes:
+  * i can see dead people
+
+ -- Markus Wick <markus@selfnet.de>  Wed, 05 Oct 2011 10:43:42 +0200
+
+cubit (0.0.5) unstable; urgency=low
 
   New features:
   * network (only) support

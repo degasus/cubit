@@ -187,3 +187,22 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		}
 	}
 }
+
+std::string Controller::find_file(std::string str) {
+	std::ifstream i;
+	i.open(str.c_str());
+	if(i.is_open()) return str;
+	
+	i.open((vm["localDirectory"].as<fs::path>() / str).c_str());
+	if(i.is_open()) return (vm["localDirectory"].as<fs::path>() / str).string();
+	
+	i.open((vm["workingDirectory"].as<fs::path>() / str).c_str());
+	if(i.is_open()) return (vm["workingDirectory"].as<fs::path>() / str).string();
+	
+	i.open((vm["dataDirectory"].as<fs::path>() / str).c_str());
+	if(i.is_open()) return (vm["dataDirectory"].as<fs::path>() / str).string();
+	
+	std::cout << "File not found: " << str << std::endl;
+	return "";
+}
+
