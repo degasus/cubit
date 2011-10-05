@@ -102,7 +102,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 	
 		("offset", po::value<double>()->default_value(0.3), "offset for horizontal collision detection")
 		("offsetAbove", po::value<double>()->default_value(0.1f), "offset above person for vertical collision detection")
-		("accelHorizontal", po::value<double>()->default_value(0.04), "accelleration in horizontal diretion")
+		("accelHorizontal", po::value<double>()->default_value(1.0), "accelleration in horizontal diretion")
 		("accelVertical", po::value<double>()->default_value(0.016), "accelleration in vertical diretion")
 		("personSizeNormal", po::value<double>()->default_value(1.5), "normal size of person (should be between 1.01 and 1.99)")
 		("personSizeDucked", po::value<double>()->default_value(1.2), "ducked size of person (should be between 1.01 and 1.99 && < personSizeNormal)")

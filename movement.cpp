@@ -567,32 +567,34 @@ DIRECTION Movement::calcPointingOnInBlock(PlayerPosition* posIn, BlockPosition b
 
 void Movement::calcNewSpeed()
 {
+	float accel = accelHorizontal*time/1000;
+	
 	if(forwardPressed || autoWalk){
-		speedForward = std::max(speedForward-accelHorizontal, std::min(speedForward+accelHorizontal, movementSpeed));
+		speedForward = std::max(speedForward-accel, std::min(speedForward+accel, movementSpeed));
 	}
 	else if(speedForward > 0){
-		speedForward = std::max(speedForward-accelHorizontal, 0.0f);
+		speedForward = std::max(speedForward-accel, 0.0f);
 	}
 	
 	if(backwardsPressed){
-		speedForward = std::min(speedForward+accelHorizontal, std::max(speedForward-accelHorizontal, -movementSpeed));
+		speedForward = std::min(speedForward+accel, std::max(speedForward-accel, -movementSpeed));
 	}
 	else if(speedForward < 0){
-		speedForward = std::min(speedForward+accelHorizontal, 0.0f);
+		speedForward = std::min(speedForward+accel, 0.0f);
 	}
 	
 	if(rightPressed){
-		speedRight = std::max(speedRight-accelHorizontal, std::min(speedRight+accelHorizontal, movementSpeed));
+		speedRight = std::max(speedRight-accel, std::min(speedRight+accel, movementSpeed));
 	}
 	else if(speedRight > 0){
-		speedRight = std::max(speedRight-accelHorizontal, 0.0f);
+		speedRight = std::max(speedRight-accel, 0.0f);
 	}
 	
 	if(leftPressed){
-		speedRight = std::min(speedRight+accelHorizontal, std::max(speedRight-accelHorizontal, -movementSpeed));
+		speedRight = std::min(speedRight+accel, std::max(speedRight-accel, -movementSpeed));
 	}
 	else if(speedRight < 0){
-		speedRight = std::min(speedRight+accelHorizontal, 0.0f);
+		speedRight = std::min(speedRight+accel, 0.0f);
 	}
 }
 

@@ -3,10 +3,12 @@ cubit (0.0.6) UNREALEASED; urgency=low
   New features:
   * selfwritten shader, so better fog
   * correct textures
-  * you can see playernames
+  * playernames
+  * messages
   
   Tweak:
   * faster generator
+  * gfx memory improvement
 
   Bugfixes:
   * i can see dead people
