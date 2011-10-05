@@ -110,10 +110,12 @@ void Server::run() {
 	std::set<int>::iterator it2;
 	std::string nick;
 	Player p;
+	int maxobjects;
 
 	while(!stop) {
 		SDL_Delay(10);
 
+		maxobjects = 10;
 		while(!network->recv_get_area_empty()){
 			bPos = network->recv_get_area(&rev, &connection);
 			bytes = harddisk->readArea(bPos, buffer, &rev2, true, 64*1024+3);
@@ -126,11 +128,16 @@ void Server::run() {
 				network->send_push_area(bPos, 0, 0, 0, true, connection);
 			else
 				network->send_push_area(bPos, rev2, buffer, bytes, true, connection);
+			if(maxobjects-- <= 0) break;
 		}
 		
-		while(!network->recv_push_area_empty())
+		maxobjects = 100;
+		while(!network->recv_push_area_empty()) {
 			network->recv_push_area(&bPos, buffer, &rev, 0, true, &connection);
+			if(maxobjects-- <= 0) break;
+		}
 		
+		maxobjects = 10;
 		while(!network->recv_join_area_empty()){
 			bPos = network->recv_join_area(&rev, &connection);
 			joined_clients[bPos].insert(connection);
@@ -144,8 +151,10 @@ void Server::run() {
 				network->send_push_area(bPos, 0, 0, 0, true, connection);
 			else
 				network->send_push_area(bPos, rev2, buffer, bytes, true, connection);
+			if(maxobjects-- <= 0) break;
 		}
 		
+		maxobjects = 100;
 		while(!network->recv_leave_area_empty()){
 			bPos = network->recv_leave_area(&connection);
 			it = joined_clients.find(bPos);
@@ -155,8 +164,10 @@ void Server::run() {
 					joined_clients.erase(it);
 				}
 			}
+			if(maxobjects-- <= 0) break;
 		}
 		
+		maxobjects = 10;
 		while(!network->recv_update_block_empty()){
 			m = network->recv_update_block(&bPos, &rev, &connection);
 			bytes = harddisk->readArea(bPos.area(),buffer2, &rev);
@@ -174,8 +185,10 @@ void Server::run() {
 					network->send_update_block(bPos, m, rev+1, *it2);
 				}
 			}
+			if(maxobjects-- <= 0) break;
 		}
 		
+		maxobjects = 10;
 		while(!network->recv_player_quit_empty()){
 			connection = network->recv_player_quit();
 			std::queue<BlockPosition> to_delete;
@@ -204,8 +217,10 @@ void Server::run() {
 			}
 			
 			clients.erase(connection);
+			if(maxobjects-- <= 0) break;
 		}
 		
+		maxobjects = 100;
 		while(!network->recv_player_position_empty()){
 			pPos = network->recv_player_position(&id, &connection);
 			it = joined_clients.find(pPos.block().area());
@@ -215,8 +230,10 @@ void Server::run() {
 						network->send_player_position(pPos, connection, *it2);
 				}
 			}
+			if(maxobjects-- <= 0) break;
 		}
 		
+		maxobjects = 100;
 		while(!network->recv_hello_empty()){
 			nick = network->recv_hello(&id, &connection);
 			for(itclients = clients.begin(); itclients != clients.end(); itclients++) {
@@ -224,6 +241,7 @@ void Server::run() {
 				network->send_hello(itclients->second.nick, itclients->second.playerid, connection);
 			}
 			clients[connection] = Player(nick, connection);
+			if(maxobjects-- <= 0) break;
 		}
 
 	}

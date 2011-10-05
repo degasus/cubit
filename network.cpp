@@ -331,7 +331,9 @@ void Network::send_queues() {
 	char buffer[64*1024+3];
 	std::map<int, Client*>::iterator it;
 	int len;
+	int maxobjects;
 	
+	maxobjects = 100;
 	buffer[0] = (char)GET_AREA;
 	SDLNet_Write16(16,buffer+1);
 	while(!queue_send_get_area.empty()) {
@@ -348,8 +350,10 @@ void Network::send_queues() {
 		}
 		SDL_LockMutex(mutex);
 		queue_send_get_area.pop();
+		if(maxobjects-- <= 0) break;
 	}
 	
+	maxobjects = 10;
 	buffer[0] = (char)PUSH_AREA;
 	while(!queue_send_push_area.empty()) {
 		StructPushArea s = queue_send_push_area.front();
@@ -368,8 +372,10 @@ void Network::send_queues() {
 		}
 		SDL_LockMutex(mutex);
 		queue_send_push_area.pop();
+		if(maxobjects-- <= 0) break;
 	}
 	
+	maxobjects = 100;
 	buffer[0] = (char)JOIN_AREA;
 	SDLNet_Write16(16,buffer+1);
 	while(!queue_send_join_area.empty()) {
@@ -386,8 +392,10 @@ void Network::send_queues() {
 		}
 		SDL_LockMutex(mutex);
 		queue_send_join_area.pop();
+		if(maxobjects-- <= 0) break;
 	}
 	
+	maxobjects = 100;
 	buffer[0] = (char)LEAVE_AREA;
 	SDLNet_Write16(12,buffer+1);
 	while(!queue_send_leave_area.empty()) {
@@ -403,8 +411,10 @@ void Network::send_queues() {
 		}
 		SDL_LockMutex(mutex);
 		queue_send_leave_area.pop();
+		if(maxobjects-- <= 0) break;
 	}
 	
+	maxobjects = 100;
 	buffer[0] = (char)UPDATE_BLOCK;
 	SDLNet_Write16(17,buffer+1);
 	while(!queue_send_update_block.empty()) {
@@ -422,8 +432,10 @@ void Network::send_queues() {
 		}
 		SDL_LockMutex(mutex);
 		queue_send_update_block.pop();
+		if(maxobjects-- <= 0) break;
 	}
 	
+	maxobjects = 100;
 	buffer[0] = (char)PLAYER_POSITION;
 	SDLNet_Write16(44,buffer+1);
 	while(!queue_send_player_position.empty()) {
@@ -442,8 +454,10 @@ void Network::send_queues() {
 		}
 		SDL_LockMutex(mutex);
 		queue_send_player_position.pop();
+		if(maxobjects-- <= 0) break;
 	}
 	
+	maxobjects = 100;
 	buffer[0] = (char)HELLO;
 	while(!queue_send_hello.empty()) {
 		StructHello s = queue_send_hello.front();
@@ -466,8 +480,10 @@ void Network::send_queues() {
 		SDL_LockMutex(mutex);
 		queue_send_hello.pop();
 		std::cout << "hello'd to server with " << buffer+7 << std::endl;
+		if(maxobjects-- <= 0) break;
 	}
 
+	maxobjects = 100;
 	buffer[0] = (char)PLAYER_QUIT;
 	while(!queue_send_player_quit.empty()) {
 		StructPlayerQuit s = queue_send_player_quit.front();
@@ -484,6 +500,7 @@ void Network::send_queues() {
 		}
 		SDL_LockMutex(mutex);
 		queue_send_player_quit.pop();
+		if(maxobjects-- <= 0) break;
 	}
 		
 	SDL_UnlockMutex(mutex);
