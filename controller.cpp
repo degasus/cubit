@@ -66,7 +66,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 	common.add_options()
 		("help", "produce this short help message, add --verbose for the full help page")
 		("fullscreen", po::value<bool>()->default_value(0), "start in fullscreen")
-		("visualRange", po::value<int>()->default_value(4), "maximal distance for rendering")
+		("visualRange", po::value<int>()->default_value(8), "maximal distance for rendering")
 		//Net
 		("server", po::value<std::string>()->default_value("cubit-project.com"), "Server to connect to.")
 #ifdef _WIN32
