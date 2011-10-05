@@ -656,12 +656,14 @@ void UInterface::drawHUD(int time) {
 		
 		glPopMatrix();
 		if(!sandboxMode){
+			glUseProgram(0);
 			glDisable(GL_LIGHT3);
 			glEnable(GL_LIGHT2);
 			glScalef(1.0/cubeSize,1.0/cubeSize,1.0/cubeSize);
 			glColor4f(0.0f, 0.0f, 0.0f, 0.9f);
 			renderText(-cubeSize*0.8,-cubeSize*0.8, boost::lexical_cast<std::string>( c->movement->getCountInInventory(mat) ).c_str() );
 			startMatSBMode = c->movement->getNextAvailableMaterial(startMatSBMode);
+			glUseProgram(c->renderer->shader.solid_po);
 		}
 	}
 	

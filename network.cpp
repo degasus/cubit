@@ -28,11 +28,11 @@ Network::Network ( int port ) {
 	serversocket_is_connected = 1;
 	IPaddress ip;
 	
-	/*OBSOLETE? if(SDLNet_ResolveHost(&ip,0,port)==-1) {
+	if(SDLNet_ResolveHost(&ip,0,port)==-1) {
 		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
 		pressAnyKey();
 		exit(1);
-	}*/
+	}
 
 	server_socket=SDLNet_TCP_Open(&ip);
 	if(!server_socket) {

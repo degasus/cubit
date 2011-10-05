@@ -219,7 +219,7 @@ void Map::setPosition(PlayerPosition pos)
 	
 	BlockPosition bPos;
 	PlayerPosition pPos;
-	char buffer[64*1024+3];
+	char buffer[AREASIZE];
 	int rev, rev2, bytes, id;
 	Material m;
 	std::map<BlockPosition, Area* >::iterator it;
