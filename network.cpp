@@ -9,34 +9,16 @@ int Client::next_client_id = 1;
 // Client
 Network::Network ( std::string hostname, std::string nick, int port ) {
 	serversocket_is_connected = 0;
-	Client *client = new Client();
-	IPaddress ip;
 	this->nick = nick;
-	
-	if(SDLNet_ResolveHost(&ip,hostname.c_str(),port)==-1) {
-		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
+	if(connect(hostname, port)){
+		/*if(connect("localhost", port)){
+			system("\"C:\\Program Files\\Cubit\\cubit_server.exe\"");
+			if(connect("localhost", port))
+				exit(1);
+		}*/
 		exit(1);
 	}
 
-	client->socket=SDLNet_TCP_Open(&ip);
-	if(!client->socket) {
-		printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
-		exit(2);
-	}
-
-	set_socket=SDLNet_AllocSocketSet(16);
-	if(!set_socket) {
-		printf("SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
-		exit(1); //most of the time this is a major error, but do what you want.
-	}
-
-	if(SDLNet_TCP_AddSocket(set_socket,client->socket)==-1) {
-		printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
-		// perhaps you need to restart the set and make it bigger...
-	}
-	
-	client_sockets.push(client);
-	client_map[client->clientid] = client;
 	init();
 	send_hello(nick);
 }
@@ -46,25 +28,29 @@ Network::Network ( int port ) {
 	serversocket_is_connected = 1;
 	IPaddress ip;
 	
-	if(SDLNet_ResolveHost(&ip,0,port)==-1) {
+	/*OBSOLETE? if(SDLNet_ResolveHost(&ip,0,port)==-1) {
 		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
+		pressAnyKey();
 		exit(1);
-	}
+	}*/
 
 	server_socket=SDLNet_TCP_Open(&ip);
 	if(!server_socket) {
 		printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
+		pressAnyKey();
 		exit(2);
 	}
 	
 	set_socket=SDLNet_AllocSocketSet(MAXCLIENTS);
 	if(!set_socket) {
 		printf("SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
+		pressAnyKey();
 		exit(1); //most of the time this is a major error, but do what you want.
 	}
 
 	if(SDLNet_TCP_AddSocket(set_socket,server_socket)==-1) {
 		printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
+		pressAnyKey();
 		// perhaps you need to restart the set and make it bigger...
 	}
 	init();
@@ -86,6 +72,46 @@ Network::~Network() {
 	SDLNet_FreeSocketSet(set_socket);
 }
 
+int Network::connect(std::string hostname, int port){
+	Client *client = new Client();
+	IPaddress ip;
+	
+	if(SDLNet_ResolveHost(&ip,hostname.c_str(),port)==-1) {
+		printf("SDLNet_ResolveHost '%s': %s\n", hostname, SDLNet_GetError());
+		delete client;
+		pressAnyKey();
+		return 1;
+	}
+
+	client->socket=SDLNet_TCP_Open(&ip);
+	if(!client->socket) {
+		printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
+		delete client;
+		pressAnyKey();
+		return 2;
+	}
+
+	set_socket=SDLNet_AllocSocketSet(16);
+	if(!set_socket) {
+		printf("SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
+		delete client;
+		pressAnyKey();
+		return 3; //most of the time this is a major error, but do what you want.
+	}
+
+	if(SDLNet_TCP_AddSocket(set_socket,client->socket)==-1) {
+		printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
+		delete client;
+		pressAnyKey();
+		return 4;
+		// perhaps you need to restart the set and make it bigger...
+	}
+	
+	client_sockets.push(client);
+	client_map[client->clientid] = client;
+
+	return 0;
+}
 
 int start_network(void *n) {
 	Network *net = (Network*)n;

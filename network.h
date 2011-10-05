@@ -135,6 +135,9 @@ private:
 	
 	// constructor
 	void init();
+
+	//connect to host
+	int connect(std::string hostname, int port=PORT);
 	
 	// get data from client
 	// if return < 0, client corrupted

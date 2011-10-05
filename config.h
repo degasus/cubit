@@ -12,6 +12,8 @@
 #define ENABLE_POLYGON_REDUCE
 #endif
 
+#include <iostream>
+
 
 
 enum Commands {
@@ -41,5 +43,10 @@ const int AREASIZE = AREASIZE_X*AREASIZE_Y*AREASIZE_Z*sizeof(Material);
 
 const int PORT = 1337;
 const int MAXCLIENTS = 256;
+
+inline void pressAnyKey(){
+	std::cout << "Press any key to continue..." << std::endl;
+	getchar();
+}
 
 #endif
