@@ -77,7 +77,7 @@ int Network::connect(std::string hostname, int port){
 	IPaddress ip;
 	
 	if(SDLNet_ResolveHost(&ip,hostname.c_str(),port)==-1) {
-		printf("SDLNet_ResolveHost '%s': %s\n", hostname, SDLNet_GetError());
+		printf("SDLNet_ResolveHost '%s': %s\n", hostname.c_str(), SDLNet_GetError());
 		delete client;
 		pressAnyKey();
 		return 1;
