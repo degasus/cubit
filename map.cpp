@@ -375,14 +375,15 @@ void Map::setPosition(PlayerPosition pos)
 				a->state = Area::STATE_NET_LOAD;
 				network->send_join_area(a->pos, a->revision);
 			}
+			inital_loaded = 1;
 		} else if(a->state >= Area::STATE_WAITING_FOR_BORDERS){
 			// add it to queue		
 			dijsktra_queue.push(a);
+			inital_loaded = 1;
 		} else {
-			std::cout << "FIXME: unknown statein initial found. state " << a->state << std::endl;
+			std::cout << "FIXME: unknown state in initial found. state " << a->state << std::endl;
 		}
 		a->dijsktra_distance = 0;
-		inital_loaded = 1;
 		dijsktra_wert++;
 		for(int d=0; d<DIRECTION_COUNT; d++)
 			a->dijsktra_direction_used[d] = 0;

@@ -186,11 +186,6 @@ void Server::run() {
 					to_delete.push(it->first);
 				}
 			}
-			
-			while(!to_delete.empty()) {
-				joined_clients.erase(to_delete.front());
-				to_delete.pop();
-			}
 
 			for(itclients = clients.begin(); itclients != clients.end(); itclients++) {
 				network->send_player_quit(connection, itclients->first);
@@ -202,6 +197,11 @@ void Server::run() {
 			
 			std::cout << "delete areas: " << to_delete.size() << " because of player " 
 			<< connection << "(" << p.nick << ")" << std::endl;
+			
+			while(!to_delete.empty()) {
+				joined_clients.erase(to_delete.front());
+				to_delete.pop();
+			}
 			
 			clients.erase(connection);
 		}
