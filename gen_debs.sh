@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export CUBITVERSION=0.0.5
+export CUBITVERSION=0.0.6
 
 
 mkdir -p debs
