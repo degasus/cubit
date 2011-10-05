@@ -127,22 +127,18 @@ void Renderer::init()
 	for(int i=1; i<NUMBER_OF_MATERIALS; i++) {
 		SDL_Surface *surface; // Gives us the information to make the texture
 		
-		fs::path filename = fs::path("tex") / (std::string("tex-") + boost::lexical_cast<std::string>(i) + ".jpg");
-		
-		if ( 	(surface = IMG_Load((dataDirectory / filename).string().c_str())) ||
-				(surface = IMG_Load((workingDirectory / filename).string().c_str())) ||
-				(surface = IMG_Load((localDirectory / filename).string().c_str())) ||
-				(surface = IMG_Load(filename.string().c_str()))
-		) {
+		std::string filename = c->find_file((fs::path("tex") / (std::string("tex-") + boost::lexical_cast<std::string>(i) + ".jpg")).string());
+
+		if ( surface = IMG_Load(filename.c_str())) {
 
 			// Check that the image's width is a power of 2
 			if ( (surface->w & (surface->w - 1)) != 0 ) {
-				printf("warning: %s's width is not a power of 2\n", filename.string().c_str());
+				printf("warning: %s's width is not a power of 2\n", filename.c_str());
 			}
 
 			// Also check if the height is a power of 2
 			if ( (surface->h & (surface->h - 1)) != 0 ) {
-				printf("warning: %s's height is not a power of 2\n", filename.string().c_str());
+				printf("warning: %s's height is not a power of 2\n", filename.c_str());
 			}
 
 			unsigned char* p = (unsigned char*)surface->pixels;
@@ -157,7 +153,7 @@ void Renderer::init()
 				
 		}
 		else {
-			printf("SDL could not load %s: %s\n", filename.string().c_str(), IMG_GetError());
+			printf("SDL could not load %s: %s\n", filename.c_str(), IMG_GetError());
 			SDL_Quit();
 		}
 
@@ -220,7 +216,7 @@ void Renderer::init()
 	const char *shader_pointer = shader_src;
 	int shader_src_length;
 	
-	std::ifstream shader_stream("shader/solid_vertex.c");
+	std::ifstream shader_stream(c->find_file((fs::path("shader") / "solid_vertex.c").string()).c_str());
 	shader_stream.read(shader_src, 16*1024);
 	shader_src_length = shader_stream.gcount();
 	
@@ -231,7 +227,7 @@ void Renderer::init()
 	getGlError("glCompileShader vs");
 	printInfoLog(shader.solid_vs);
 	
-	std::ifstream shader_stream2("shader/solid_fragment.c");
+	std::ifstream shader_stream2(c->find_file((fs::path("shader") / "solid_fragment.c").string()).c_str());
 	shader_stream2.read(shader_src, 16*1024);
 	shader_src_length = shader_stream2.gcount();
 	

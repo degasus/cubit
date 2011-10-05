@@ -196,14 +196,13 @@ void Movement::calcCharacter()
 	btVector3 walkDirection = btVector3(0.0, 0.0, 0.0);
 	
 	//rotate view
-	if (leftPressed || rightPressed)
-	{
+//	if (leftPressed || rightPressed) {
 		walkDirection -= leftDir*speedRight;
-	}
+//	}
 	
-	if (forwardPressed || backwardsPressed ||autoWalk){
+//	if (forwardPressed || backwardsPressed ||autoWalk) {
 		walkDirection += forwardDir*speedForward;
-	}
+//	}
 
 	if (jumpPressed)
 		kinCon->jump();
@@ -568,49 +567,34 @@ DIRECTION Movement::calcPointingOnInBlock(PlayerPosition* posIn, BlockPosition b
 
 void Movement::calcNewSpeed()
 {
+	float accel = accelHorizontal*time/1000;
+	
 	if(forwardPressed || autoWalk){
-		if(speedForward <= movementSpeed)
-			speedForward += accelHorizontal;
-		else
-			speedForward = movementSpeed;
+		speedForward = std::max(speedForward-accel, std::min(speedForward+accel, movementSpeed));
 	}
 	else if(speedForward > 0){
-		speedForward -= accelHorizontal;
-		if(speedForward < 0)
-			speedForward = 0;
+		speedForward = std::max(speedForward-accel, 0.0f);
 	}
+	
 	if(backwardsPressed){
-		if(speedForward >= -movementSpeed)
-			speedForward -= accelHorizontal;
-		else
-			speedForward = -movementSpeed;
+		speedForward = std::min(speedForward+accel, std::max(speedForward-accel, -movementSpeed));
 	}
 	else if(speedForward < 0){
-		speedForward += accelHorizontal;
-		if(speedForward > 0)
-			speedForward = 0;
+		speedForward = std::min(speedForward+accel, 0.0f);
 	}
+	
 	if(rightPressed){
-		if(speedRight <= movementSpeed)
-			speedRight += accelHorizontal;
-		else
-			speedRight = movementSpeed;
+		speedRight = std::max(speedRight-accel, std::min(speedRight+accel, movementSpeed));
 	}
 	else if(speedRight > 0){
-		speedRight -= accelHorizontal;
-		if(speedRight < 0)
-			speedRight = 0;
+		speedRight = std::max(speedRight-accel, 0.0f);
 	}
+	
 	if(leftPressed){
-		if(speedRight >= -movementSpeed)
-			speedRight -= accelHorizontal;
-		else
-			speedRight = -movementSpeed;
+		speedRight = std::min(speedRight+accel, std::max(speedRight-accel, -movementSpeed));
 	}
 	else if(speedRight < 0){
-		speedRight += accelHorizontal;
-		if(speedRight > 0)
-			speedRight = 0;
+		speedRight = std::min(speedRight+accel, 0.0f);
 	}
 }
 

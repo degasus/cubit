@@ -237,6 +237,7 @@ void Map::setPosition(PlayerPosition pos)
 		if(it != areas.end() && it->second->state == Area::STATE_NET_LOAD) {
 			a = it->second;
 			if(bytes){
+				//std::cout << "cache miss: " << a->pos.to_string() << std::endl;
 				a->revision = rev;
 				a->allocm();
 				memcpy(a->m, buffer, bytes);
@@ -247,8 +248,8 @@ void Map::setPosition(PlayerPosition pos)
 				if(storeMaps) {
 					to_save_hdd.push(a);
 				}
-			}
-			else if(rev>0){
+			} else if(rev>0){
+				//std::cout << "empty: " << a->pos.to_string() << std::endl;
 				a->empty = 1;
 				a->revision = rev;
 				
@@ -256,6 +257,7 @@ void Map::setPosition(PlayerPosition pos)
 					to_save_hdd.push(a);
 				}
 			} else {
+				//std::cout << "cache hit: " << a->pos.to_string() << std::endl;
 			}
 			for (int i=0; i<DIRECTION_COUNT; i++)
 				if (a->next[i])
@@ -375,14 +377,15 @@ void Map::setPosition(PlayerPosition pos)
 				a->state = Area::STATE_NET_LOAD;
 				network->send_join_area(a->pos, a->revision);
 			}
+			inital_loaded = 1;
 		} else if(a->state >= Area::STATE_WAITING_FOR_BORDERS){
 			// add it to queue		
 			dijsktra_queue.push(a);
+			inital_loaded = 1;
 		} else {
-			std::cout << "FIXME: unknown statein initial found. state " << a->state << std::endl;
+			std::cout << "FIXME: unknown state in initial found. state " << a->state << std::endl;
 		}
 		a->dijsktra_distance = 0;
-		inital_loaded = 1;
 		dijsktra_wert++;
 		for(int d=0; d<DIRECTION_COUNT; d++)
 			a->dijsktra_direction_used[d] = 0;

@@ -53,6 +53,9 @@ INSTALL( FILES ${soundfx} DESTINATION share/games/cubit/sound/fx)
 FILE(GLOB soundmusic "${CMAKE_CURRENT_SOURCE_DIR}/sound/music/*" )
 INSTALL( FILES ${soundmusic} DESTINATION share/games/cubit/sound/music)
 
+FILE(GLOB shader "${CMAKE_CURRENT_SOURCE_DIR}/shader/*" )
+INSTALL( FILES ${shader} DESTINATION share/games/cubit/shader)
+
 INSTALL( FILES logo/cubit.svg DESTINATION share/icons/hicolor/scalable/apps)
 INSTALL( FILES logo/cubit.desktop DESTINATION share/applications)
 

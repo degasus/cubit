@@ -102,7 +102,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 	
 		("offset", po::value<double>()->default_value(0.3), "offset for horizontal collision detection")
 		("offsetAbove", po::value<double>()->default_value(0.1f), "offset above person for vertical collision detection")
-		("accelHorizontal", po::value<double>()->default_value(0.04), "accelleration in horizontal diretion")
+		("accelHorizontal", po::value<double>()->default_value(1.0), "accelleration in horizontal diretion")
 		("accelVertical", po::value<double>()->default_value(0.016), "accelleration in vertical diretion")
 		("personSizeNormal", po::value<double>()->default_value(1.5), "normal size of person (should be between 1.01 and 1.99)")
 		("personSizeDucked", po::value<double>()->default_value(1.2), "ducked size of person (should be between 1.01 and 1.99 && < personSizeNormal)")
@@ -143,7 +143,7 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		("k_catchMouse", po::value<int>()->default_value(109), "KeyCode for catching mouse (M)")
 		("k_jump", po::value<int>()->default_value(32), "KeyCode for jumping (Space)")
 		("k_throw", po::value<int>()->default_value(116), "KeyCode for throwing blocks (T)")
-		("k_toggle_debug", po::value<int>()->default_value(111), "KeyCode for enabling/disabling debug bar (F3) - only F-Keys possible")
+		("k_toggle_debug", po::value<int>()->default_value(284), "KeyCode for enabling/disabling debug bar (F3) - only F-Keys possible")
 		("k_toggle_walk", po::value<int>()->default_value(113), "KeyCode for enabling/disabling auto walk (Q)")
 		("k_fly", po::value<int>()->default_value(60), "KeyCode for enabling/disabling fly (<)")
 		("k_duck", po::value<int>()->default_value(304), "KeyCode for ducking (Left-Shift)")
@@ -187,3 +187,22 @@ void Controller::parse_command_line(int argc, char *argv[]) {
 		}
 	}
 }
+
+std::string Controller::find_file(std::string str) {
+	std::ifstream i;
+	i.open(str.c_str());
+	if(i.is_open()) return str;
+	
+	i.open((vm["localDirectory"].as<fs::path>() / str).c_str());
+	if(i.is_open()) return (vm["localDirectory"].as<fs::path>() / str).string();
+	
+	i.open((vm["workingDirectory"].as<fs::path>() / str).c_str());
+	if(i.is_open()) return (vm["workingDirectory"].as<fs::path>() / str).string();
+	
+	i.open((vm["dataDirectory"].as<fs::path>() / str).c_str());
+	if(i.is_open()) return (vm["dataDirectory"].as<fs::path>() / str).string();
+	
+	std::cout << "File not found: " << str << std::endl;
+	return "";
+}
+

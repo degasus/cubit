@@ -63,18 +63,9 @@ void UInterface::init()
 	}
 	
 	// Create a pixmap font from a TrueType file.
-	font = new FTPolygonFont((dataDirectory/"fonts"/"FreeSans.ttf").string().c_str());
+	font = new FTPolygonFont(c->find_file((fs::path("fonts")/"FreeSans.ttf").string()).c_str());
 	if(font->Error()) {
-		font = new FTPolygonFont((workingDirectory/"fonts"/"FreeSans.ttf").string().c_str());
-		if(font->Error()) {
-			font = new FTPolygonFont((localDirectory/"fonts"/"FreeSans.ttf").string().c_str());
-			if(font->Error()) {
-				font = new FTPolygonFont((fs::path("fonts")/"FreeSans.ttf").string().c_str());
-				if(font->Error()) {
-					printf("Unable to open Font!\n");
-				}
-			}
-		}
+		printf("Unable to open Font!\n");
 	}
 	
 	// Set the font size
@@ -569,7 +560,7 @@ void UInterface::drawHUD(int time) {
 	
 	glDisable(GL_BLEND);
 
-	cubeTurn[c->movement->getSelectedMaterial()] += (250/1000.)*time;
+	cubeTurn[c->movement->getSelectedMaterial()] += (500/1000.)*time;
 	if(cubeTurn[c->movement->getSelectedMaterial()] > 360)
 		cubeTurn[c->movement->getSelectedMaterial()] -= 360;
 
