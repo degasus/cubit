@@ -111,9 +111,12 @@ void Server::run() {
 	std::string nick;
 	Player p;
 	int maxobjects;
+	bool wait = 0;
 
 	while(!stop) {
-		SDL_Delay(10);
+		if(wait)
+			SDL_Delay(10);
+		wait = 1;
 
 		maxobjects = 10;
 		while(!network->recv_get_area_empty()){
@@ -128,13 +131,13 @@ void Server::run() {
 				network->send_push_area(bPos, 0, 0, 0, true, connection);
 			else
 				network->send_push_area(bPos, rev2, buffer, bytes, true, connection);
-			if(maxobjects-- <= 0) break;
+			if(maxobjects-- <= 0) { wait = 0; break; }
 		}
 		
 		maxobjects = 100;
 		while(!network->recv_push_area_empty()) {
 			network->recv_push_area(&bPos, buffer, &rev, 0, true, &connection);
-			if(maxobjects-- <= 0) break;
+			if(maxobjects-- <= 0) { wait = 0; break; };
 		}
 		
 		maxobjects = 10;
@@ -151,7 +154,7 @@ void Server::run() {
 				network->send_push_area(bPos, 0, 0, 0, true, connection);
 			else
 				network->send_push_area(bPos, rev2, buffer, bytes, true, connection);
-			if(maxobjects-- <= 0) break;
+			if(maxobjects-- <= 0) { wait = 0; break; };
 		}
 		
 		maxobjects = 100;
@@ -164,7 +167,7 @@ void Server::run() {
 					joined_clients.erase(it);
 				}
 			}
-			if(maxobjects-- <= 0) break;
+			if(maxobjects-- <= 0) { wait = 0; break; };
 		}
 		
 		maxobjects = 10;
@@ -185,7 +188,7 @@ void Server::run() {
 					network->send_update_block(bPos, m, rev+1, *it2);
 				}
 			}
-			if(maxobjects-- <= 0) break;
+			if(maxobjects-- <= 0) { wait = 0; break; };
 		}
 		
 		maxobjects = 10;
@@ -217,7 +220,7 @@ void Server::run() {
 			}
 			
 			clients.erase(connection);
-			if(maxobjects-- <= 0) break;
+			if(maxobjects-- <= 0) { wait = 0; break; };
 		}
 		
 		maxobjects = 100;
@@ -230,7 +233,7 @@ void Server::run() {
 						network->send_player_position(pPos, connection, *it2);
 				}
 			}
-			if(maxobjects-- <= 0) break;
+			if(maxobjects-- <= 0) { wait = 0; break; };
 		}
 		
 		maxobjects = 100;
@@ -241,7 +244,7 @@ void Server::run() {
 				network->send_hello(itclients->second.nick, itclients->second.playerid, connection);
 			}
 			clients[connection] = Player(nick, connection);
-			if(maxobjects-- <= 0) break;
+			if(maxobjects-- <= 0) { wait = 0; break; };
 		}
 
 	}
