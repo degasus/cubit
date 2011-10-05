@@ -156,9 +156,9 @@ bool Area::hasallneighbor() {
 	if(full) return true;
 	
 	for(int i=0; i<DIRECTION_COUNT; i++) {
-		if(!next[i]) return false;
+		if(!next[i] && dijsktra_direction_used[i]) return false;
 		
-		if(next[i]->state < Area::STATE_WAITING_FOR_BORDERS) return false;
+		if(next[i] && next[i]->state < Area::STATE_WAITING_FOR_BORDERS) return false;
 	}
 	
 	return true;
