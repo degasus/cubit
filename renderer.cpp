@@ -290,8 +290,8 @@ void Renderer::generateArea(Area* area) {
 		return;
 	}
 	
-	bool generate_bullet = (c->movement->getPosition() - area->pos) < 50*50;
-	bool delete_bullet = (c->movement->getPosition() - area->pos) > 60*60;
+	bool generate_bullet = (c->movement->getPosition() - area->pos) < AREASIZE_X*AREASIZE_X;
+	bool delete_bullet = (c->movement->getPosition() - area->pos) > AREASIZE_X*AREASIZE_X*2;
 	
 	if(area->bullet_generated && delete_bullet) {
 		area->delete_collision(c->movement->dynamicsWorld);
