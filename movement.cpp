@@ -144,7 +144,7 @@ void	Movement::initPhysics(){
 	//ghost->setCcdMotionThreshold(1.0f);
 	//ghost->setCcdSweptSphereRadius(0.2f); 
 	
-	kinCon = new btKinematicCharacterController(ghost, cShape, 0.3, 2);
+	kinCon = new btKinematicCharacterController(ghost, cShape, 0.3, btVector3(0.0,0.0,2.0));
 	//kinCon->setFallSpeed(1);
 	kinCon->setMaxJumpHeight(1.1);
 
